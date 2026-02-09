@@ -1,0 +1,80 @@
+contact: TestNPC
+
+title: Start
+---
+System: "10:00 AM"
+
+TestNPC: "Hey! Good morning. I wanted to check if our test chat system is working properly."
+TestNPC: "I've prepared a bunch of messages to see how everything displays, including long texts, media bubbles, and branching choices."
+TestNPC: "Let's see if all the chat bubbles align correctly and the CG unlock feature works as intended."
+>> media npc type:image unlock:true path:TestNPC_CG1.png       // Unlockable CG for gallery
+
+-> ...                                                      // Tap to continue
+
+TestNPC: "Here's a longer message to test the text wrapping and scrolling behavior in the chat system."
+TestNPC: "We want to make sure that messages of various lengths don't break the bubble layout or overlap other UI elements. This includes messages with emojis 😊😂👍 and special characters like #, @, $, &."
+
+>> media npc type:image path:TestNPC_Smile.png              // Standard image
+>> media npc type:image unlock:true path:CGs/TestNPC_Laugh.png  // Another unlockable CG
+
+-> ...                                                      // Tap to continue
+
+TestNPC: "Now it's your turn to respond. Choose wisely, your choice will determine what happens next!"
+>> choice
+    -> "Say hello!"
+        # Player: "Hello! Testing my response now."
+        <<jump Node_Hello>>
+
+    -> "Ignore the message"
+        # Player: "..."
+        <<jump Node_Ignore>>
+
+===
+
+//=====================================
+// HELLO NODE
+//=====================================
+
+title: Node_Hello
+---
+TestNPC: "Ah, so polite! I like that. 😊"
+TestNPC: "Let's continue the test with even more text to see if everything scrolls properly."
+TestNPC: "Also, check this unlockable CG, it should appear in the gallery after this bubble."
+>> media npc type:image unlock:true path:CGs/TestNPC_Hello.png
+
+-> ...                                                      // Tap to continue
+
+Player: "Wow, that worked! The gallery is showing the CG now."
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// IGNORE NODE
+//=====================================
+
+title: Node_Ignore
+---
+TestNPC: "Oh... I guess you're busy. 😢"
+TestNPC: "It's okay. We can continue testing the system later."
+>> media npc type:image path:TestNPC_Sad.png
+
+-> ...                                                      // Tap to continue
+
+Player: "Alright, I'll get back to testing later."
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// END NODE
+//=====================================
+
+title: EndNode
+---
+TestNPC: "Thanks for going through this test chat!"
+TestNPC: "If all messages, images, and CGs display properly, then the parser and chat system are working correctly. 🎉"
+System: "End of TestChat."
+

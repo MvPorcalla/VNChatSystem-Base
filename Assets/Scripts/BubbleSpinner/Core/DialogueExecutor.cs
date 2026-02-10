@@ -1,19 +1,18 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/DialogueExecutor.cs
-// BubbleSpinner - Dialogue Flow Execution (REBUILT)
+// BubbleSpinner - Dialogue Flow Execution (PURE - NO GAME DEPENDENCIES)
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
-using ChatSim.Core;
 
 namespace BubbleSpinner.Core
 {
     /// <summary>
     /// Executes dialogue nodes and manages conversation flow.
-    /// REBUILT based on ChatFlowController.cs from old working system.
+    /// 100% PURE - No dependencies on ChatSim or any game-specific code.
     /// </summary>
     public class DialogueExecutor
     {
@@ -25,6 +24,8 @@ namespace BubbleSpinner.Core
         private ConversationState state;
         private Dictionary<string, DialogueNode> currentNodes;
         private DialogueNode currentNode;
+        
+        private IBubbleSpinnerCallbacks callbacks;
 
         // ═══════════════════════════════════════════════════════════
         // ░ EVENTS (UI subscribes to these)
@@ -58,10 +59,18 @@ namespace BubbleSpinner.Core
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
-        public void Initialize(ConversationAsset asset, ConversationState conversationState)
+        /// <summary>
+        /// Initialize executor with conversation asset, state, and callbacks.
+        /// ConversationState should be loaded from save or created new before calling this.
+        /// </summary>
+        public void Initialize(
+            ConversationAsset asset, 
+            ConversationState conversationState,
+            IBubbleSpinnerCallbacks externalCallbacks = null)
         {
             conversationAsset = asset ?? throw new ArgumentNullException(nameof(asset));
             state = conversationState ?? throw new ArgumentNullException(nameof(conversationState));
+            callbacks = externalCallbacks;
 
             ValidateChapterIndex();
             LoadCurrentChapter();
@@ -125,7 +134,6 @@ namespace BubbleSpinner.Core
             
             state.isInPauseState = false;
             
-            // ✅ KEY FIX: Continue processing messages, don't just determine next action
             ProcessCurrentNode();
         }
 
@@ -168,7 +176,7 @@ namespace BubbleSpinner.Core
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ CORE PROCESSING LOGIC (from ChatFlowController)
+        // ░ CORE PROCESSING LOGIC
         // ═══════════════════════════════════════════════════════════
 
         private void ProcessCurrentNode()
@@ -309,7 +317,11 @@ namespace BubbleSpinner.Core
             }
 
             // Notify chapter change
-            OnChapterChange?.Invoke($"Chapter {state.currentChapterIndex + 1}");
+            string chapterName = $"Chapter {state.currentChapterIndex + 1}";
+            callbacks?.OnChapterChanged(state.conversationId, state.currentChapterIndex, chapterName);
+            
+            // Notify UI
+            OnChapterChange?.Invoke(chapterName);
 
             // Jump to target node in new chapter
             if (currentNodes.ContainsKey(targetNode))
@@ -330,9 +342,6 @@ namespace BubbleSpinner.Core
         // ░ MESSAGE COLLECTION
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Get all unread messages from current index to next pause point (or end)
-        /// </summary>
         private List<MessageData> GetUnreadMessagesToNextPause()
         {
             var unread = new List<MessageData>();
@@ -344,7 +353,6 @@ namespace BubbleSpinner.Core
             {
                 var message = currentNode.messages[i];
                 
-                // Only include if not already read
                 if (!state.readMessageIds.Contains(message.messageId))
                 {
                     unread.Add(message);
@@ -354,14 +362,10 @@ namespace BubbleSpinner.Core
             return unread;
         }
 
-        /// <summary>
-        /// Calculate end index for next message batch (stops at pause point or end of node)
-        /// </summary>
         private int GetEndIndexForNextPause()
         {
             int endIndex = currentNode.messages.Count;
             
-            // Find next pause point after current index
             foreach (int pausePoint in currentNode.pausePoints)
             {
                 if (pausePoint > state.currentMessageIndex)
@@ -394,12 +398,12 @@ namespace BubbleSpinner.Core
             state.unlockedCGs.Add(message.imagePath);
             Debug.Log($"[DialogueExecutor] 🎨 CG UNLOCKED: {message.imagePath}");
 
-            // Trigger global event
-            GameEvents.TriggerCGUnlocked(message.imagePath);
+            // Notify external system (e.g. CG gallery) about the unlock
+            callbacks?.OnCGUnlocked(message.imagePath);
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ VALIDATION (from ChatStateValidator)
+        // ░ VALIDATION
         // ═══════════════════════════════════════════════════════════
 
         private void ValidateChapterIndex()
@@ -459,11 +463,9 @@ namespace BubbleSpinner.Core
 
         private string GetFirstNodeName()
         {
-            // Try "Start" first
             if (currentNodes.ContainsKey("Start"))
                 return "Start";
             
-            // Fallback to first available node
             foreach (var key in currentNodes.Keys)
                 return key;
             

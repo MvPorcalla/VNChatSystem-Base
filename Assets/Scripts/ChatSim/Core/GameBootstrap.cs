@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/GameBootstrap.cs
-// Phone Chat Simulation Game - Core Initialization (No Cutscene/Config)
+// Phone Chat Simulation Game - Core Initialization (UPDATED FOR BUBBLESPINNER)
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -12,8 +12,8 @@ using BubbleSpinner.Core;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Persistent initialization system - lives in Bootstrap scene (01_Bootstrap)
-    /// Initializes all core managers and loads first scene
+    /// Initializes core game systems, manages scene flow, and integrates BubbleSpinner via callbacks.
+    /// This is the central bootstrapper for the entire game - all core managers are initialized here.
     /// </summary>
     public class GameBootstrap : MonoBehaviour
     {
@@ -39,6 +39,9 @@ namespace ChatSim.Core
         #region State
         private bool _isInitialized = false;
         public bool IsInitialized => _isInitialized;
+        
+        // BubbleSpinner integration bridge
+        private BubbleSpinnerBridge bubbleSpinnerBridge;
         #endregion
 
         #region Unity Lifecycle
@@ -145,8 +148,10 @@ namespace ChatSim.Core
             SceneFlow.Init();
             Debug.Log("✓ SceneFlowManager initialized");
 
-            // PHASE 2: Game Systems (depend on Save)
-            Conversation.Init();
+            bubbleSpinnerBridge = new BubbleSpinnerBridge();
+            Debug.Log("✓ BubbleSpinnerBridge created");
+
+            Conversation.Initialize(bubbleSpinnerBridge);
             Debug.Log("✓ ConversationManager initialized");
 
             // PHASE 3: Ensure save data exists

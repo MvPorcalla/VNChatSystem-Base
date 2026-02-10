@@ -72,6 +72,30 @@ New message indicator polish
 TODO:
 
 **Issue:**
-Pooling how oes this work?
 
-the typinginicator is only show once at the beggining and then it dont anymore
+I’m running into a problem with the chat flow.
+
+What happens is this:
+When I enter the **ChatAppPanel** and start a conversation while messages are typing, then go back to the **ContactListPanel** and return to the **ChatAppPanel**, several bugs appear:
+
+* The conversation does **not pause**. Messages continue progressing even while I’m on the ContactListPanel.
+* When I return, some messages have already appeared, and the typing indicator bubble either duplicates or gets stuck (it disappears after a refresh).
+* If I repeat this while the conversation is still running, Unity throws this error:
+
+```
+Coroutine couldn't be started because the game object 'NpcChatContainer(Clone)' is inactive!
+```
+
+Repro steps:
+
+1. Open ChatAppPanel and start a conversation
+2. While messages are still typing, go back to ContactListPanel
+3. Re-enter ChatAppPanel before the conversation finishes
+4. Go back to Contactlistpanel again
+5. The error is thrown
+
+---
+
+another is when i enter a chatapppanel i see the flicker of the content from empty to populating it
+
+

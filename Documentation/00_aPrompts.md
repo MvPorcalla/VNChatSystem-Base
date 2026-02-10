@@ -1,13 +1,9 @@
 I need help refactoring my Unity dialogue system (BubbleSpinner) to be a pure, reusable module with no game-specific dependencies.
 
 **CONTEXT:**
-
 - BubbleSpinner is a dialogue engine that should work in ANY Unity project
-
 - ChatSim is my phone chat game that USES BubbleSpinner
-
 - Currently BubbleSpinner has dependencies on ChatSim (GameBootstrap, GameEvents, SaveManager)
-
 - This breaks modularity - I can't reuse BubbleSpinner in other projects
 
 **MY GOAL:**
@@ -16,21 +12,21 @@ Make BubbleSpinner 100% standalone while keeping all functionality working in Ch
 
 **CURRENT STRUCTURE:**
 Assets/Scripts/
-├── BubbleSpinner/                    # ✅ NEW: Standalone dialogue module
+├── BubbleSpinner/                    # ✅ PURE STANDALONE MODULE
 │   ├── Core/
-│   │   ├── BubbleSpinnerParser.cs           # Parses .bub files
-│   │   ├── DialogueExecutor.cs              # Executes nodes, handles flow
-│   │   └── ConversationManager.cs           # Integrates with GameBootstrap
+│   │   ├── IBubbleSpinnerCallbacks.cs       # 
+│   │   ├── BubbleSpinnerParser.cs           # 
+│   │   ├── DialogueExecutor.cs              # 
+│   │   └── ConversationManager.cs           #
 │   │
-│   ├── Data/
-│   │   ├── DialogueNode.cs                  # Node structure
-│   │   ├── MessageData.cs                   # Message/Choice/CG data
-│   │   └── ConversationAsset.cs             # ScriptableObject (replaces NPCChatData)
-│   │
-│   └── 
+│   └── Data/
+│       ├── MessageData.cs                   #
+│       ├── ConversationAsset.cs             #
+│       └── CharacterDatabase.cs             #
 │
 ├── ChatSim/ 
-    ├── Core/                              
+    ├── Core/             
+    │   ├── BubbleSpinnerBridge.cs        
     │   ├── GameBootstrap.cs              
     │   ├── GameEvents.cs                 
     │   ├── SaveManager.cs                 

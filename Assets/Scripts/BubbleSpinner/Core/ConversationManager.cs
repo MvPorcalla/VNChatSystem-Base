@@ -1,19 +1,17 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/ConversationManager.cs
-// BubbleSpinner - Conversation State Management (FIXED)
+// BubbleSpinner - Conversation State Management (PURE - NO GAME DEPENDENCIES)
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
-using ChatSim.Core;
-using ChatSim.Data;
 
 namespace BubbleSpinner.Core
 {
     /// <summary>
-    /// Manages conversations and integrates with GameBootstrap save system.
-    /// Access via: GameBootstrap.Conversation
+    /// Manages conversation state, saving/loading via callbacks, and CG gallery data.
+    /// Integrates with external systems via IBubbleSpinnerCallbacks.
     /// </summary>
     public class ConversationManager : MonoBehaviour
     {
@@ -22,6 +20,12 @@ namespace BubbleSpinner.Core
         // ═══════════════════════════════════════════════════════════
 
         private const float SAVE_THROTTLE_DELAY = 0.5f;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ DEPENDENCIES (injected via Initialize)
+        // ═══════════════════════════════════════════════════════════
+
+        private IBubbleSpinnerCallbacks callbacks;
 
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
@@ -48,9 +52,13 @@ namespace BubbleSpinner.Core
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
-        public void Init()
+        /// <summary>
+        /// Initialize ConversationManager with external callbacks.
+        /// </summary>
+        public void Initialize(IBubbleSpinnerCallbacks externalCallbacks)
         {
-            Debug.Log("[ConversationManager] Initialized");
+            callbacks = externalCallbacks ?? throw new System.ArgumentNullException(nameof(externalCallbacks));
+            Debug.Log("[ConversationManager] Initialized with external callbacks");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -63,6 +71,12 @@ namespace BubbleSpinner.Core
         /// </summary>
         public DialogueExecutor StartConversation(ConversationAsset asset)
         {
+            if (callbacks == null)
+            {
+                Debug.LogError("[ConversationManager] Not initialized! Call Initialize() first.");
+                return null;
+            }
+
             if (asset == null)
             {
                 Debug.LogError("[ConversationManager] Cannot start null conversation");
@@ -72,7 +86,6 @@ namespace BubbleSpinner.Core
             string convId = asset.ConversationId;
             Debug.Log($"[ConversationManager] Starting conversation: {asset.characterName} (ID: {convId})");
 
-            // Get or create state
             ConversationState state = GetOrCreateState(convId, asset.characterName);
 
             if (!activeStates.ContainsKey(convId))
@@ -85,8 +98,7 @@ namespace BubbleSpinner.Core
             {
                 var executor = new DialogueExecutor();
                 
-                // Initialize executor (this sets currentNodeName)
-                executor.Initialize(asset, state);
+                executor.Initialize(asset, state, callbacks);
                 
                 // Subscribe to executor events for auto-save
                 SubscribeToExecutorEvents(executor);
@@ -106,8 +118,7 @@ namespace BubbleSpinner.Core
             currentExecutor = activeExecutors[convId];
             currentConversationId = convId;
 
-            // Trigger global event
-            GameEvents.TriggerConversationStarted(convId);
+            callbacks.OnConversationStarted(convId);
 
             return currentExecutor;
         }
@@ -160,6 +171,8 @@ namespace BubbleSpinner.Core
             // Unsubscribe from events
             UnsubscribeFromExecutorEvents(currentExecutor);
 
+            callbacks?.OnConversationEnded(currentConversationId);
+
             currentExecutor = null;
             currentConversationId = null;
 
@@ -193,13 +206,7 @@ namespace BubbleSpinner.Core
                 currentConversationId = null;
             }
 
-            // Remove from save data
-            var saveData = GameBootstrap.Save.LoadGame();
-            if (saveData != null)
-            {
-                saveData.conversationStates.RemoveAll(c => c.conversationId == conversationId);
-                GameBootstrap.Save.SaveGame(saveData);
-            }
+            callbacks?.DeleteConversationState(conversationId);
 
             Debug.Log($"[ConversationManager] Conversation reset complete: {conversationId}");
         }
@@ -223,16 +230,13 @@ namespace BubbleSpinner.Core
         public List<string> GetAllUnlockedCGs()
         {
             var allCGs = new List<string>();
-            var saveData = GameBootstrap.Save.LoadGame();
 
-            if (saveData?.conversationStates != null)
+            // Get all conversation IDs from active states
+            foreach (var kvp in activeStates)
             {
-                foreach (var state in saveData.conversationStates)
+                if (kvp.Value?.unlockedCGs != null)
                 {
-                    if (state.unlockedCGs != null)
-                    {
-                        allCGs.AddRange(state.unlockedCGs);
-                    }
+                    allCGs.AddRange(kvp.Value.unlockedCGs);
                 }
             }
 
@@ -307,25 +311,15 @@ namespace BubbleSpinner.Core
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ SAVE/LOAD LOGIC
+        // ░ SAVE/LOAD LOGIC (uses callbacks instead of SaveManager)
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
         /// Get or create state WITHOUT saving immediately.
-        /// Save happens AFTER executor initialization.
         /// </summary>
         private ConversationState GetOrCreateState(string conversationId, string characterName)
         {
-            var saveData = GameBootstrap.Save.LoadGame();
-            
-            if (saveData == null)
-            {
-                Debug.LogError("[ConversationManager] CRITICAL: SaveData is null!");
-                return new ConversationState(conversationId) { characterName = characterName };
-            }
-
-            // Find existing state
-            var existingState = saveData.conversationStates.Find(c => c.conversationId == conversationId);
+            var existingState = callbacks?.LoadConversationState(conversationId);
             
             if (existingState != null)
             {
@@ -334,13 +328,11 @@ namespace BubbleSpinner.Core
                 return existingState;
             }
 
-            // Create new state and add to list
+            // Create new state
             var newState = new ConversationState(conversationId)
             {
                 characterName = characterName
             };
-
-            saveData.conversationStates.Add(newState);
             
             Debug.Log($"[ConversationManager] Created new state: {conversationId}");
 
@@ -371,48 +363,24 @@ namespace BubbleSpinner.Core
         /// </summary>
         private void ForceSaveGame()
         {
-            var saveData = GameBootstrap.Save.LoadGame();
-            
-            if (saveData == null)
-            {
-                Debug.LogError("[ConversationManager] Cannot save: SaveData is null");
-                return;
-            }
-
             if (!string.IsNullOrEmpty(currentConversationId) && activeStates.ContainsKey(currentConversationId))
             {
                 var cachedState = activeStates[currentConversationId];
                 
-                // Find and replace the state in saveData
-                var index = saveData.conversationStates.FindIndex(c => c.conversationId == currentConversationId);
-                if (index >= 0)
-                {
-                    saveData.conversationStates[index] = cachedState;
-                }
-                else
-                {
-                    // State doesn't exist yet, add it
-                    saveData.conversationStates.Add(cachedState);
-                }
-            }
+                bool success = callbacks?.SaveConversationState(cachedState) ?? false;
 
-            bool success = GameBootstrap.Save.SaveGame(saveData);
-
-            if (success)
-            {
-                lastSaveTime = Time.realtimeSinceStartup;
-                hasPendingSave = false;
-                
-                if (!string.IsNullOrEmpty(currentConversationId) && activeStates.ContainsKey(currentConversationId))
+                if (success)
                 {
-                    var cachedState = activeStates[currentConversationId];
+                    lastSaveTime = Time.realtimeSinceStartup;
+                    hasPendingSave = false;
+                    
                     Debug.Log($"[ConversationManager] ✓ Saved: {currentConversationId} " +
                              $"(Node: '{cachedState.currentNodeName}', Chapter: {cachedState.currentChapterIndex})");
                 }
-            }
-            else
-            {
-                Debug.LogError($"[ConversationManager] ✗ Save failed for: {currentConversationId}");
+                else
+                {
+                    Debug.LogError($"[ConversationManager] ✗ Save failed for: {currentConversationId}");
+                }
             }
         }
 
@@ -484,35 +452,6 @@ namespace BubbleSpinner.Core
             }
             
             Debug.Log("╚════════════════════════════════════════════════════╝");
-        }
-
-        [ContextMenu("Debug/Print Save Data")]
-        private void DebugPrintSaveData()
-        {
-            var saveData = GameBootstrap.Save.LoadGame();
-            
-            Debug.Log("╔═══════════════ SAVE DATA ═══════════════╗");
-            
-            if (saveData == null)
-            {
-                Debug.Log("║ SaveData is NULL!");
-            }
-            else
-            {
-                Debug.Log($"║ Save Version: {saveData.saveVersion}");
-                Debug.Log($"║ Conversations: {saveData.conversationStates.Count}");
-                
-                foreach (var state in saveData.conversationStates)
-                {
-                    Debug.Log($"║   {state.conversationId} ({state.characterName}):");
-                    Debug.Log($"║     Chapter: {state.currentChapterIndex}");
-                    Debug.Log($"║     Node: '{state.currentNodeName}'");
-                    Debug.Log($"║     Messages: {state.messageHistory.Count}");
-                    Debug.Log($"║     CGs: {state.unlockedCGs.Count}");
-                }
-            }
-            
-            Debug.Log("╚═════════════════════════════════════════╝");
         }
 
         [ContextMenu("Debug/Force Save Now")]

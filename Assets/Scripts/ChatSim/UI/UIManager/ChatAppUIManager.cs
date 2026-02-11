@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/ChatAppUIManager.cs
-// Phone Chat Simulation Game - Chat App Panel Management
+// Manages the UI panels and navigation for the Chat App, including contact list and chat conversation screens.
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -94,7 +94,10 @@ namespace ChatSim.UI.UIManager
         {
             Debug.Log("[ChatAppUIManager] Home button pressed");
             
-            SaveChatStateIfNeeded();
+            // Clean up conversation if chat is active
+            CleanupChatIfActive();
+            
+            // Navigate to phone screen
             GameBootstrap.SceneFlow.GoToPhoneScreen();
         }
 
@@ -105,7 +108,12 @@ namespace ChatSim.UI.UIManager
                 // In Chat → Go to Contact List
                 Debug.Log("[ChatAppUIManager] Back: ChatApp → ContactList");
                 
-                SaveChatStateIfNeeded();
+                // CRITICAL: Clean up conversation BEFORE switching panels
+                if (chatController != null)
+                {
+                    chatController.ExitCurrentConversation();
+                }
+                
                 ShowContactList();
             }
             else if (contactListPanel != null && contactListPanel.activeSelf)
@@ -142,12 +150,15 @@ namespace ChatSim.UI.UIManager
             Debug.Log("[ChatAppUIManager] Switched to ChatApp");
         }
         
-        private void SaveChatStateIfNeeded()
+        /// <summary>
+        /// Clean up chat conversation if chat panel is currently active
+        /// </summary>
+        private void CleanupChatIfActive()
         {
             if (chatController != null && chatAppPanel != null && chatAppPanel.activeSelf)
             {
-                Debug.Log("[ChatAppUIManager] Saving chat state before navigation");
-                // TODO: Implement chatController.SaveChatState()
+                Debug.Log("[ChatAppUIManager] Cleaning up active chat conversation");
+                chatController.ExitCurrentConversation();
             }
         }
     }

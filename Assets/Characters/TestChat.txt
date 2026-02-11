@@ -11,6 +11,7 @@ TestNPC: "Let's see if all the chat bubbles align correctly and the CG unlock fe
 
 -> ...                                                      // Tap to continue
 
+Player: "..."
 TestNPC: "Here's a longer message to test the text wrapping and scrolling behavior in the chat system."
 TestNPC: "We want to make sure that messages of various lengths don't break the bubble layout or overlap other UI elements. This includes messages with emojis 😊😂👍 and special characters like #, @, $, &."
 
@@ -19,6 +20,7 @@ TestNPC: "We want to make sure that messages of various lengths don't break the 
 
 -> ...                                                      // Tap to continue
 
+Player: "..."
 TestNPC: "Now it's your turn to respond. Choose wisely, your choice will determine what happens next!"
 >> choice
     -> "Say hello!"

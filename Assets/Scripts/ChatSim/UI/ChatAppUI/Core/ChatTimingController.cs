@@ -34,7 +34,7 @@ namespace ChatSim.UI.ChatApp
         [Header("References")]
         [SerializeField] private ChatMessageDisplay messageDisplay;
         
-        [Header("✅ PHASE 2: Typing Indicator Prefab")]
+        [Header("Typing Indicator Prefab")]
         [Tooltip("Prefab to spawn for typing indicator (will be pooled)")]
         [SerializeField] private GameObject typingIndicatorPrefab;
         
@@ -51,10 +51,8 @@ namespace ChatSim.UI.ChatApp
         private System.Action pendingCallback = null;
         private bool isSequenceCancelled = false;
 
-        // Reference to ChatAppController for callbacks
         private ChatAppController chatController;
         
-        // ✅ PHASE 2: Track active typing indicator instance
         private GameObject activeTypingIndicator = null;
 
         // ═══════════════════════════════════════════════════════════
@@ -151,7 +149,7 @@ namespace ChatSim.UI.ChatApp
             pendingCallback = null;
 
             StopAllSequenceCoroutines();
-            CleanupTypingIndicator(); // ✅ PHASE 2: Use new cleanup method
+            CleanupTypingIndicator();
             ClearMessageQueue();
 
             isDisplayingMessages = false;
@@ -187,7 +185,6 @@ namespace ChatSim.UI.ChatApp
 
                 var message = messageQueue.Dequeue();
 
-                // ✅ PHASE 2: Show typing indicator for NPC messages
                 if (ShouldShowTypingIndicator(message))
                 {
                     yield return StartCoroutine(ShowTypingIndicatorSequence());
@@ -196,10 +193,8 @@ namespace ChatSim.UI.ChatApp
                         break;
                 }
 
-                // Display the message
                 messageDisplay.DisplayMessage(message, instant: isFastMode);
 
-                // Notify ChatAppController about new message (for new message indicator)
                 if (chatController != null)
                 {
                     chatController.OnNewMessageDisplayed(message);
@@ -232,7 +227,7 @@ namespace ChatSim.UI.ChatApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ ✅ PHASE 2: TYPING INDICATOR (PREFAB POOLING SYSTEM)
+        // ░ YPING INDICATOR (PREFAB POOLING SYSTEM)
         // ═══════════════════════════════════════════════════════════
 
         private bool ShouldShowTypingIndicator(MessageData message)
@@ -250,7 +245,7 @@ namespace ChatSim.UI.ChatApp
         }
 
         /// <summary>
-        /// ✅ PHASE 2 FIX: Spawn typing indicator from prefab via pooling
+        /// Spawn typing indicator from prefab via pooling
         /// </summary>
         private IEnumerator ShowTypingIndicatorSequence()
         {
@@ -261,17 +256,14 @@ namespace ChatSim.UI.ChatApp
             
             Debug.Log("[ChatTimingController] Showing typing indicator");
 
-            // Get from pool and parent to chat content
             Transform chatContent = messageDisplay.GetChatContent();
             activeTypingIndicator = poolingManager.Get(typingIndicatorPrefab, chatContent, activateOnGet: true);
             
-            // Move to bottom (last sibling)
             if (activeTypingIndicator != null)
             {
                 activeTypingIndicator.transform.SetAsLastSibling();
             }
 
-            // Wait for typing duration
             yield return new WaitForSeconds(GetTypingIndicatorDuration());
 
             // Cleanup indicator
@@ -282,7 +274,7 @@ namespace ChatSim.UI.ChatApp
         }
 
         /// <summary>
-        /// ✅ PHASE 2 FIX: Recycle typing indicator back to pool
+        /// Recycle typing indicator back to pool
         /// </summary>
         private void CleanupTypingIndicator()
         {
@@ -317,7 +309,6 @@ namespace ChatSim.UI.ChatApp
             if (isFastMode)
                 return fastModeSpeed;
 
-            // Player messages have shorter delay
             string speaker = message.speaker.ToLower();
             if (speaker == "player" || speaker.StartsWith("#"))
                 return playerMessageDelay;

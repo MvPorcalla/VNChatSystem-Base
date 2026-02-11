@@ -46,6 +46,7 @@ Assets/Scripts/
         │   │   └── MessageBubble.cs            <- Individual bubble behavior
         │   │
         │   ├── Core/
+        │   │   ├── BubbleSpinnerBridge.cs      # NEW: Integration layer
         │   │   ├── ChatAppController.cs        <- Main controller (interfaces with BubbleSpinner)
         │   │   ├── ChatAutoScroll.cs           <- 
         │   │   ├── ChatChoiceDisplay.cs        <- Handles choice button spawning

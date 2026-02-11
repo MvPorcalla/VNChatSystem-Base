@@ -209,8 +209,23 @@ namespace ChatSim.UI.ChatApp
             // STEP 7: Load conversation history (if resuming)
             LoadConversationHistory();
             
-            // STEP 8: Start dialogue flow
-            currentExecutor.ContinueFromCurrentState();
+            // STEP 8: Check if we're resuming in pause state
+            var state = currentExecutor.GetState();
+            if (state != null && state.isInPauseState)
+            {
+                Debug.Log("[ChatAppController] Resuming in pause state - showing pause button");
+                
+                // Wait a frame to ensure UI is ready
+                yield return null;
+                
+                // Show pause button immediately without processing nodes
+                choiceDisplay.ShowContinueButton(OnContinueButtonClicked);
+            }
+            else
+            {
+                // STEP 9: Start dialogue flow (normal case)
+                currentExecutor.ContinueFromCurrentState();
+            }
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -532,35 +547,94 @@ namespace ChatSim.UI.ChatApp
         }
         
         // ═══════════════════════════════════════════════════════════
-        // ░ UI INTERACTIONS
+        // ░ UI INTERACTIONS - INTERNAL BACK BUTTON
         // ═══════════════════════════════════════════════════════════
         
         private void OnBackButtonClicked()
         {
-            Debug.Log("[ChatAppController] Back button clicked");
+            Debug.Log("[ChatAppController] Internal back button clicked");
             
-            // Stop timing controller
+            // Use shared cleanup logic
+            PerformConversationCleanup();
+            
+            // Return to contact list
+            SwitchToContactList();
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // ░ PUBLIC API - EXTERNAL CLEANUP
+        // ═══════════════════════════════════════════════════════════
+        
+        /// <summary>
+        /// Public API for external cleanup (called by ChatAppUIManager or other systems)
+        /// Use this when external systems need to close the chat without using the internal back button
+        /// </summary>
+        public void ExitCurrentConversation()
+        {
+            Debug.Log("[ChatAppController] External exit requested - cleaning up conversation");
+            
+            // Use shared cleanup logic
+            PerformConversationCleanup();
+            
+            Debug.Log("[ChatAppController] Conversation cleanup complete (external request)");
+            
+            // NOTE: We don't switch panels here - let the caller (UIManager) handle that
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // ░ SHARED CLEANUP LOGIC
+        // ═══════════════════════════════════════════════════════════
+        
+        /// <summary>
+        /// Core cleanup logic used by both internal and external exit methods
+        /// </summary>
+        private void PerformConversationCleanup()
+        {
+            Debug.Log("[ChatAppController] Performing conversation cleanup");
+            
+            // STEP 1: Check if we're interrupting an active message sequence
+            bool wasInterrupted = timingController != null && timingController.IsDisplayingMessages;
+            
+            // STEP 2: Stop timing controller FIRST (prevents coroutine errors)
             if (timingController != null)
             {
                 timingController.StopCurrentSequence();
             }
             
-            // Save conversation state
+            // STEP 3: Force pause state if we interrupted message display
+            if (wasInterrupted && currentExecutor != null)
+            {
+                var state = currentExecutor.GetState();
+                if (state != null && !state.isInPauseState)
+                {
+                    Debug.Log("[ChatAppController] Messages were interrupted - forcing pause state");
+                    state.isInPauseState = true;
+                }
+            }
+            
+            // STEP 4: Save conversation state (INCLUDING forced pause state)
             if (currentExecutor != null)
             {
                 GameBootstrap.Conversation.SaveCurrentConversation();
             }
             
-            // Unsubscribe from events
+            // STEP 5: Unsubscribe from events
             UnsubscribeFromExecutorEvents();
             
-            // Clear current executor
+            // STEP 6: Clear current executor and conversation references
             currentExecutor = null;
             currentConversation = null;
             
-            // Return to contact list
-            SwitchToContactList();
+            // STEP 7: Clear UI elements
+            ClearChatDisplay();
+            HideNewMessageIndicator();
+            
+            Debug.Log("[ChatAppController] Cleanup complete");
         }
+        
+        // ═══════════════════════════════════════════════════════════
+        // ░ MODE TOGGLE
+        // ═══════════════════════════════════════════════════════════
         
         private void OnModeButtonClicked()
         {

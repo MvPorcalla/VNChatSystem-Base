@@ -9,7 +9,7 @@ Assets/
 ├── Scenes/
 │   ├── 00_Disclaimer.unity
 │   ├── 01_Bootstrap.unity
-│   ├── 02_Cutscene.unity
+│   ├── 02_Lockscreen.unity
 │   ├── 03_PhoneScreen.unity
 │   └── 04_ChatApp.unity
 
@@ -165,7 +165,7 @@ Assets/Scripts/
 2. **Add scenes in this EXACT order:**
    - `00_Disclaimer` (index 0)
    - `01_Bootstrap` (index 1)  
-   - `02_Cutscene` (index 2)
+   - `02_Lockscreen` (index 2)
    - `03_PhoneScreen` (index 3)
    - `04_ChatApp` (index 4)
 
@@ -239,11 +239,11 @@ It's purely for managers. This scene should be visually empty.
 
 ## Phase 5: Create Placeholder Scenes
 
-### 02_Cutscene:
+### 02_Lockscreen:
 ```
-02_Cutscene
+02_Lockscreen
 ├── Canvas
-│   └── (Your cutscene UI here)
+│   └── (Your Lockscreen UI here)
 └── EventSystem
 ```
 
@@ -275,7 +275,7 @@ It's purely for managers. This scene should be visually empty.
    - Continue button disabled
    - Toggle checkbox → Continue button enables
    - Click Continue → Loads Bootstrap
-   - Bootstrap initializes → Loads next scene (Disclaimer/Cutscene/PhoneScreen based on logic)
+   - Bootstrap initializes → Loads next scene (Disclaimer/Lockscreen/PhoneScreen based on logic)
 
 ### Test 2: Second Launch (Bootstrap → Skip Disclaimer)
 1. Press Play again
@@ -386,7 +386,7 @@ User Launches Game
     ┌────┴────┐
     │         │
     ↓         ↓
-Cutscene   PhoneScreen (based on save state)
+Lockscreen   PhoneScreen (based on save state)
 ```
 
 ---

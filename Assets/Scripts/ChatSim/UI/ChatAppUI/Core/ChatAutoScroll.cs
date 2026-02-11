@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Core/ChatAutoScroll.cs
-// Phone Chat Simulation Game - Auto-Scroll System (PORTED)
+// Phone Chat Simulation Game - Auto-Scroll System (FIXED)
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -40,7 +40,9 @@ namespace ChatSim.UI.ChatApp
         // ░ EVENTS
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>Event fired when user scrolls to bottom</summary>
+        /// <summary>
+        /// Event fired when user scrolls to bottom
+        /// </summary>
         public event Action OnScrollReachedBottom;
 
         // ═══════════════════════════════════════════════════════════
@@ -59,7 +61,6 @@ namespace ChatSim.UI.ChatApp
             if (!isInitialized && !TryInitialize())
                 return;
 
-            // Only monitor if panel is active and auto-scroll is enabled
             if (!chatScrollRect.gameObject.activeInHierarchy || !autoScrollEnabled)
                 return;
 
@@ -72,21 +73,18 @@ namespace ChatSim.UI.ChatApp
             bool heightChanged = !Mathf.Approximately(currentHeight, lastContentHeight);
             bool childCountChanged = currentChildCount != lastChildCount;
 
-            // If Content grew AND we were at bottom, scroll to new bottom
             if ((heightChanged || childCountChanged) && wasAtBottom)
             {
                 ScrollToBottom();
-                currentlyAtBottom = true; // We just scrolled, so we're at bottom now
+                currentlyAtBottom = true;
             }
 
-            // Detect when user scrolls back to bottom (BEFORE updating wasAtBottom)
             if (!wasAtBottom && currentlyAtBottom)
             {
                 Debug.Log("[ChatAutoScroll] User scrolled to bottom");
                 OnScrollReachedBottom?.Invoke();
             }
 
-            // Update tracking variables at the end
             lastContentHeight = currentHeight;
             lastChildCount = currentChildCount;
             wasAtBottom = currentlyAtBottom;
@@ -94,26 +92,14 @@ namespace ChatSim.UI.ChatApp
 
         private void OnEnable()
         {
-            // Re-initialize if references were lost
-            if (chatScrollRect == null || contentTransform == null || !isInitialized)
-            {
-                Debug.LogWarning("[ChatAutoScroll] References lost - re-initializing");
-                isInitialized = false;
-                
-                if (!TryInitialize())
-                {
-                    Debug.LogError("[ChatAutoScroll] Failed to initialize on enable");
-                    return;
-                }
-            }
-
-            ForceScrollToBottom();
+            isInitialized = false;
+            wasAtBottom = true;
         }
 
         private void OnDisable()
         {
-            // Reset tracking when disabled to avoid stale state
             wasAtBottom = true;
+            isInitialized = false;
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -121,7 +107,7 @@ namespace ChatSim.UI.ChatApp
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Initialize references - called on-demand
+        /// Try to initialize references and state. Returns true if successful.
         /// </summary>
         private bool TryInitialize()
         {
@@ -144,7 +130,7 @@ namespace ChatSim.UI.ChatApp
 
             lastContentHeight = contentTransform.rect.height;
             lastChildCount = contentTransform.childCount;
-            wasAtBottom = true; // Start assuming we're at bottom
+            wasAtBottom = true;
             isInitialized = true;
             
             Debug.Log($"[ChatAutoScroll] Initialized. Content: {contentTransform.name}");
@@ -156,7 +142,7 @@ namespace ChatSim.UI.ChatApp
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Checks if scroll view is at or near bottom
+        /// Check if user is currently at the bottom of the chat (within threshold)
         /// </summary>
         public bool IsAtBottom()
         {
@@ -215,6 +201,20 @@ namespace ChatSim.UI.ChatApp
         {
             autoScrollEnabled = enabled;
             Debug.Log($"[ChatAutoScroll] Auto-scroll {(enabled ? "enabled" : "disabled")}");
+        }
+
+        /// <summary>
+        /// Manually refresh references (call when ChatAppPanel becomes active)
+        /// </summary>
+        public void RefreshReferences()
+        {
+            isInitialized = false;
+            
+            if (TryInitialize())
+            {
+                ForceScrollToBottom();
+                Debug.Log("[ChatAutoScroll] References refreshed");
+            }
         }
     }
 }

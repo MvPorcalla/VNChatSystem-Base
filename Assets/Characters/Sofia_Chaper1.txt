@@ -12,6 +12,7 @@ Sofia: "This app said you were online, so… here I am."
 
 -> ...
 
+Player: "..."
 Sofia: "I’m not great at starting conversations, to be honest."
 Sofia: "Usually I just stare at the screen, type something, delete it, then repeat."
 Sofia: "But today felt different. Quiet. Too quiet."
@@ -20,6 +21,7 @@ Sofia: "But today felt different. Quiet. Too quiet."
 
 -> ...
 
+Player: "..."
 Sofia: "Anyway… thanks for answering."
 Sofia: "What should I do right now?"
 
@@ -48,6 +50,7 @@ Sofia: "Work, expectations, people assuming I’m always okay."
 
 -> ...
 
+Player: "..."
 Sofia: "It helps, though. Being asked."
 Sofia: "Maybe I’ll tell you more… if you stay."
 
@@ -71,9 +74,11 @@ Sofia: "Still… talking like this feels oddly comforting."
 
 -> ...
 
+Player: "..."
 Sofia: "Maybe I’ll open up later."
 Sofia: "For now, let’s just pretend this is a normal morning."
 
+-> ...
 Player: "Fair enough. One step at a time."
 
 <<jump EndNode>>

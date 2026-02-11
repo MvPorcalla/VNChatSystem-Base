@@ -1,8 +1,8 @@
 # VNChatSystem-Base
 
-**Messenger-Style Visual Novel Framework for Unity**
+**Messenger-Style Visual Novel Template for Unity**
 
-VNChatSystem is a **modular, production-ready phone chat simulation framework** built in **Unity** for narrative-driven games.
+VNChatSystem is a **modular, production-ready phone chat simulation template** built in **Unity** for narrative-driven games.
 It powers messenger-style storytelling with branching dialogue, CG unlocks, and persistent save states—designed specifically for mobile-first visual novels.
 
 At its core is **BubbleSpinner**, a fully standalone dialogue engine, paired with a complete phone UI simulation (lock screen → home → chat app).

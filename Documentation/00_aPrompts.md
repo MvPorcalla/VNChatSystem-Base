@@ -48,9 +48,9 @@ Assets/Scripts/
         │   ├── Core/
         │   │   ├── BubbleSpinnerBridge.cs      # NEW: Integration layer
         │   │   ├── ChatAppController.cs        <- Main controller (interfaces with BubbleSpinner)
-        │   │   ├── ChatAutoScroll.cs           <- 
-        │   │   ├── ChatChoiceDisplay.cs        <- Handles choice button spawning
-        │   │   ├── ChatMessageDisplay.cs       <- Handles message bubble spawning/animation
+        │   │   ├── ChatAutoScroller.cs           <- 
+        │   │   ├── ChatChoiceSpawner.cs        <- Handles choice button spawning
+        │   │   ├── ChatMessageSpawner.cs       <- Handles message bubble spawning/animation
         │   │   ├── ChatTimingController.cs     <- 
         │   │   ├── PooledObject.cs             <- 
         │   │   └── PoolingManager.cs           <- 
@@ -58,14 +58,14 @@ Assets/Scripts/
         │   └── Panels/
         │       ├── ContactListPanel.cs         <- Contact list UI
         │       ├── ChatAppPanel.cs             <- future
-        │       └── CharacterButton.cs          <- Contact list item
+        │       └── ContactListItem.cs          <- Contact list item
 
         ├── UIManager
         │   ├── ChatAppUIManager.cs
-        │   ├── LockScreenUIManager.cs
+        │   ├── LockScreen.cs
         │   └── PhoneScreenManager.cs
 
-        └── DisclaimerController.cs
+        └── DisclaimerScreen.cs
 
 ---
 

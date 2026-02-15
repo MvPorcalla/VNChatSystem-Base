@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Components/AutoResizeText.cs
-// Phone Chat Simulation Game - Auto-Resizing Text Component
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -8,7 +7,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.Common.Components
 {
     /// <summary>
     /// Automatically resizes TextMeshProUGUI width based on content.

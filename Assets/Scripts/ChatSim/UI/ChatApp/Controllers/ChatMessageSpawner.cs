@@ -1,17 +1,17 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/ChatApp/Core/ChatMessageDisplay.cs
-// Phone Chat Simulation Game - Message Display (FIXED)
+// Assets/Scripts/UI/ChatApp/Core/ChatMessageSpawner.cs
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
 using BubbleSpinner.Data;
+using ChatSim.UI.ChatApp.Components;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Controllers
 {
     /// <summary>
     /// Handles message bubble spawning and display.
     /// </summary>
-    public class ChatMessageDisplay : MonoBehaviour
+    public class ChatMessageSpawner : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
         // ░ PREFAB REFERENCES
@@ -45,7 +45,7 @@ namespace ChatSim.UI.ChatApp
             
             if (bubblePrefab == null)
             {
-                Debug.LogError($"[ChatMessageDisplay] No prefab for type: {msg.type}, speaker: {msg.speaker}");
+                Debug.LogError($"[ChatMessageSpawner] No prefab for type: {msg.type}, speaker: {msg.speaker}");
                 return;
             }
             
@@ -60,7 +60,7 @@ namespace ChatSim.UI.ChatApp
             }
             else
             {
-                Debug.LogError($"[ChatMessageDisplay] MessageBubble component missing on prefab!");
+                Debug.LogError($"[ChatMessageSpawner] MessageBubble component missing on prefab!");
             }
         }
         
@@ -71,7 +71,7 @@ namespace ChatSim.UI.ChatApp
         {
             if (chatContent == null)
             {
-                Debug.LogError("[ChatMessageDisplay] chatContent is null!");
+                Debug.LogError("[ChatMessageSpawner] chatContent is null!");
                 return;
             }
 
@@ -85,7 +85,7 @@ namespace ChatSim.UI.ChatApp
                 destroyedCount++;
             }
             
-            Debug.Log($"[ChatMessageDisplay] Cleared {destroyedCount} messages");
+            Debug.Log($"[ChatMessageSpawner] Cleared {destroyedCount} messages");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -106,7 +106,7 @@ namespace ChatSim.UI.ChatApp
                     return IsPlayerMessage(msg.speaker) ? playerImageBubblePrefab : npcImageBubblePrefab;
                 
                 default:
-                    Debug.LogWarning($"[ChatMessageDisplay] Unknown message type: {msg.type}");
+                    Debug.LogWarning($"[ChatMessageSpawner] Unknown message type: {msg.type}");
                     return null;
             }
         }

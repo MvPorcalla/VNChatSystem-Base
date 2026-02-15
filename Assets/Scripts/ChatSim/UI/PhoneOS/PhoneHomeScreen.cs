@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/PhoneScreenUIManager.cs
+// Assets/Scripts/UI/PhoneHomeScreen.cs
 // Phone Chat Simulation Game - Home Screen & App Launcher
 // ════════════════════════════════════════════════════════════════════════
 
@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ChatSim.Core;
 
-namespace ChatSim.UI.UIManager
+namespace ChatSim.UI.PhoneOS
 {
     [System.Serializable]
     public class AppButton
@@ -20,9 +20,9 @@ namespace ChatSim.UI.UIManager
         public GameObject targetPanel;
     }
 
-    public class PhoneScreenUIManager : MonoBehaviour
+    public class PhoneHomeScreen : MonoBehaviour
     {
-        public static PhoneScreenUIManager Instance { get; private set; }
+        public static PhoneHomeScreen Instance { get; private set; }
 
         [Header("Home Screen Panel")]
         [SerializeField] private GameObject homeScreenPanel;
@@ -64,7 +64,7 @@ namespace ChatSim.UI.UIManager
             if (quitButton != null)
                 quitButton.onClick.AddListener(() => quitConfirmationPanel?.SetActive(true));
             else
-                Debug.LogWarning("[PhoneScreenUIManager] QuitButton not assigned!");
+                Debug.LogWarning("[PhoneHomeScreen] QuitButton not assigned!");
 
             // Quit confirmation
             if (yesQuitButton != null)
@@ -77,13 +77,13 @@ namespace ChatSim.UI.UIManager
             if (homeButton != null)
                 homeButton.onClick.AddListener(GoHome);
             else
-                Debug.LogWarning("[PhoneScreenUIManager] HomeButton not assigned!");
+                Debug.LogWarning("[PhoneHomeScreen] HomeButton not assigned!");
 
             // Back button
             if (backButton != null)
                 backButton.onClick.AddListener(GoBack);
             else
-                Debug.LogWarning("[PhoneScreenUIManager] BackButton not assigned!");
+                Debug.LogWarning("[PhoneHomeScreen] BackButton not assigned!");
 
             // Hide quit panel initially
             if (quitConfirmationPanel != null)
@@ -92,7 +92,7 @@ namespace ChatSim.UI.UIManager
 
         private void OnConfirmQuit()
         {
-            Debug.Log("[PhoneScreenUIManager] Quitting game...");
+            Debug.Log("[PhoneHomeScreen] Quitting game...");
             
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -140,7 +140,7 @@ namespace ChatSim.UI.UIManager
                 });
             }
             
-            Debug.Log($"[PhoneScreenUIManager] Initialized {apps.Count} app buttons");
+            Debug.Log($"[PhoneHomeScreen] Initialized {apps.Count} app buttons");
         }
 
         private void ShowHomeScreen()
@@ -152,7 +152,7 @@ namespace ChatSim.UI.UIManager
             }
             else
             {
-                Debug.LogWarning("[PhoneScreenUIManager] HomeScreenPanel not assigned!");
+                Debug.LogWarning("[PhoneHomeScreen] HomeScreenPanel not assigned!");
             }
         }
 
@@ -171,7 +171,7 @@ namespace ChatSim.UI.UIManager
             panel.SetActive(true);
             currentPanel = panel;
             
-            Debug.Log($"[PhoneScreenUIManager] Opened panel: {panel.name}");
+            Debug.Log($"[PhoneHomeScreen] Opened panel: {panel.name}");
         }
 
         public void GoHome()
@@ -187,7 +187,7 @@ namespace ChatSim.UI.UIManager
                 currentPanel = homeScreenPanel;
             }
             
-            Debug.Log("[PhoneScreenUIManager] Returned to home screen");
+            Debug.Log("[PhoneHomeScreen] Returned to home screen");
         }
 
         public void GoBack()
@@ -205,7 +205,7 @@ namespace ChatSim.UI.UIManager
             currentPanel = panelHistory.Pop();
             currentPanel.SetActive(true);
 
-            Debug.Log($"[PhoneScreenUIManager] Back to panel: {currentPanel.name}");
+            Debug.Log($"[PhoneHomeScreen] Back to panel: {currentPanel.name}");
         }
 
         private void CloseAllPanels()

@@ -299,7 +299,7 @@ GameObject:
   - component: {fileID: 1792794263221562642}
   - component: {fileID: 8295702581602477952}
   m_Layer: 5
-  m_Name: CharacterButton
+  m_Name: ContactListItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

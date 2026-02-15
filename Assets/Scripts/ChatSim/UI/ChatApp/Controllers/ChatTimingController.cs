@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Core/ChatTimingController.cs
-// Phone Chat Simulation Game - Message Timing & Animation (FIXED)
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections;
@@ -8,8 +7,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
 using ChatSim.Core;
+using ChatSim.UI.Common.Components;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Controllers
 {
     /// <summary>
     /// Controls message display timing, typing indicators, and animations.
@@ -32,7 +32,7 @@ namespace ChatSim.UI.ChatApp
         [SerializeField] private float fastModeSpeed = 0.1f;
 
         [Header("References")]
-        [SerializeField] private ChatMessageDisplay messageDisplay;
+        [SerializeField] private ChatMessageSpawner messageDisplay;
         
         [Header("Typing Indicator Prefab")]
         [Tooltip("Prefab to spawn for typing indicator (will be pooled)")]

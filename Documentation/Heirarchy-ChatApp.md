@@ -2,7 +2,7 @@
 
 Canvas
 │
-├── ChatAppController [ChatAppController.cs] [ChatTimingController.cs] [ChatAutoScroll.cs]
+├── ChatAppController [ChatAppController.cs] [ChatTimingController.cs] [ChatAutoScroller.cs]
 └── PhoneRoot
     │
     ├── ContactListPanel [ContactListPanel.cs]
@@ -13,7 +13,7 @@ Canvas
     │   └── ContactScroll
     │       └── Viewport
     │           └── Content
-    │               └── CharacterButton
+    │               └── ContactListItem
     │                   ├── ProfileIMG
     │                   ├── ProfileName
     │                   └── Badge

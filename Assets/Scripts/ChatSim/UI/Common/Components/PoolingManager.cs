@@ -1,16 +1,15 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/PoolingManager.cs
-// Phone Chat Simulation Game - Object Pooling System (FIXED)
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ChatSim.Core
+namespace ChatSim.UI.Common.Components
 {
     /// <summary>
-    /// Simple object pooling system for message bubbles and typing indicators.
-    /// Access via: GameBootstrap.Pool (if integrated) or attach to ChatAppController
+    /// Generic object pooling manager for efficient reuse of UI elements and game objects.
+    /// attach to ChatAppController GameObject
     /// </summary>
     public class PoolingManager : MonoBehaviour
     {
@@ -205,7 +204,6 @@ namespace ChatSim.Core
         /// </summary>
         private bool ShouldClearContent(PooledObject pooledObject)
         {
-            // Don't clear if PreserveContent is enabled
             return !pooledObject.PreserveContent;
         }
         

@@ -6,25 +6,25 @@
 PhoneRoot
 │
 ├── ContactListPanel
-│   └── (CharacterButton setup comes later)
+│   └── (ContactListItem setup comes later)
 │
 └── ChatAppPanel ← ADD ChatAppController.cs HERE
     │
-    ├── ChatPanel ← ADD ChatMessageDisplay.cs HERE
+    ├── ChatPanel ← ADD ChatMessageSpawner.cs HERE
     │
-    └── ChatChoices ← ADD ChatChoiceDisplay.cs HERE
+    └── ChatChoices ← ADD ChatChoiceSpawner.cs HERE
 ```
 
 ---
 
-## 🎯 STEP 1: Add ChatMessageDisplay to ChatPanel
+## 🎯 STEP 1: Add ChatMessageSpawner to ChatPanel
 
 ### **1.1 Select ChatPanel**
 - In Hierarchy, find and select: `PhoneRoot > ChatAppPanel > ChatPanel`
 
 ### **1.2 Add Component**
 - In Inspector, click **Add Component**
-- Search: `ChatMessageDisplay`
+- Search: `ChatMessageSpawner`
 - Click to add
 
 ### **1.3 Assign References in Inspector**
@@ -51,13 +51,13 @@ chatContent             → Drag: Content (from Hierarchy)
 
 ---
 
-## 🎯 STEP 2: Add ChatChoiceDisplay to ChatChoices
+## 🎯 STEP 2: Add ChatChoiceSpawner to ChatChoices
 
 ### **2.1 Select ChatChoices**
 - In Hierarchy: `PhoneRoot > ChatAppPanel > ChatChoices`
 
 ### **2.2 Add Component**
-- Add Component → `ChatChoiceDisplay`
+- Add Component → `ChatChoiceSpawner`
 
 ### **2.3 Assign References**
 
@@ -113,8 +113,8 @@ normalModeSprite → Drag: Image
 [Chat Display]
 chatScrollRect   → Drag: ChatPanel (the ScrollRect component)
 chatContent      → Drag: Content (from ChatPanel > Viewport > Content)
-messageDisplay   → Drag: ChatPanel (the ChatMessageDisplay component)
-choiceDisplay    → Drag: ChatChoices (the ChatChoiceDisplay component)
+messageDisplay   → Drag: ChatPanel (the ChatMessageSpawner component)
+choiceDisplay    → Drag: ChatChoices (the ChatChoiceSpawner component)
 
 [Typing Indicator]
 typingIndicator  → Drag: TypingIndicator (from Hierarchy)
@@ -139,11 +139,11 @@ Fast Mode:
 └── Fast Mode Speed: 0.1
 
 References:
-├── Message Display: ChatPanel (ChatMessageDisplay component)
+├── Message Display: ChatPanel (ChatMessageSpawner component)
 └── Typing Indicator: TypingIndicator (GameObject under Content)
 ```
 
-### **ChatAutoScroll.cs:** (Script)
+### **ChatAutoScroller.cs:** (Script)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ```
@@ -177,7 +177,7 @@ chatBackButton → Drag ChatBackButton GameObject
 **`Custom Script Component`** → Drag the GameObject that HAS that script
 ```
 messageDisplay → Drag ChatPanel
-                 (Unity finds ChatMessageDisplay component on it)
+                 (Unity finds ChatMessageSpawner component on it)
 ```
 
 ---
@@ -207,7 +207,7 @@ PhoneRoot
 Hierarchy Path:
 PhoneRoot
 └─ ChatAppPanel
-   └─ ChatPanel ← Drag this! (has ChatMessageDisplay component)
+   └─ ChatPanel ← Drag this! (has ChatMessageSpawner component)
 ```
 
 ### **For choiceDisplay:**
@@ -215,7 +215,7 @@ PhoneRoot
 Hierarchy Path:
 PhoneRoot
 └─ ChatAppPanel
-   └─ ChatChoices ← Drag this! (has ChatChoiceDisplay component)
+   └─ ChatChoices ← Drag this! (has ChatChoiceSpawner component)
 ```
 
 ### **For typingIndicator:**
@@ -235,13 +235,13 @@ PhoneRoot
 
 After assigning everything, verify in Inspector:
 
-### **ChatMessageDisplay (on ChatPanel):**
+### **ChatMessageSpawner (on ChatPanel):**
 ```
 ☐ All 5 prefab slots filled (no "None")
 ☐ chatContent assigned
 ```
 
-### **ChatChoiceDisplay (on ChatChoices):**
+### **ChatChoiceSpawner (on ChatChoices):**
 ```
 ☐ choiceButtonPrefab assigned
 ☐ continueButtonPrefab assigned
@@ -273,12 +273,12 @@ After assigning everything, verify in Inspector:
 
 ### ❌ **Wrong:**
 ```
-messageDisplay → Dragging ChatMessageDisplay.cs file from Project
+messageDisplay → Dragging ChatMessageSpawner.cs file from Project
 ```
 ### ✅ **Correct:**
 ```
 messageDisplay → Dragging ChatPanel GameObject from Hierarchy
-                 (which has ChatMessageDisplay component on it)
+                 (which has ChatMessageSpawner component on it)
 ```
 
 ---
@@ -325,12 +325,12 @@ PhoneRoot
     │   ├── ChatProfileName
     │   └── ChatModeToggle
     │
-    ├── ChatPanel [ChatMessageDisplay, ScrollRect]
+    ├── ChatPanel [ChatMessageSpawner, ScrollRect]
     │   └── Viewport
     │       └── Content (empty except TypingIndicator)
     │           └─ TypingIndicator (disabled by default)
     │
-    └── ChatChoices [ChatChoiceDisplay]
+    └── ChatChoices [ChatChoiceSpawner]
         └── (empty - buttons spawn here)
 ```
 

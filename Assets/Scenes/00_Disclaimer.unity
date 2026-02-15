@@ -907,7 +907,7 @@ GameObject:
   - component: {fileID: 217422015}
   - component: {fileID: 217422016}
   m_Layer: 0
-  m_Name: DisclaimerController
+  m_Name: UIManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

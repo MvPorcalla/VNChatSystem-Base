@@ -1,11 +1,10 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/PooledObject.cs
-// Phone Chat Simulation Game - Pooled Object Component
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
 
-namespace ChatSim.Core
+namespace ChatSim.UI.Common.Components
 {
     /// <summary>
     /// Component added to pooled objects to track their source prefab.

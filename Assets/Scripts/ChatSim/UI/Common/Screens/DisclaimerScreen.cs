@@ -1,7 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/Controllers/DisclaimerController.cs
-// Phone Chat Simulation Game - Disclaimer Scene Controller
-// Attach to: 00_Disclaimer → Canvas
+// Assets/Scripts/UI/Controllers/DisclaimerScreen.cs
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -13,7 +11,7 @@ using ChatSim.Core;
 using UnityEditor;
 #endif
 
-namespace ChatSim.UI
+namespace ChatSim.UI.Common.Screens
 {
     /// <summary>
     /// CRITICAL: This scene loads FIRST (before Bootstrap)
@@ -21,9 +19,10 @@ namespace ChatSim.UI
     /// - No managers initialized
     /// - Completely isolated
     /// 
+    /// Attach to: 00_Disclaimer → Canvas
     /// Flow: 00_Disclaimer → 01_Bootstrap
     /// </summary>
-    public class DisclaimerController : MonoBehaviour
+    public class DisclaimerScreen : MonoBehaviour
     {
         #region Serialized Fields
 

@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
 using ChatSim.UI.ChatApp;
+using ChatSim.UI.ChatApp.Controllers;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Panels
 {
     /// <summary>
     /// Manages the contact list UI and populates character buttons
@@ -23,7 +24,7 @@ namespace ChatSim.UI.ChatApp
         
         [Header("UI References")]
         [SerializeField] private Transform contactContainer;
-        [SerializeField] private GameObject characterButtonPrefab;
+        [SerializeField] private GameObject ContactListItemPrefab;
         
         [Header("Controller Reference")]
         [SerializeField] private ChatAppController chatController;
@@ -75,17 +76,17 @@ namespace ChatSim.UI.ChatApp
         
         private void CreateContactButton(ConversationAsset conversation)
         {
-            GameObject buttonObj = Instantiate(characterButtonPrefab, contactContainer);
+            GameObject buttonObj = Instantiate(ContactListItemPrefab, contactContainer);
             
-            var characterButton = buttonObj.GetComponent<CharacterButton>();
+            var ContactListItem = buttonObj.GetComponent<ContactListItem>();
             
-            if (characterButton != null)
+            if (ContactListItem != null)
             {
-                characterButton.Initialize(conversation, chatController);
+                ContactListItem.Initialize(conversation, chatController);
             }
             else
             {
-                Debug.LogError("[ContactListPanel] CharacterButton component missing on prefab!");
+                Debug.LogError("[ContactListPanel] ContactListItem component missing on prefab!");
             }
         }
         

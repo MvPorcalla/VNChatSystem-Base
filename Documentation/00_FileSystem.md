@@ -28,32 +28,33 @@ Assets/Scripts/
     │   └── SaveData.cs
     │   
     └── UI/
-        ├── ChatAppUI/
+        ├── ChatApp/                        # Chat application
         │   ├── Components/
-        │   │   ├── AutoResizeText
-        │   │   ├── ChoiceButton.cs             <- Individual choice button
-        │   │   └── MessageBubble.cs            <- Individual bubble behavior
+        │   │   ├── MessageBubble.cs        # Individual bubble
+        │   │   └── ChoiceButton.cs         # Individual choice button
         │   │
-        │   ├── Core/
-        │   │   ├── BubbleSpinnerBridge.cs      # Integration layer
-        │   │   ├── ChatAppController.cs        <- Main controller (interfaces with BubbleSpinner)
-        │   │   ├── ChatAutoScroll.cs           <- 
-        │   │   ├── ChatChoiceDisplay.cs        <- Handles choice button spawning
-        │   │   ├── ChatMessageDisplay.cs       <- Handles message bubble spawning/animation
-        │   │   ├── ChatTimingController.cs     <- 
-        │   │   ├── PooledObject.cs             <- 
-        │   │   └── PoolingManager.cs           <- 
+        │   ├── Controllers/
+        │   │   ├── ChatAppController.cs    # ⭐ MAIN CONTROLLER (absorbs UIManager)
+        │   │   ├── ChatAutoScroller.cs     # Auto-scroll logic
+        │   │   ├── ChatChoiceSpawner.cs    # Spawns choice buttons
+        │   │   ├── ChatMessageSpawner.cs   # Spawns message bubbles
+        │   │   └── ChatTimingController.cs # Timing & animations
         │   │
         │   └── Panels/
-        │       ├── ContactListPanel.cs         <- Contact list UI
-        │       ├── ChatAppPanel.cs             <- future
-        │       └── CharacterButton.cs          <- Contact list item
-
-        ├── UIManager
-        │   ├── ChatAppUIManager.cs
-        │   ├── LockScreenUIManager.cs
-        │   └── PhoneScreenManager.cs
-
-        └── DisclaimerController.cs
+        │       ├── ContactListPanel.cs     # Contact list
+        │       └── ContactListItem.cs      # Individual contact button
+        │
+        ├── Common/                         # Shared UI utilities
+        │   ├── Components/
+        │   │   ├── AutoResizeText.cs       # Used by MessageBubble
+        │   │   ├── PooledObject.cs         # Pooling system
+        │   │   └── PoolingManager.cs       # Pooling system
+        │   │
+        │   └── Screens/
+        │       ├── DisclaimerScreen.cs     # First-time disclaimer
+        │       └── LockScreen.cs           # Lock screen
+        │
+        └── PhoneOS/                        # Phone operating system
+            └── PhoneHomeScreen.cs          # Home screen & app launcher
 
 ```

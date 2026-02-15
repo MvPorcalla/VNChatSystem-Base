@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/ChatApp/Panels/CharacterButton.cs
+// Assets/Scripts/UI/ChatApp/Panels/ContactListItem.cs
 // Phone Chat Simulation Game - Contact List Button
 // ════════════════════════════════════════════════════════════════════════
 
@@ -7,14 +7,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BubbleSpinner.Data;
+using ChatSim.UI.ChatApp.Controllers;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Panels
 {
     /// <summary>
     /// Individual contact button in the contact list
-    /// Attach to: CharacterButton prefab
+    /// Attach to: ContactListItem prefab
     /// </summary>
-    public class CharacterButton : MonoBehaviour
+    public class ContactListItem : MonoBehaviour
     {
         #region Inspector References
         
@@ -70,7 +71,7 @@ namespace ChatSim.UI.ChatApp
             }
             else
             {
-                Debug.LogError("[CharacterButton] Button component not assigned!");
+                Debug.LogError("[ContactListItem] Button component not assigned!");
             }
         }
         
@@ -82,17 +83,17 @@ namespace ChatSim.UI.ChatApp
         {
             if (conversationAsset == null)
             {
-                Debug.LogError("[CharacterButton] No conversation asset assigned!");
+                Debug.LogError("[ContactListItem] No conversation asset assigned!");
                 return;
             }
             
             if (chatController == null)
             {
-                Debug.LogError("[CharacterButton] No chat controller assigned!");
+                Debug.LogError("[ContactListItem] No chat controller assigned!");
                 return;
             }
             
-            Debug.Log($"[CharacterButton] Opening conversation with {conversationAsset.characterName}");
+            Debug.Log($"[ContactListItem] Opening conversation with {conversationAsset.characterName}");
             
             // Start the conversation
             chatController.StartConversation(conversationAsset);

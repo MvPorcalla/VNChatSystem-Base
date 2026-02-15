@@ -215,16 +215,16 @@ After setup, verify:
 ☐ Layout components preserved in prefabs (HorizontalLayoutGroup, etc.)
 ☐ All containers removed from scene Content
 ☐ Content is empty except TypingIndicator
-☐ Prefab references assigned in ChatMessageDisplay
+☐ Prefab references assigned in ChatMessageSpawner
 ```
 
 ---
 
-## 🎯 Assignment in ChatMessageDisplay
+## 🎯 Assignment in ChatMessageSpawner
 
 Now assign your prefabs in the Inspector:
 
-**ChatMessageDisplay (on ChatPanel):**
+**ChatMessageSpawner (on ChatPanel):**
 ```
 systemBubblePrefab      → SystemBubble.prefab (was SystemContainer)
 npcTextBubblePrefab     → NpcTextBubble.prefab (was NpcChatContainer)
@@ -240,7 +240,7 @@ chatContent             → Content (RectTransform)
 
 When a message comes in:
 
-1. **ChatMessageDisplay** receives `MessageData`
+1. **ChatMessageSpawner** receives `MessageData`
 2. **Selects correct prefab** based on speaker/type
 3. **Spawns prefab** into `Content`: 
    ```csharp

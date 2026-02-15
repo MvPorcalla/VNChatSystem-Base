@@ -1,24 +1,24 @@
 ## 🔧 Setup Steps
 
-### **STEP 1: Create CharacterButton Prefab**
+### **STEP 1: Create ContactListItem Prefab**
 
-Your hierarchy already has a CharacterButton template. Now make it a prefab:
+Your hierarchy already has a ContactListItem template. Now make it a prefab:
 ```
 ContactListPanel
 └─ ContactScroll
     └─ Viewport
         └─ Content
-            └─ CharacterButton ← This one!
+            └─ ContactListItem ← This one!
                 ├─ ProfileIMG
                 ├─ ProfileName
                 └─ Badge
 ```
 
 **Make it a prefab:**
-1. Drag `CharacterButton` from Hierarchy to `Prefabs/ChatApp/UI/`
-2. **Delete** CharacterButton from the scene (it will be spawned)
+1. Drag `ContactListItem` from Hierarchy to `Prefabs/ChatApp/UI/`
+2. **Delete** ContactListItem from the scene (it will be spawned)
 3. Open the prefab and add components:
-   - Add Component → `CharacterButton` (the script)
+   - Add Component → `ContactListItem` (the script)
    - Assign references in Inspector:
 ```
      button       → Button component (on root)
@@ -41,7 +41,7 @@ Contact List Panel (Script)
 
 [UI References]
 contactContainer        → Content (from ContactScroll/Viewport/Content)
-characterButtonPrefab   → CharacterButton.prefab (from Project)
+ContactListItemPrefab   → ContactListItem.prefab (from Project)
 
 [Available Conversations]
 conversations           → (Leave empty for now, we'll add test data)
@@ -64,7 +64,7 @@ ContactListPanel [ContactListPanel script]
         └─ Content (empty - buttons spawn here)
 ```
 
-**Remove** the CharacterButton template from scene if still there.
+**Remove** the ContactListItem template from scene if still there.
 
 ---
 
@@ -73,12 +73,12 @@ ContactListPanel [ContactListPanel script]
 ### **ContactListPanel (on ContactListPanel GameObject):**
 ```
 ☐ contactContainer → Content (RectTransform under ContactScroll/Viewport)
-☐ characterButtonPrefab → CharacterButton.prefab
+☐ ContactListItemPrefab → ContactListItem.prefab
 ☐ conversations → Size: 0 (we'll add test conversations later)
 ☐ chatController → ChatAppPanel (GameObject with ChatAppController)
 ```
 
-### **CharacterButton.prefab:**
+### **ContactListItem.prefab:**
 ```
 ☐ button → Button component (on root)
 ☐ profileIMG → ProfileIMG (Image)

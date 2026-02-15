@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Components/ChoiceButton.cs
-// Phone Chat Simulation Game - Choice Button Component
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -8,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Components
 {
     /// <summary>
     /// Attached to each choice button prefab

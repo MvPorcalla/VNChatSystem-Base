@@ -1,14 +1,14 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Components/MessageBubble.cs
-// Phone Chat Simulation Game - Message Bubble Component
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BubbleSpinner.Data;
+using ChatSim.UI.Common.Components;
 
-namespace ChatSim.UI.ChatApp
+namespace ChatSim.UI.ChatApp.Components
 {
     /// <summary>
     /// Attached to each message bubble prefab.

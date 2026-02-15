@@ -74,9 +74,9 @@ Assets/Scripts/
     │   │
     │   ├── Core/
     │   │   ├── ChatAppController.cs        <- Main controller (interfaces with BubbleSpinner)
-    │   │   ├── ChatAutoScroll.cs           <- 
-    │   │   ├── ChatChoiceDisplay.cs        <- Handles choice button spawning
-    │   │   ├── ChatMessageDisplay.cs       <- Handles message bubble spawning/animation
+    │   │   ├── ChatAutoScroller.cs           <- 
+    │   │   ├── ChatChoiceSpawner.cs        <- Handles choice button spawning
+    │   │   ├── ChatMessageSpawner.cs       <- Handles message bubble spawning/animation
     │   │   ├── ChatTimingController.cs     <- 
     │   │   ├── PooledObject.cs             <- 
     │   │   └── PoolingManager.cs           <- 
@@ -84,14 +84,14 @@ Assets/Scripts/
     │   └── Panels/
     │       ├── ContactListPanel.cs         <- Contact list UI
     │       ├── ChatAppPanel.cs             <- future
-    │       └── CharacterButton.cs          <- Contact list item
+    │       └── ContactListItem.cs          <- Contact list item
 
     ├── UIManager
     │   ├── ChatAppUIManager.cs
-    │   ├── LockScreenUIManager.cs
+    │   ├── LockScreen.cs
     │   └── PhoneScreenManager.cs
 
-    └── DisclaimerController.cs
+    └── DisclaimerScreen.cs
 ```
 
 ## 📋 Setup Checklist
@@ -99,8 +99,8 @@ Assets/Scripts/
 ### **1. Create Script Files**
 ```
 ✅ ChatAppController.cs → Attach to ChatAppPanel
-✅ ChatMessageDisplay.cs → Attach to ChatPanel
-✅ ChatChoiceDisplay.cs → Attach to ChatChoices
+✅ ChatMessageSpawner.cs → Attach to ChatPanel
+✅ ChatChoiceSpawner.cs → Attach to ChatChoices
 ✅ MessageBubble.cs → Attach to all bubble prefabs
 ✅ ChoiceButton.cs → Attach to ChoiceButton prefab
 ```
@@ -116,12 +116,12 @@ ChatAppController:
   ✅ chatModeToggle
   ✅ chatScrollRect
   ✅ chatContent
-  ✅ messageDisplay (ChatMessageDisplay component)
-  ✅ choiceDisplay (ChatChoiceDisplay component)
+  ✅ messageDisplay (ChatMessageSpawner component)
+  ✅ choiceDisplay (ChatChoiceSpawner component)
   ✅ typingIndicator
   ✅ newMessageIndicator
 
-ChatMessageDisplay:
+ChatMessageSpawner:
   ✅ systemBubblePrefab
   ✅ npcTextBubblePrefab
   ✅ npcImageBubblePrefab
@@ -129,7 +129,7 @@ ChatMessageDisplay:
   ✅ playerImageBubblePrefab
   ✅ chatContent
 
-ChatChoiceDisplay:
+ChatChoiceSpawner:
   ✅ choiceButtonPrefab
   ✅ continueButtonPrefab
   ✅ choiceContainer (this.transform)
@@ -185,12 +185,12 @@ Assets/Scripts/
 │   │   ├── AgreeToggle (Toggle)
 │   │   ├── ContinueButton (Button)
 │   │   └── ExitButton (Button)
-│   └── DisclaimerController (attach script here)
+│   └── DisclaimerScreen (attach script here)
 └── EventSystem
 ```
 
 ### Component Assignments:
-1. Add `DisclaimerController.cs` to Canvas
+1. Add `DisclaimerScreen.cs` to Canvas
 2. Assign references in Inspector:
    - `Agree Toggle` → AgreeToggle
    - `Continue Button` → ContinueButton  
@@ -286,7 +286,7 @@ It's purely for managers. This scene should be visually empty.
 
 ### Test 3: Reset Disclaimer
 1. Stop play mode
-2. Right-click `DisclaimerController` in scene
+2. Right-click `DisclaimerScreen` in scene
 3. Select "Reset Disclaimer"
 4. Press Play → Disclaimer shows again
 
@@ -309,7 +309,7 @@ It's purely for managers. This scene should be visually empty.
 - **Print Save Info** - Shows save file details
 - **Create Test Save** - Generates test save file
 
-### DisclaimerController Shortcuts (Play Mode):
+### DisclaimerScreen Shortcuts (Play Mode):
 - **F10** - Force accept and continue to Bootstrap
 
 ---
@@ -328,7 +328,7 @@ It's purely for managers. This scene should be visually empty.
 - [ ] No Camera/Canvas/EventSystem in scene
 
 ### ✅ Disclaimer Scene:
-- [ ] DisclaimerController attached to Canvas
+- [ ] DisclaimerScreen attached to Canvas
 - [ ] All UI references assigned
 - [ ] Toggle and buttons work
 

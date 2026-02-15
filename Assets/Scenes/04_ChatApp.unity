@@ -1215,7 +1215,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1498654508}
   - {fileID: 1578891955}
   - {fileID: 585770213}
   - {fileID: 627746094}
@@ -1652,7 +1651,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterDatabase: {fileID: 11400000, guid: 7cd6664264a4d9e4abddadb719b562d9, type: 2}
   contactContainer: {fileID: 1608635576}
-  characterButtonPrefab: {fileID: 7950284808505750661, guid: e0427fe2b611e95409c7d6a49d9e9141, type: 3}
+  ContactListItemPrefab: {fileID: 7950284808505750661, guid: e0427fe2b611e95409c7d6a49d9e9141, type: 3}
   chatController: {fileID: 1578891956}
 --- !u!1 &787032122
 GameObject:
@@ -2481,63 +2480,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 70}
   m_SizeDelta: {x: 420, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &1498654507
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1498654508}
-  - component: {fileID: 1498654509}
-  m_Layer: 5
-  m_Name: UIManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1498654508
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498654507}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 484326325}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1498654509
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498654507}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 156078c54e171ee408a2003eb8f0fb23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  contactListPanel: {fileID: 762820939}
-  chatAppPanel: {fileID: 294436780}
-  chatController: {fileID: 1578891956}
-  quitButton: {fileID: 441573187}
-  homeButton: {fileID: 441573186}
-  backButton: {fileID: 441573185}
-  quitConfirmationPanel: {fileID: 627746097}
-  yesQuitButton: {fileID: 627746095}
-  noQuitButton: {fileID: 627746096}
 --- !u!1001 &1504189792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2548,7 +2490,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7950284808505750661, guid: e0427fe2b611e95409c7d6a49d9e9141, type: 3}
       propertyPath: m_Name
-      value: CharacterButton
+      value: ContactListItem
       objectReference: {fileID: 0}
     - target: {fileID: 9039381066062748848, guid: e0427fe2b611e95409c7d6a49d9e9141, type: 3}
       propertyPath: m_Pivot.x
@@ -2950,6 +2892,12 @@ MonoBehaviour:
   newMessageIndicator: {fileID: 1495892802}
   newMessageButton: {fileID: 789661617}
   newMessageText: {fileID: 157652992}
+  phoneHomeButton: {fileID: 441573186}
+  phoneBackButton: {fileID: 441573185}
+  quitButton: {fileID: 441573187}
+  quitConfirmationPanel: {fileID: 627746097}
+  yesQuitButton: {fileID: 627746095}
+  noQuitButton: {fileID: 627746096}
 --- !u!114 &1578891957
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,19 +1,18 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/LockScreenUIManager.cs
-// Phone Chat Simulation Game - Lock Screen Controller
+// Assets/Scripts/UI/LockScreen.cs
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
 using UnityEngine.UI;
 using ChatSim.Core;
 
-namespace ChatSim.UI.UIManager
+namespace ChatSim.UI.Common.Screens
 {
     /// <summary>
     /// Manages the lock screen (02_LockScreen scene)
     /// Entry point for the game - always shown first
     /// </summary>
-    public class LockScreenUIManager : MonoBehaviour
+    public class LockScreen : MonoBehaviour
     {
         [Header("UI References")]
         [SerializeField] private Button unlockButton;
@@ -28,7 +27,7 @@ namespace ChatSim.UI.UIManager
             UpdateLockScreenInfo();
             
             GameEvents.TriggerPhoneLocked();
-            Debug.Log("[LockScreenUIManager] Lock screen ready");
+            Debug.Log("[LockScreen] Lock screen ready");
         }
 
         private void InitializeUI()
@@ -39,7 +38,7 @@ namespace ChatSim.UI.UIManager
             }
             else
             {
-                Debug.LogWarning("[LockScreenUIManager] Unlock button not assigned!");
+                Debug.LogWarning("[LockScreen] Unlock button not assigned!");
             }
         }
 
@@ -59,7 +58,7 @@ namespace ChatSim.UI.UIManager
 
         private void OnUnlockPressed()
         {
-            Debug.Log("[LockScreenUIManager] Unlock button pressed");
+            Debug.Log("[LockScreen] Unlock button pressed");
             
             GameEvents.TriggerPhoneUnlocked();
             
@@ -69,7 +68,7 @@ namespace ChatSim.UI.UIManager
             }
             else
             {
-                Debug.LogError("[LockScreenUIManager] GameBootstrap.SceneFlow not found!");
+                Debug.LogError("[LockScreen] GameBootstrap.SceneFlow not found!");
             }
         }
     }

@@ -1,0 +1,113 @@
+contact: Sofia
+
+title: Start
+---
+System: "9:42 AM"
+
+Sofia: "Hey… you awake?"
+Sofia: "I know it's kind of early, but I needed to talk to someone."
+Sofia: "This app said you were online, so… here I am."
+
+>> media npc type:image unlock:true path:Sofia/CG1
+
+-> ...
+
+Sofia: "I'm not great at starting conversations, to be honest."
+Sofia: "Usually I just stare at the screen, type something, delete it, then repeat."
+Sofia: "But today felt different. Quiet. Too quiet."
+
+Player: "..."
+
+Sofia: "Anyway… thanks for answering."
+Sofia: "What should I do right now?"
+
+>> choice
+    -> "Ask how she's feeling"
+        # Player: "You sound troubled. What's on your mind?"
+        <<jump Node_Concern>>
+
+    -> "Keep it casual"
+        # Player: "Morning. Just having coffee. What's up?"
+        <<jump Node_Casual>>
+
+===
+
+//=====================================
+// CONCERN NODE
+//=====================================
+
+title: Node_Concern
+---
+Sofia: "…You noticed that fast, huh?"
+Sofia: "I guess I've been carrying a lot lately."
+Sofia: "Work, expectations, people assuming I'm always okay."
+
+>> media npc type:image unlock:true path:Sofia/CG2
+
+-> ...
+
+Sofia: "It helps, though. Being asked."
+Sofia: "Maybe I'll tell you more… if you stay."
+
+Player: "I'm here. Take your time."
+
+Sofia: "That means more than you know."
+Sofia: "Let me show you something that always makes me feel better."
+
+>> media npc type:image unlock:true path:Sofia/CG3
+
+-> ...
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// CASUAL NODE
+//=====================================
+
+title: Node_Casual
+---
+Sofia: "Coffee sounds nice."
+Sofia: "I burned mine earlier. Typical me."
+Sofia: "Still… talking like this feels oddly comforting."
+
+>> media npc type:image path:Sofia/CG2
+
+-> ...
+
+Sofia: "Maybe I'll open up later."
+Sofia: "For now, let's just pretend this is a normal morning."
+
+Player: "Fair enough. One step at a time."
+
+Sofia: "Yeah... one step at a time."
+Sofia: "Here, let me share something with you."
+
+>> media npc type:image unlock:true path:Sofia/CG3
+
+-> ...
+
+Sofia: "Next"
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// END NODE
+//=====================================
+
+title: EndNode
+---
+Sofia: "I'm glad you replied today."
+Sofia: "Maybe this chat will turn into something more than just messages on a screen."
+
+>> media npc type:image unlock:true path:Sofia/CG4
+
+-> ...
+
+Sofia: "Thanks for listening. Really."
+Sofia: "Talk to you later? 💙"
+
+System: "Conversation paused."

@@ -39,6 +39,10 @@ namespace ChatSim.UI.ChatApp.Controllers
             return chatContent;
         }
         
+        /// <summary>
+        /// Display a message bubble (text, image, or system)
+        /// UPDATED: Now handles MessageType.Image with async loading
+        /// </summary>
         public void DisplayMessage(MessageData msg, bool instant = false)
         {
             GameObject bubblePrefab = GetBubblePrefab(msg);
@@ -52,15 +56,34 @@ namespace ChatSim.UI.ChatApp.Controllers
             // Instantiate bubble
             GameObject bubbleObj = Instantiate(bubblePrefab, chatContent);
             
-            // Initialize bubble
-            var bubble = bubbleObj.GetComponent<MessageBubble>();
-            if (bubble != null)
+            // Initialize bubble based on type
+            if (msg.type == MessageData.MessageType.Image)
             {
-                bubble.Initialize(msg, instant);
+                // Image bubble (CG) - uses ImageMessageBubble component
+                var imageBubble = bubbleObj.GetComponent<ImageMessageBubble>();
+                if (imageBubble != null)
+                {
+                    imageBubble.Initialize(msg, instant);
+                }
+                else
+                {
+                    Debug.LogError($"[ChatMessageSpawner] ImageMessageBubble component missing on image prefab!");
+                    Destroy(bubbleObj);
+                }
             }
             else
             {
-                Debug.LogError($"[ChatMessageSpawner] MessageBubble component missing on prefab!");
+                // Text or System bubble - uses MessageBubble component
+                var bubble = bubbleObj.GetComponent<MessageBubble>();
+                if (bubble != null)
+                {
+                    bubble.Initialize(msg, instant);
+                }
+                else
+                {
+                    Debug.LogError($"[ChatMessageSpawner] MessageBubble component missing on prefab!");
+                    Destroy(bubbleObj);
+                }
             }
         }
         
@@ -115,5 +138,33 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             return speaker.ToLower() == "player" || speaker.StartsWith("#");
         }
+        
+        // ═══════════════════════════════════════════════════════════
+        // ░ VALIDATION (EDITOR)
+        // ═══════════════════════════════════════════════════════════
+        
+        #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Validate prefab assignments
+            if (systemBubblePrefab == null)
+                Debug.LogWarning("[ChatMessageSpawner] systemBubblePrefab not assigned!");
+            
+            if (npcTextBubblePrefab == null)
+                Debug.LogWarning("[ChatMessageSpawner] npcTextBubblePrefab not assigned!");
+            
+            if (npcImageBubblePrefab == null)
+                Debug.LogWarning("[ChatMessageSpawner] npcImageBubblePrefab not assigned!");
+            
+            if (playerTextBubblePrefab == null)
+                Debug.LogWarning("[ChatMessageSpawner] playerTextBubblePrefab not assigned!");
+            
+            if (playerImageBubblePrefab == null)
+                Debug.LogWarning("[ChatMessageSpawner] playerImageBubblePrefab not assigned!");
+            
+            if (chatContent == null)
+                Debug.LogError("[ChatMessageSpawner] chatContent not assigned!");
+        }
+        #endif
     }
 }

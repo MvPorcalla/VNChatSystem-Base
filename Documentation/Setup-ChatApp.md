@@ -36,7 +36,7 @@ Chat Message Display (Script)
 [Message Prefabs]
 systemBubblePrefab      → Drag: SystemContainer.prefab
 npcTextBubblePrefab     → Drag: NpcChatContainer.prefab
-npcImageBubblePrefab    → Drag: NpcCGContainer.prefab
+NpcIMGContainerPrefab    → Drag: NpcCGContainer.prefab
 playerTextBubblePrefab  → Drag: PlayerChatContainer.prefab
 playerImageBubblePrefab → Drag: PlayerCGContainer.prefab
 
@@ -154,6 +154,105 @@ Settings:
 ├── Auto Scroll Enabled: true
 └── Bottom Threshold: 0.01
 ```
+
+---
+
+### **MessageBubble.cs:** (Script)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+
+### **ImageMessageBubble.cs:** (Script)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Assign Script References:
+Select NpcIMGContainer (root) → Inspector → Image Message Bubble Script:
+┌─────────────────────────────────────────┐
+│ Image Display                           │
+├─────────────────────────────────────────┤
+│ CG Image: [Drag CGImage here]          │
+├─────────────────────────────────────────┤
+│ Fullscreen Viewer                       │
+├─────────────────────────────────────────┤
+│ Fullscreen Viewer: None (auto-finds)   │
+└─────────────────────────────────────────┘
+G. Button Settings:
+Select NpcIMGContainer (root) → Inspector → Button Component:
+Navigation: None
+Transition: None (or Color Tint if you want visual feedback)
+H. Save as Prefab:
+
+Create folder: Assets/Prefabs/ChatApp/ (if it doesn't exist)
+Drag NpcIMGContainer from Hierarchy → Prefabs folder
+Delete NpcIMGContainer from Hierarchy
+
+---
+
+### **ChatMessageSpawner.cs:** (Script)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Assign prefabs:
+
+┌─────────────────────────────────────────┐
+│ Message Prefabs                         │
+├─────────────────────────────────────────┤
+│ System Bubble Prefab:                   │
+│   [Your existing SystemBubble]          │
+│                                         │
+│ NPC Text Bubble Prefab:                 │
+│   [Your existing NpcTextBubble]         │
+│                                         │
+│ NPC Image Bubble Prefab:                │
+│   [Drag NpcImageBubble] ← NEW          │
+│                                         │
+│ Player Text Bubble Prefab:              │
+│   [Your existing PlayerTextBubble]      │
+│                                         │
+│ Player Image Bubble Prefab:             │
+│   [Drag PlayerImageBubble] ← NEW       │
+├─────────────────────────────────────────┤
+│ Content Container                       │
+├─────────────────────────────────────────┤
+│ Chat Content:                           │
+│   [Your existing ScrollView Content]    │ ← put Content (ChatPanel/Veiwport/Content)
+└─────────────────────────────────────────┘
+
+---
+
+### **FullscreenCGViewer.cs:** (Script)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hierarchy Check:
+FullscreenCGViewer
+└── ViewerPanel (INACTIVE)
+    ├── Background (Image - black overlay)
+    ├── CGImage (Image - the CG)
+    ├── CloseButton (Button)
+    │   └── Text (TextMeshProUGUI - "✕")
+    └── CGNameText (TextMeshProUGUI - optional)
+
+Assign References:
+Select FullscreenCGViewer (root) → Inspector:
+┌─────────────────────────────────────────┐
+│ UI Elements                             │
+├─────────────────────────────────────────┤
+│ Viewer Panel:    [Drag ViewerPanel]     │
+│ CG Image:        [Drag CGImage]         │
+│ Close Button:    [Drag CloseButton]     │
+│ CG Name Text:    [Drag CGNameText]      │
+├─────────────────────────────────────────┤
+│ Zoom Settings                           │
+├─────────────────────────────────────────┤
+│ Min Zoom:        1                      │
+│ Max Zoom:        3                      │
+│ Zoom Speed:      0.1                    │
+├─────────────────────────────────────────┤
+│ Animation                               │
+├─────────────────────────────────────────┤
+│ Fade Duration:   0.3                    │
+│ Canvas Group:    [Drag CanvasGroup]     │
+│                  (on ViewerPanel)       │
+└─────────────────────────────────────────┘
 
 ---
 

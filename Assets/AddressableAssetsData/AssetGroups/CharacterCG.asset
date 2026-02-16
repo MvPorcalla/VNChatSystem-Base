@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: CharacterCG
+  m_EditorClassIdentifier: 
+  m_GroupName: CharacterCG
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 5b31ec60e8ca47943b6219093ab86536
+  m_SerializeEntries:
+  - m_GUID: 4437cc608d77ae6449801419c21f190c
+    m_Address: Sofia/Profile.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ad9cb8440e07584bba10dde950f7328
+    m_Address: Sofia/CG2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c36f5ea857354fd41a097c733a9b9f38
+    m_Address: Sofia/CG3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c66e07c7592e42b4f8062e5a0aa15baa
+    m_Address: Sofia/CG1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e068d96973ffa0048aa8db172a38240e
+    m_Address: Sofia/CG4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 2009bf9a7a267e84d94a19246ef479cd, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 41bb395aebba40646a7baaadc9e642f7, type: 2}
+    - {fileID: 11400000, guid: fc5b8385cc1cb1c48a8441236cfa00e9, type: 2}

@@ -14,7 +14,8 @@ Assets/Scripts/
 │       └── CharacterDatabase.cs             #
 │
 ├── ChatSim/ 
-    ├── Core/             
+    ├── Core/
+    │   ├── AddressablesImageLoader.cs          # NEW - Async image loader
     │   ├── BubbleSpinnerBridge.cs        
     │   ├── GameBootstrap.cs              
     │   ├── GameEvents.cs                 
@@ -31,6 +32,7 @@ Assets/Scripts/
         ├── ChatApp/                        # Chat application
         │   ├── Components/
         │   │   ├── MessageBubble.cs        # Individual bubble
+        │   │   ├── ImageMessageBubble.cs   # NEW - CG bubble with click
         │   │   └── ChoiceButton.cs         # Individual choice button
         │   │
         │   ├── Controllers/
@@ -40,9 +42,12 @@ Assets/Scripts/
         │   │   ├── ChatMessageSpawner.cs   # Spawns message bubbles
         │   │   └── ChatTimingController.cs # Timing & animations
         │   │
-        │   └── Panels/
-        │       ├── ContactListPanel.cs     # Contact list
-        │       └── ContactListItem.cs      # Individual contact button
+        │   ├── Panels/
+        │   │   ├── ContactListPanel.cs     # Contact list
+        │   │   └── ContactListItem.cs      # Individual contact button
+        │   │
+        │   └── Viewer/
+        │       └── FullscreenCGViewer.cs   # 
         │
         ├── Common/                         # Shared UI utilities
         │   ├── Components/

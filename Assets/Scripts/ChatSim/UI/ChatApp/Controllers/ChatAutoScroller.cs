@@ -1,5 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Core/ChatAutoScroller.cs
+// FIXED - Added null checks to prevent MissingReferenceException
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -62,6 +63,14 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (!chatScrollRect.gameObject.activeInHierarchy || !autoScrollEnabled)
                 return;
+
+            // CRITICAL: Null check - content may have been destroyed
+            if (contentTransform == null)
+            {
+                Debug.LogWarning("[ChatAutoScroller] contentTransform is null - reinitializing");
+                isInitialized = false;
+                return;
+            }
 
             // Check current state
             bool currentlyAtBottom = IsAtBottom();
@@ -159,6 +168,13 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (!isInitialized || chatScrollRect == null) 
                 return;
             
+            // Null check before accessing contentTransform
+            if (contentTransform == null)
+            {
+                Debug.LogWarning("[ChatAutoScroller] Cannot scroll - contentTransform is null");
+                return;
+            }
+            
             // Force layout update first
             Canvas.ForceUpdateCanvases();
             
@@ -166,10 +182,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             chatScrollRect.verticalNormalizedPosition = 0f;
             
             // Force rebuild to ensure correct positioning
-            if (contentTransform != null)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform);
-            }
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform);
         }
 
         /// <summary>

@@ -21,5 +21,3 @@ i have this issue where if i go out at mid convo and comback it show this `-> ..
 it shouldnt do that it show the choice or end button right away `-> ...` this should only show if its a continue button
 
 ---
-
-TODO: fix UI namespace

@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/DialogueExecutor.cs
-// BubbleSpinner - Dialogue Flow Execution (PURE - NO GAME DEPENDENCIES)
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -12,7 +11,6 @@ namespace BubbleSpinner.Core
 {
     /// <summary>
     /// Executes dialogue nodes and manages conversation flow.
-    /// 100% PURE - No dependencies on ChatSim or any game-specific code.
     /// </summary>
     public class DialogueExecutor
     {
@@ -134,7 +132,72 @@ namespace BubbleSpinner.Core
             
             state.isInPauseState = false;
             
-            ProcessCurrentNode();
+            // FIXED: After pause, we should NOT re-process messages
+            // Instead, check what comes AFTER the pause: choices, jump, or end
+            
+            // Check if there are more messages AFTER the current pause point
+            int nextPauseIndex = GetNextPausePoint(state.currentMessageIndex);
+            
+            if (nextPauseIndex > state.currentMessageIndex && nextPauseIndex <= currentNode.messages.Count)
+            {
+                // There are more messages before the next pause/end
+                ProcessCurrentNode();
+            }
+            else
+            {
+                // No more messages - proceed to choices/jump/end
+                DetermineNextActionSkipPause();
+            }
+        }
+
+        /// <summary>
+        /// Determine next action but skip checking the current pause point
+        /// </summary>
+        private void DetermineNextActionSkipPause()
+        {
+            Debug.Log($"[DialogueExecutor] Determining next action (skipping current pause) for node: {currentNode.nodeName}");
+
+            // Skip pause check - we just cleared it
+
+            // Priority 1: Check for choices
+            if (currentNode.choices != null && currentNode.choices.Count > 0)
+            {
+                Debug.Log($"[DialogueExecutor] → Showing {currentNode.choices.Count} choices");
+                OnChoicesReady?.Invoke(currentNode.choices);
+                return;
+            }
+
+            // Priority 2: Check for auto-jump
+            if (!string.IsNullOrEmpty(currentNode.nextNode))
+            {
+                Debug.Log($"[DialogueExecutor] → Auto-jump to: {currentNode.nextNode}");
+                JumpToNode(currentNode.nextNode);
+                return;
+            }
+
+            // Priority 3: End of conversation
+            Debug.Log("[DialogueExecutor] → End of conversation");
+            OnConversationEnd?.Invoke();
+        }
+
+        /// <summary>
+        /// Get the next pause point after the given index
+        /// Returns messages.Count if no more pauses
+        /// </summary>
+        private int GetNextPausePoint(int afterIndex)
+        {
+            int nextPause = currentNode.messages.Count;
+            
+            foreach (int pausePoint in currentNode.pausePoints)
+            {
+                if (pausePoint > afterIndex)
+                {
+                    nextPause = pausePoint;
+                    break;
+                }
+            }
+            
+            return nextPause;
         }
 
         /// <summary>

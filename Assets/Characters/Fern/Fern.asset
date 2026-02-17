@@ -10,15 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8834d8febb016234a840bba3b2da941a, type: 3}
-  m_Name: TestChat
+  m_Name: Fern
   m_EditorClassIdentifier: 
-  characterName: TestChat
+  characterName: Fern
   profileImage:
-    m_AssetGUID: 
+    m_AssetGUID: 109580d6d5e781143afae48297c75841
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
-  conversationId: f12a22_
+  conversationId: 379a9f_Fern
   chapters:
-  - {fileID: 4900000, guid: 801cc0213a27ce747871afb65adcce32, type: 3}
-  cgAddressableKeys: []
+  - {fileID: 4900000, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
+  cgAddressableKeys:
+  - Fern/CG1
+  - Fern/CG2
+  - Fern/CG3

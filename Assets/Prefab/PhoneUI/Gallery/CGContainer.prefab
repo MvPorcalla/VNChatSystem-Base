@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8379726471072273028}
   - component: {fileID: 5610699472774652647}
   m_Layer: 5
-  m_Name: CGName
+  m_Name: CharacterName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -101,7 +101,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -165,7 +165,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7165878946010637628}
   - component: {fileID: 3491396296442309900}
-  - component: {fileID: 183010111457896466}
   m_Layer: 5
   m_Name: CGGrid
   m_TagString: Untagged
@@ -209,29 +208,13 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 1
+  m_ChildAlignment: 3
   m_StartCorner: 0
   m_StartAxis: 0
   m_CellSize: {x: 200, y: 200}
   m_Spacing: {x: 20, y: 20}
   m_Constraint: 1
   m_ConstraintCount: 4
---- !u!114 &183010111457896466
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4249781140273009607}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c9df80be8b191d4794bbc1abf36a453, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxColumns: 4
-  padding: 20
-  spacing: 20
-  onlyOnResize: 1
 --- !u!1 &8476284370856122031
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,8 +306,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
+    m_Left: 20
+    m_Right: 20
     m_Top: 10
     m_Bottom: 20
   m_ChildAlignment: 0

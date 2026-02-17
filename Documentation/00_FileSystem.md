@@ -60,6 +60,10 @@ Assets/Scripts/
         │       └── LockScreen.cs           # Lock screen
         │
         └── PhoneOS/                        # Phone operating system
+            ├── Gallery/                    # 
+        │   │   ├── GalleryController.cs
+        │   │   ├── GalleryFullscreenVeiwer.cs
+        │   │   └── GalleryThumbnailItems.cs
             └── PhoneHomeScreen.cs          # Home screen & app launcher
 
 ```

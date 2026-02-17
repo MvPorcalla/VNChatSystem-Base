@@ -1,0 +1,150 @@
+contact: Fern
+
+title: Start
+---
+System: "7:15 AM"
+
+Fern: "Good morning."
+Fern: "I hope I'm not disturbing you this early."
+Fern: "Frieren-sama is still asleep, and I found myself with some time before I need to prepare breakfast."
+
+>> media npc type:image unlock:true path:Fern/CG1
+
+-> ...
+
+Player: "..."
+
+Fern: "I've been traveling with Frieren-sama for years now."
+Fern: "Watching her sleep in until noon, forgetting to eat, losing track of time..."
+Fern: "Sometimes I wonder if she'd even notice if I wasn't here."
+
+-> ...
+
+Player: "I'm sure she notices"
+
+Fern: "...Perhaps you're right."
+Fern: "She just has her own way of showing it."
+Fern: "Still, there are moments when I feel..."
+
+>> choice
+    -> "Lonely?"
+        # Player: "Lonely? Even when you're traveling together?"
+        <<jump Node_Loneliness>>
+
+    -> "Unappreciated?"
+        # Player: "Like your efforts go unnoticed?"
+        <<jump Node_Appreciation>>
+
+===
+
+//=====================================
+// LONELINESS NODE
+//=====================================
+
+title: Node_Loneliness
+---
+Fern: "...Yes."
+Fern: "That's exactly it."
+Fern: "Frieren-sama can spend days lost in thought about magic, or staring at flowers that only bloom once every fifty years."
+Fern: "And I'm here, in the present, watching time pass by."
+
+>> media npc type:image unlock:true path:Fern/CG2
+
+-> ...
+
+Player: "..."
+
+Fern: "I know she cares. She took me in when I had no one."
+Fern: "Heiter-sama entrusted me to her before he passed."
+Fern: "But sometimes..."
+Fern: "Sometimes I wish she would see me as I am now, not just as the child she once knew."
+
+-> ...
+
+Player: "You've grown a lot"
+
+Fern: "Have I?"
+Fern: "Maybe that's why I wanted to talk to someone today."
+Fern: "Someone who exists in the same timeframe as me."
+Fern: "Thank you for listening without judgment."
+
+>> media npc type:image unlock:true path:Fern/CG3
+
+-> ...
+
+Player: "Anytime"
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// APPRECIATION NODE
+//=====================================
+
+title: Node_Appreciation
+---
+Fern: "I wouldn't say unappreciated..."
+Fern: "Frieren-sama relies on me more than she realizes."
+Fern: "I make sure she eats, that we have supplies, that she doesn't wander off for three days chasing a rumor about some grimoire."
+
+-> ...
+
+Player: "That sounds exhausting"
+
+Fern: "It can be."
+Fern: "But it's also... meaningful."
+Fern: "Heiter-sama once told me that caring for others is how we find purpose."
+
+>> media npc type:image unlock:true path:Fern/CG2
+
+-> ...
+
+Player: "..."
+
+Fern: "I think he was right."
+Fern: "Even when Frieren-sama forgets my birthday, or doesn't notice I changed my hairstyle..."
+Fern: "I know she needs me."
+Fern: "And maybe I need to be needed."
+
+-> ...
+
+Player: "That's a beautiful way to see it"
+
+Fern: "You think so?"
+Fern: "Sometimes I worry I'm just making excuses."
+Fern: "But talking to you... it helps clarify things."
+
+>> media npc type:image unlock:true path:Fern/CG3
+
+-> ...
+
+Player: "I'm glad"
+
+<<jump EndNode>>
+
+===
+
+//=====================================
+// END NODE
+//=====================================
+
+title: EndNode
+---
+Fern: "I should go now."
+Fern: "Frieren-sama will wake up soon, and if breakfast isn't ready, she'll try to eat those weird mushrooms from the forest again."
+Fern: "The last time that happened, we lost two days."
+
+-> ...
+
+Player: "Good luck with that"
+
+Fern: "Thank you."
+Fern: "And... thank you for this conversation."
+Fern: "It's rare for me to talk about these things."
+Fern: "Perhaps we can speak again sometime?"
+
+System: "Later that evening."
+
+// Cross-chapter jump - Chapter 2 will continue the story
+<<jump Start_Ch2>>

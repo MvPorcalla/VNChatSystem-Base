@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/IBubbleSpinnerCallbacks.cs
-// BubbleSpinner - External Integration Callbacks (PURE INTERFACE)
 // ════════════════════════════════════════════════════════════════════════
 
 using BubbleSpinner.Data;
@@ -8,8 +7,8 @@ using BubbleSpinner.Data;
 namespace BubbleSpinner.Core
 {
     /// <summary>
-    /// Callback interface for BubbleSpinner to communicate with external systems.
-    /// Implement this in your game-specific code to integrate BubbleSpinner.
+    /// Interface for BubbleSpinner to communicate with external systems (like your game) 
+    /// for saving/loading conversation state and notifying about conversation events.
     /// </summary>
     public interface IBubbleSpinnerCallbacks
     {

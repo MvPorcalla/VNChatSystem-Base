@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/SceneNames.cs
-// Phone Chat Simulation Game - Scene Name Constants
 // ════════════════════════════════════════════════════════════════════════
 
 namespace ChatSim.Core

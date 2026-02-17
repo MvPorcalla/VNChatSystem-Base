@@ -11,7 +11,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Handles async loading of sprites from Addressables with caching.
+    /// Utility class for loading sprites from Addressables with caching and error handling.
+    /// This class provides an asynchronous API to load sprites by their addressable keys,
     /// </summary>
     public static class AddressablesImageLoader
     {

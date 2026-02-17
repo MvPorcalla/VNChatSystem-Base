@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/SaveManager.cs
-// Phone Chat Simulation Game - Save/Load System
 // ════════════════════════════════════════════════════════════════════════
 
 using System;

@@ -7,6 +7,15 @@ using UnityEngine;
 
 namespace BubbleSpinner.Data
 {
+    /// <summary>
+    /// ScriptableObject that holds references to all ConversationAssets (characters) in the game.
+    /// </summary>
+    /// This is used by BubbleSpinner to look up character data when starting conversations.
+    /// You can create an instance of this database via the Unity Editor and populate it with your ConversationAssets.
+    /// For convenience, it includes an editor-only method to auto-find all ConversationAssets in the project and add them to the database.
+    /// Make sure to keep this database updated with any new characters you add to your game.
+    /// Note: This database is separate from the ConversationManager's runtime state management. It is purely for referencing character data.
+    
     [CreateAssetMenu(fileName = "CharacterDatabase", menuName = "BubbleSpinner/Character Database")]
     public class CharacterDatabase : ScriptableObject
     {

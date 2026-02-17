@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/GameBootstrap.cs
-// Phone Chat Simulation Game - Core Initialization (UPDATED FOR BUBBLESPINNER)
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -12,8 +11,9 @@ using BubbleSpinner.Core;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Initializes core game systems, manages scene flow, and integrates BubbleSpinner via callbacks.
-    /// This is the central bootstrapper for the entire game - all core managers are initialized here.
+    /// Central bootstrapper for the game that initializes core systems, manages scene flow, and integrates BubbleSpinner.
+    /// This class is responsible for setting up the game's core managers (SaveManager, SceneFlowManager, ConversationManager), 
+    /// ensuring save data exists, and determining the initial scene to load.
     /// </summary>
     public class GameBootstrap : MonoBehaviour
     {

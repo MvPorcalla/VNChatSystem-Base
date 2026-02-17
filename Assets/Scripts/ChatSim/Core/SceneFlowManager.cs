@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/SceneFlowManager.cs
-// Phone Chat Simulation Game - Scene Transition Manager
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections;
@@ -10,7 +9,8 @@ using UnityEngine.SceneManagement;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Manages scene transitions (single-scene loading only, no additive)
+    /// Manages scene transitions and flow control for the game. 
+    /// Provides a centralized API to load scenes, trigger events during scene changes, and handle transition states.
     /// Access via: GameBootstrap.SceneFlow
     /// </summary>
     public class SceneFlowManager : MonoBehaviour

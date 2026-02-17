@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/Core/GameEvents.cs
-// Phone Chat Simulation Game - Central Event Hub
 // ════════════════════════════════════════════════════════════════════════
 
 using System;

@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Data/ConversationAsset.cs
-// BubbleSpinner - Conversation Configuration
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;
@@ -9,6 +8,22 @@ using UnityEngine.AddressableAssets;
 
 namespace BubbleSpinner.Data
 {
+
+    /// <summary>
+    /// ScriptableObject that defines a character and their associated conversation data.
+    /// Each ConversationAsset represents a character in the game and contains:
+    /// - Character name and profile image
+    /// - Unique conversation ID (auto-generated)
+    /// - List of dialogue chapters (.bub files)
+    /// - List of CGs to unlock (Addressable keys)
+    /// 
+    /// This asset is used by BubbleSpinner to look up conversation data when starting a conversation.
+    /// You can create multiple ConversationAssets for different characters in your game.
+    /// The unique ConversationId is generated automatically based on the character name, but you can modify it if needed (just ensure it remains unique).
+    /// Make sure to keep this asset updated with any new characters or conversations you add to your game.
+    /// Note: This asset is separate from the CharacterDatabase. It is meant to be referenced by the database and used at runtime for conversation management.
+        /// </summary>
+
     [CreateAssetMenu(fileName = "NewConversation", menuName = "BubbleSpinner/Conversation Asset")]
     public class ConversationAsset : ScriptableObject
     {

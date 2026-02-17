@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/BubbleSpinnerParser.cs
-// BubbleSpinner - .bub File Parser
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -10,6 +9,10 @@ using BubbleSpinner.Data;
 
 namespace BubbleSpinner.Core
 {
+    /// <summary>
+    ///  Parses .bub dialogue files into a structured format of DialogueNodes, Messages, and Choices.
+    /// Supports dialogue lines, media commands, jump commands, pause points, and choice blocks.
+    /// </summary>
     public static class BubbleSpinnerParser
     {
         private class ParserContext

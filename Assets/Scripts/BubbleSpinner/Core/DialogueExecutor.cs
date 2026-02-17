@@ -11,6 +11,9 @@ namespace BubbleSpinner.Core
 {
     /// <summary>
     /// Executes dialogue nodes and manages conversation flow.
+    /// This class is responsible for processing the current dialogue node, 
+    /// determining what messages to show, when to show choices, when to pause, and when to jump to other nodes or chapters.
+    /// It maintains the current state of the conversation and communicates with the UI via events.
     /// </summary>
     public class DialogueExecutor
     {
@@ -131,8 +134,7 @@ namespace BubbleSpinner.Core
             Debug.Log("[DialogueExecutor] Pause button clicked - continuing dialogue");
             
             state.isInPauseState = false;
-            
-            // FIXED: After pause, we should NOT re-process messages
+
             // Instead, check what comes AFTER the pause: choices, jump, or end
             
             // Check if there are more messages AFTER the current pause point

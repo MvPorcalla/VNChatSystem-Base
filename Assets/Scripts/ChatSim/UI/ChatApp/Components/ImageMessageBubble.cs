@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/ChatSim/UI/ChatApp/Components/ImageMessageBubble.cs
-// SIMPLIFIED - Direct image loading without loading indicators
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -11,8 +10,8 @@ using ChatSim.Core;
 namespace ChatSim.UI.ChatApp.Components
 {
     /// <summary>
-    /// Displays an image/CG in a chat bubble.
-    /// Features: Direct image loading, click-to-fullscreen.
+    /// Component for message bubbles that display images (CGs).
+    /// Handles loading the image from Addressables, displaying it in the bubble, and opening a fullscreen viewer when clicked.
     /// Attach to: NpcImageBubble and PlayerImageBubble prefabs
     /// </summary>
     [RequireComponent(typeof(Button))]

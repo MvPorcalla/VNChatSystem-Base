@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Data/MessageData.cs
-// BubbleSpinner - Message & Node Data Structures
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -8,6 +7,12 @@ using System.Collections.Generic;
 
 namespace BubbleSpinner.Data
 {
+
+    /// <summary>
+    /// Defines the data structures for messages, choices, dialogue nodes, and conversation state used by BubbleSpinner.
+    /// These classes are used to represent the parsed dialogue data from .bub files and to manage conversation state during execution.
+    /// </summary>
+
     // ═══════════════════════════════════════════════════════════
     // ░ MESSAGE DATA
     // ═══════════════════════════════════════════════════════════

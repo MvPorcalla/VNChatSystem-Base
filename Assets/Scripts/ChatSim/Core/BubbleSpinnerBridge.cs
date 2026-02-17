@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/ChatSim/Core/BubbleSpinnerBridge.cs
-// ChatSim - BubbleSpinner Integration Bridge
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -11,8 +10,9 @@ using ChatSim.Data;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Bridges BubbleSpinner callbacks to ChatSim's GameBootstrap and GameEvents.
-    /// This is the ONLY file in ChatSim that knows about BubbleSpinner internals.
+    /// Bridge class that implements IBubbleSpinnerCallbacks to connect BubbleSpinner's conversation system with ChatSim's game-specific logic.
+    /// This class handles saving/loading conversation state using ChatSim's SaveSystem 
+    /// and triggers ChatSim events when conversations start, end, or when CGs are unlocked.
     /// </summary>
     public class BubbleSpinnerBridge : IBubbleSpinnerCallbacks
     {

@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Core/ConversationManager.cs
-// BubbleSpinner - Conversation State Management (PURE - NO GAME DEPENDENCIES)
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;
@@ -10,8 +9,10 @@ using BubbleSpinner.Data;
 namespace BubbleSpinner.Core
 {
     /// <summary>
-    /// Manages conversation state, saving/loading via callbacks, and CG gallery data.
-    /// Integrates with external systems via IBubbleSpinnerCallbacks.
+    /// Manages the lifecycle of conversations, including starting, saving, loading, and ending conversations.
+    /// It interacts with DialogueExecutor to run conversations 
+    /// and uses IBubbleSpinnerCallbacks to communicate with external systems for saving/loading and event notifications.
+    /// This class is designed to be the central hub for all conversation-related logic in BubbleSpinner.
     /// </summary>
     public class ConversationManager : MonoBehaviour
     {

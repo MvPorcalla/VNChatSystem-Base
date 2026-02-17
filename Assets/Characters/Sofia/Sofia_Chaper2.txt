@@ -1,0 +1,145 @@
+contact: Sofia
+
+title: Start_Ch2
+---
+System: "2:47 PM"
+
+Sofia: "Hey again."
+Sofia: "I've been thinking about our conversation this morning."
+Sofia: "It's weird how talking to someone new can feel… safer somehow."
+
+>> media npc type:image unlock:true path:Sofia/CG5
+
+-> ...
+
+Player: "..."
+
+Sofia: "I don't usually do this, but…"
+Sofia: "There's something I've been wanting to share with someone."
+Sofia: "Someone who won't judge or try to fix everything immediately."
+
+-> ...
+
+Player: "I'm listening."
+
+Sofia: "I appreciate that."
+Sofia: "So… where should I even start?"
+
+>> choice
+    -> "Start with what's bothering you most"
+        # Player: "What's weighing on you the heaviest right now?"
+        <<jump Node_Deep>>
+
+    -> "Start wherever feels right"
+        # Player: "No pressure. Just say what comes naturally."
+        <<jump Node_Natural>>
+
+===
+
+//=====================================
+// DEEP NODE
+//=====================================
+
+title: Node_Deep
+---
+Sofia: "The heaviest thing…"
+Sofia: "I think it's the feeling that I'm always performing."
+Sofia: "At work, with friends, even with family."
+Sofia: "Like there's this version of Sofia everyone expects, and I have to maintain it."
+
+>> media npc type:image unlock:true path:Sofia/CG6
+
+-> ...
+
+Player: "..."
+
+Sofia: "But with you? I don't know you well enough to have built that wall yet."
+Sofia: "It's freeing. Terrifying. But freeing."
+
+-> ...
+
+Player: "You don't have to perform here."
+
+Sofia: "Thank you for saying that."
+Sofia: "I think I needed to hear it."
+Sofia: "Want to know something else?"
+
+>> media npc type:image unlock:true path:Sofia/CG7
+
+-> ...
+
+Player: "..."
+
+Sofia: "I took this earlier today."
+Sofia: "When I feel overwhelmed, I find quiet spaces. Just to breathe."
+
+<<jump EndNode_Ch2>>
+
+===
+
+//=====================================
+// NATURAL NODE
+//=====================================
+
+title: Node_Natural
+---
+Sofia: "Okay… naturally then."
+Sofia: "I guess I'll start with something small."
+Sofia: "I've been feeling disconnected lately. From everything."
+Sofia: "Like I'm going through the motions but not really… present."
+
+>> media npc type:image unlock:true path:Sofia/CG6
+
+-> ...
+
+Player: "..."
+
+Sofia: "Does that sound weird?"
+Sofia: "I swear I'm not always this melancholic."
+
+-> ...
+
+Player: "It doesn't sound weird at all."
+
+Sofia: "Good. Because it's been eating at me."
+Sofia: "Sometimes I wonder if anyone actually sees me, you know?"
+Sofia: "The real me."
+
+>> media npc type:image unlock:true path:Sofia/CG7
+
+-> ...
+
+Player: "..."
+
+Sofia: "Sorry, that got heavier than I planned."
+Sofia: "But I guess that's the point of having someone to talk to, right?"
+
+<<jump EndNode_Ch2>>
+
+===
+
+//=====================================
+// END NODE CHAPTER 2
+//=====================================
+
+title: EndNode_Ch2
+---
+Sofia: "I feel lighter already."
+Sofia: "Thank you for not running away when things got real."
+Sofia: "Most people do."
+
+-> ...
+
+Player: "..."
+
+Sofia: "I should probably get back to work soon."
+Sofia: "But I'm glad we talked."
+Sofia: "Same time tomorrow? I think I'd like that."
+
+System: "Sofia is typing..."
+
+Sofia: "Until then. 💙"
+
+System: "Conversation paused."
+
+===

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using BubbleSpinner.Core;
 using BubbleSpinner.Data;
 using ChatSim.Core;
@@ -110,6 +112,8 @@ namespace ChatSim.UI.ChatApp.Controllers
         private ConversationAsset currentConversation;
         private bool isFastMode = false;
         private int unreadMessageCount = 0;
+
+        private AsyncOperationHandle<Sprite> chatProfileImageHandle;
         
         // ═══════════════════════════════════════════════════════════
         // ░ CONSTANTS
@@ -340,11 +344,66 @@ namespace ChatSim.UI.ChatApp.Controllers
                 chatProfileName.text = asset.characterName;
             }
             
-            // TODO: Load profile image from Addressables
-            // if (chatProfileIMG != null && asset.profileImage != null)
-            // {
-            //     LoadProfileImage(asset.profileImage);
-            // }
+            // Load profile image from Addressables
+            if (chatProfileIMG != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
+            {
+                LoadChatProfileImage(asset.profileImage);
+            }
+            else
+            {
+                Debug.LogWarning($"[ChatAppController] No valid profile image for {asset.characterName}");
+            }
+        }
+
+        private void LoadChatProfileImage(AssetReference assetRef)
+        {
+            // Release previous handle if exists
+            if (chatProfileImageHandle.IsValid())
+            {
+                Addressables.Release(chatProfileImageHandle);
+            }
+            
+            // Check if already loaded by another component
+            if (assetRef.OperationHandle.IsValid() && assetRef.OperationHandle.IsDone)
+            {
+                // Reuse the already-loaded sprite (don't create new handle)
+                var sprite = assetRef.OperationHandle.Convert<Sprite>().Result;
+                if (sprite != null && chatProfileIMG != null)
+                {
+                    chatProfileIMG.sprite = sprite;
+                    Debug.Log($"[ChatAppController] ✓ Using cached profile image: {currentConversation?.characterName}");
+                }
+                return;
+            }
+            
+            // Load new asset
+            chatProfileImageHandle = assetRef.LoadAssetAsync<Sprite>();
+            chatProfileImageHandle.Completed += OnChatProfileImageLoaded;
+        }
+
+        private void OnChatProfileImageLoaded(AsyncOperationHandle<Sprite> handle)
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                if (chatProfileIMG != null)
+                {
+                    chatProfileIMG.sprite = handle.Result;
+                    Debug.Log($"[ChatAppController] ✓ Chat profile image loaded: {currentConversation?.characterName}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"[ChatAppController] ✗ Failed to load chat profile image: {currentConversation?.characterName}");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Release Addressables handle
+            if (chatProfileImageHandle.IsValid())
+            {
+                Addressables.Release(chatProfileImageHandle);
+            }
         }
         
         private void ClearChatDisplay()

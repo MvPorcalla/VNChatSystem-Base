@@ -21,8 +21,12 @@ MonoBehaviour:
   conversationId: af617d5_Sofia
   chapters:
   - {fileID: 4900000, guid: 6c4cd854c7c9d654bbc787559bcc6e1a, type: 3}
+  - {fileID: 4900000, guid: c4ce5c862ec567b4eb3a6b7078b99446, type: 3}
   cgAddressableKeys:
   - Sofia/CG1
   - Sofia/CG2
   - Sofia/CG3
   - Sofia/CG4
+  - Sofia/CG5
+  - Sofia/CG6
+  - Sofia/CG7

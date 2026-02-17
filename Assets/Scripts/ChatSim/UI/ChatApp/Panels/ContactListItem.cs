@@ -1,11 +1,12 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Panels/ContactListItem.cs
-// Phone Chat Simulation Game - Contact List Button
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using BubbleSpinner.Data;
 using ChatSim.UI.ChatApp.Controllers;
 
@@ -31,6 +32,7 @@ namespace ChatSim.UI.ChatApp.Panels
         
         private ConversationAsset conversationAsset;
         private ChatAppController chatController;
+        private AsyncOperationHandle<Sprite> imageLoadHandle;
         
         #endregion
         
@@ -51,11 +53,15 @@ namespace ChatSim.UI.ChatApp.Panels
                 profileName.text = asset.characterName;
             }
             
-            // TODO: Load profile image from Addressables
-            // if (profileIMG != null && asset.profileImage != null)
-            // {
-            //     LoadProfileImage(asset.profileImage);
-            // }
+            // Load profile image from Addressables
+            if (profileIMG != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
+            {
+                LoadProfileImage(asset.profileImage);
+            }
+            else
+            {
+                Debug.LogWarning($"[ContactListItem] No valid profile image for {asset.characterName}");
+            }
             
             // Hide badge by default (can show if there are unread messages)
             if (badge != null)
@@ -72,6 +78,32 @@ namespace ChatSim.UI.ChatApp.Panels
             else
             {
                 Debug.LogError("[ContactListItem] Button component not assigned!");
+            }
+        }
+        
+        #endregion
+        
+        #region Image Loading
+        
+        private void LoadProfileImage(AssetReference assetRef)
+        {
+            imageLoadHandle = assetRef.LoadAssetAsync<Sprite>();
+            imageLoadHandle.Completed += OnProfileImageLoaded;
+        }
+        
+        private void OnProfileImageLoaded(AsyncOperationHandle<Sprite> handle)
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                if (profileIMG != null)
+                {
+                    profileIMG.sprite = handle.Result;
+                    Debug.Log($"[ContactListItem] ✓ Profile image loaded: {conversationAsset.characterName}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"[ContactListItem] ✗ Failed to load profile image: {conversationAsset.characterName}");
             }
         }
         
@@ -97,6 +129,19 @@ namespace ChatSim.UI.ChatApp.Panels
             
             // Start the conversation
             chatController.StartConversation(conversationAsset);
+        }
+        
+        #endregion
+        
+        #region Cleanup
+        
+        private void OnDestroy()
+        {
+            // Release Addressables handle
+            if (imageLoadHandle.IsValid())
+            {
+                Addressables.Release(imageLoadHandle);
+            }
         }
         
         #endregion

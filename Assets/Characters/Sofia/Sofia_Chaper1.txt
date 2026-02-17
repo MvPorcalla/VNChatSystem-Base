@@ -122,4 +122,6 @@ Player: "..."
 Sofia: "Thanks for listening. Really."
 Sofia: "Talk to you later? 💙"
 
-System: "Conversation paused."
+System: "Later that Day."
+
+<<jump Start_Ch2>>

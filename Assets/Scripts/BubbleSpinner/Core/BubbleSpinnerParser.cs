@@ -392,19 +392,63 @@ namespace BubbleSpinner.Core
             {
                 var node = kvp.Value;
                 
-                if (!string.IsNullOrEmpty(node.nextNode) && !nodes.ContainsKey(node.nextNode))
+                if (!string.IsNullOrEmpty(node.nextNode))
                 {
-                    Debug.LogWarning($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent '{node.nextNode}'");
+                    if (!nodes.ContainsKey(node.nextNode))
+                    {
+                        // NEW: Only warn if it looks like an internal node (no chapter prefix)
+                        if (!LooksLikeCrossChapterJump(node.nextNode))
+                        {
+                            Debug.LogWarning($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent '{node.nextNode}'");
+                        }
+                        else
+                        {
+                            Debug.Log($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' has cross-chapter jump to '{node.nextNode}' (OK)");
+                        }
+                    }
                 }
                 
                 foreach (var choice in node.choices)
                 {
-                    if (!string.IsNullOrEmpty(choice.targetNode) && !nodes.ContainsKey(choice.targetNode))
+                    if (!string.IsNullOrEmpty(choice.targetNode))
                     {
-                        Debug.LogWarning($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent '{choice.targetNode}'");
+                        if (!nodes.ContainsKey(choice.targetNode))
+                        {
+                            if (!LooksLikeCrossChapterJump(choice.targetNode))
+                            {
+                                Debug.LogWarning($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent '{choice.targetNode}'");
+                            }
+                            else
+                            {
+                                Debug.Log($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' has cross-chapter target '{choice.targetNode}' (OK)");
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Heuristic to detect if a node name looks like a cross-chapter jump.
+        /// Cross-chapter nodes typically have patterns like:
+        /// - "Start_Ch2", "EndNode_Ch3"
+        /// - "Chapter2_Start"
+        /// - Any node with "Ch" or "Chapter" in the name
+        /// </summary>
+        private static bool LooksLikeCrossChapterJump(string nodeName)
+        {
+            if (string.IsNullOrEmpty(nodeName))
+                return false;
+            
+            nodeName = nodeName.ToLower();
+            
+            // Common patterns for cross-chapter jumps
+            return nodeName.Contains("_ch") ||      // Start_Ch2
+                nodeName.Contains("chapter") ||  // Chapter2_Start
+                nodeName.Contains("ch2") ||      // StartCh2
+                nodeName.Contains("ch3") ||      // etc...
+                nodeName.Contains("ch4") ||
+                nodeName.Contains("ch5");
         }
     }
 }

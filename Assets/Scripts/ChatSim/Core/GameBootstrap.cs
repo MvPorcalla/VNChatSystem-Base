@@ -148,7 +148,7 @@ namespace ChatSim.Core
             SceneFlow.Init();
             Debug.Log("✓ SceneFlowManager initialized");
 
-            bubbleSpinnerBridge = new BubbleSpinnerBridge();
+            bubbleSpinnerBridge = new BubbleSpinnerBridge(conversationManager);
             Debug.Log("✓ BubbleSpinnerBridge created");
 
             Conversation.Initialize(bubbleSpinnerBridge);
@@ -200,6 +200,11 @@ namespace ChatSim.Core
 #else
             Application.Quit();
 #endif
+        }
+
+        private void OnDestroy()
+        {
+            bubbleSpinnerBridge?.Cleanup();
         }
 
         #endregion

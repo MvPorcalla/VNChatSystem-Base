@@ -16,6 +16,14 @@ namespace ChatSim.Core
     /// </summary>
     public class BubbleSpinnerBridge : IBubbleSpinnerCallbacks
     {
+        private ConversationManager _conversationManager;
+
+        public BubbleSpinnerBridge(ConversationManager conversationManager)
+        {
+            _conversationManager = conversationManager;
+            GameEvents.OnCharacterStoryReset += OnCharacterStoryReset;
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ SAVE/LOAD CALLBACKS
         // ═══════════════════════════════════════════════════════════
@@ -133,6 +141,18 @@ namespace ChatSim.Core
         public void OnChapterChanged(string conversationId, int chapterIndex, string chapterName)
         {
             Debug.Log($"[BubbleSpinnerBridge] Chapter changed: {conversationId} - {chapterName}");
+        }
+
+        private void OnCharacterStoryReset(string conversationId)
+        {
+            Debug.Log($"[BubbleSpinnerBridge] Story reset — evicting cache for: {conversationId}");
+            _conversationManager?.ResetConversation(conversationId);
+        }
+
+        public void Cleanup()
+        {
+            GameEvents.OnCharacterStoryReset -= OnCharacterStoryReset;
+            _conversationManager = null;
         }
     }
 }

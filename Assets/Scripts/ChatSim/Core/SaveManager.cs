@@ -7,6 +7,7 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using ChatSim.Data;
+using BubbleSpinner.Data;
 
 namespace ChatSim.Core
 {
@@ -329,6 +330,60 @@ namespace ChatSim.Core
             };
             
             return newSave;
+        }
+
+        /// <summary>
+        /// Resets a single character's conversation state back to the beginning.
+        /// Clears message history, read IDs, unlocked CGs, and all progress.
+        /// Called by ContactsAppItem.ExecuteReset()
+        /// </summary>
+        public bool ResetCharacterStory(string conversationId)
+        {
+            if (string.IsNullOrEmpty(conversationId))
+            {
+                LogError("ResetCharacterStory: conversationId is null or empty!");
+                return false;
+            }
+
+            SaveData saveData = GetOrCreateSaveData();
+
+            if (saveData == null)
+            {
+                LogError("ResetCharacterStory: Failed to load save data!");
+                return false;
+            }
+
+            ConversationState existing = saveData.conversationStates
+                .Find(s => s.conversationId == conversationId);
+
+            if (existing == null)
+            {
+                LogWarning($"ResetCharacterStory: No save state found for '{conversationId}'. Nothing to reset.");
+                return false;
+            }
+
+            existing.currentChapterIndex = 0;
+            existing.currentNodeName = "";
+            existing.currentMessageIndex = 0;
+            existing.isInPauseState = false;
+            existing.readMessageIds.Clear();
+            existing.messageHistory.Clear();
+            existing.unlockedCGs.Clear();
+            existing.version = ConversationState.CURRENT_VERSION;
+
+            bool saved = SaveGame(saveData);
+
+            if (saved)
+            {
+                Log($"✓ Story reset for: {existing.characterName} ({conversationId})");
+                GameEvents.TriggerCharacterStoryReset(conversationId);
+            }
+            else
+            {
+                LogError($"ResetCharacterStory: Save failed after resetting '{conversationId}'!");
+            }
+
+            return saved;
         }
         #endregion
 

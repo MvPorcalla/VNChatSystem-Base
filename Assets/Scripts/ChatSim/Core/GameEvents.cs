@@ -90,6 +90,7 @@ namespace ChatSim.Core
         
         public static event Action<string> OnContactAdded;      // contactId
         public static event Action<string> OnContactUpdated;    // contactId
+        public static event Action<string> OnCharacterStoryReset;   // conversationId
         
         // ════════════════════════════════════════════════════════════════
         // PROGRESSION EVENTS
@@ -143,6 +144,9 @@ namespace ChatSim.Core
             OnStoryFlagSet = null;
             OnStoryFlagCleared = null;
             OnChapterUnlocked = null;
+
+            // Custom events
+            OnCharacterStoryReset = null;
             
             Log("All events cleared");
         }
@@ -189,6 +193,9 @@ namespace ChatSim.Core
             LogEventCount("OnStoryFlagSet", OnStoryFlagSet);
             LogEventCount("OnStoryFlagCleared", OnStoryFlagCleared);
             LogEventCount("OnChapterUnlocked", OnChapterUnlocked);
+
+            // Custom events
+            LogEventCount("OnCharacterStoryReset", OnCharacterStoryReset);
             
             Debug.Log("====================================");
         }
@@ -348,6 +355,12 @@ namespace ChatSim.Core
         {
             OnContactUpdated?.Invoke(contactId);
             Log($"Contact updated: {contactId}");
+        }
+
+        public static void TriggerCharacterStoryReset(string conversationId)
+        {
+            OnCharacterStoryReset?.Invoke(conversationId);
+            Log($"Character story reset: {conversationId}");
         }
         
         // ════════════════════════════════════════════════════════════════

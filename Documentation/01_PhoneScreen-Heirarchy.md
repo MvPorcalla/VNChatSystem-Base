@@ -15,20 +15,20 @@
     │   │   │       ├── AppButton_Phone
     │   │   │       └── AppButton_Messages
     │   │   │
-    │   │   ├── GalleryPanel ← ATTACH [GalleryController.cs]
+    │   │   ├── GalleryPanel                            ← ATTACH [GalleryController.cs] (Inactive in scene)
     │   │   │   ├── Header
     │   │   │   ├── ProgressText
-    │   │   │   ├── ScrollView
+    │   │   │   ├── ScrollView                          (active in scene)
     │   │   │   │   └── Viewport
     │   │   │   │       └── Content
     │   │   │   │           └── CGContainer
     │   │   │   │               ├── CharacterName
     │   │   │   │               └── CGGrid
-    │   │   │   │                   └── CGThumbnail ← ATTACH [GalleryThumbnailItem.cs] HERE (in prefab)
+    │   │   │   │                   └── CGThumbnail     ← ATTACH [GalleryThumbnailItem.cs] HERE (in prefab)
     │   │   │   │                       ├── Background
     │   │   │   │                       ├── ThumbnailImage
     │   │   │   │                       └── LockedOverlay
-    │   │   │   └── GalleryFullscreenViewer ← ATTACH [GalleryFullscreenViewer.cs] (Do not Put this panel Inactive)
+    │   │   │   └── GalleryFullscreenViewer             ← ATTACH [GalleryFullscreenViewer.cs] (Do not Put this panel Inactive) (active in scene)
     │   │   │       ├── BackgroundOverlay
     │   │   │       ├── ImageContainer
     │   │   │       │   └── CGImage
@@ -36,7 +36,46 @@
     │   │   │           ├── CloseButton
     │   │   │           └── CGNameText
     │   │   │
-    │   │   ├── ContactsPanel 
+    │   │   ├── ContactsPanel                           ← ATTACH [ContactsAppPanel.cs] (Inactive in scene)
+                ├── Header                              ← Empty GameObject (layout)
+                │   ├── BackButton
+                │   └── TitleText                       ← TextMeshProUGUI, text = "Contacts"
+                │
+                ├── ScrollView                          (active in scene)
+                │   └── Viewport
+                │       └── Content
+                            └── ContactsAppItem         ← ATTACH [ContactsAppItem.cs]
+                                ├── ProfileImage
+                                ├── InfoGroup   
+                                │   ├── NameText
+                                │   └── BioText 
+                                └── ResetButton 
+                                    └── Text 
+
+                ├── ContactsAppDetailPanel          ← ContactsAppDetailPanel.cs (active in scene) [FUTURE]
+                │   ├── Overlay
+                │   └── DetailCard
+                │       ├── CloseButton
+                │       ├── ProfileImage
+                │       ├── NameText
+                │       ├── InfoGroup
+                │       │   ├── AgeText
+                │       │   ├── BirthdateText
+                │       │   ├── BioText
+                │       │   └── DescriptionText
+                │       └── ResetButton
+                │           └── Text ("Reset Story")   
+                │
+                └── ResetConfirmationDialog             ← ATTACH [ResetConfirmationDialog.cs] (Do not Put this panel Inactive) (active in scene)
+                    └── ConfirmationDialog
+                        └── ContentPanel   
+                            ├── TitleText
+                            ├── MessageText 
+                            ├── CancelButton
+                            │   └── Text
+                            └── ResetButton 
+                                └── Text    
+
     │   │   └── SettingsPanel
     │   │
     │   ├── NavigationBar

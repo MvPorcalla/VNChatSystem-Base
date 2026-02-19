@@ -372,7 +372,7 @@ namespace BubbleSpinner.Core
             Debug.Log($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
 
             // Parse new chapter
-            currentNodes = BubbleSpinnerParser.Parse(nextChapter);
+            currentNodes = BubbleSpinnerParser.Parse(nextChapter, conversationAsset.characterName);
     
             if (currentNodes == null || currentNodes.Count == 0)
             {
@@ -492,7 +492,7 @@ namespace BubbleSpinner.Core
                 throw new InvalidOperationException($"Chapter {state.currentChapterIndex} is null!");
             }
 
-            currentNodes = BubbleSpinnerParser.Parse(chapter);
+            currentNodes = BubbleSpinnerParser.Parse(chapter, conversationAsset.characterName);
             
             if (currentNodes == null || currentNodes.Count == 0)
             {

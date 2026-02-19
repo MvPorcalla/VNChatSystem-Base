@@ -29,7 +29,7 @@ namespace BubbleSpinner.Core
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
 
-        public static Dictionary<string, DialogueNode> Parse(TextAsset bubbleFile)
+        public static Dictionary<string, DialogueNode> Parse(TextAsset bubbleFile, string expectedCharacterName = "")
         {
             var nodes = new Dictionary<string, DialogueNode>();
             
@@ -57,7 +57,19 @@ namespace BubbleSpinner.Core
                         continue;
 
                     if (line.StartsWith("contact:"))
+                    {
+                        if (!string.IsNullOrEmpty(expectedCharacterName))
+                        {
+                            string contactName = line.Substring(8).Trim();
+                            if (!string.IsNullOrEmpty(contactName) && 
+                                !contactName.Equals(expectedCharacterName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Debug.LogWarning($"[BubbleSpinner] [{context.fileName}] contact: mismatch! " +
+                                            $"File says '{contactName}' but asset expects '{expectedCharacterName}'");
+                            }
+                        }
                         continue;
+                    }
 
                     if (TryParseNodeTitle(line, context, nodes)) continue;
                     if (line == "---" || line == "===") continue;

@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/Core/PoolingManager.cs
+// Assets/Scripts/ChatSim/UI/Common/Components/PoolingManager.cs
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;

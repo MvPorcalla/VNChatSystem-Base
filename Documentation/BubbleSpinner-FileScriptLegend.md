@@ -160,7 +160,7 @@ NPC: "Anyway, that's it. Thanks for playing! 🎉"
 
 ## Known Limitations
 
-- `contact:` is parsed and skipped — it is not validated against the `ConversationAsset` character name at runtime.
+- `contact:` is validated against `ConversationAsset.characterName` at parse time. A mismatch logs a warning but does not stop the game from running.
 - `type:audio` in media commands is not implemented. Audio lines will fall through to an unrecognized line warning.
 - Variables (`<<set>>`) and conditionals (`<<if>>`) are not yet implemented despite being listed as planned features.
 - `>> endchoice` is required but not documented in the original legend — missing it silently breaks choice blocks.

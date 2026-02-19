@@ -146,7 +146,7 @@ namespace ChatSim.Core
         private void OnCharacterStoryReset(string conversationId)
         {
             Debug.Log($"[BubbleSpinnerBridge] Story reset — evicting cache for: {conversationId}");
-            _conversationManager?.ResetConversation(conversationId);
+            _conversationManager?.EvictConversationCache(conversationId);
         }
 
         public void Cleanup()

@@ -212,6 +212,32 @@ namespace BubbleSpinner.Core
             Debug.Log($"[ConversationManager] Conversation reset complete: {conversationId}");
         }
 
+        /// <summary>
+        /// Evicts in-memory executor and state cache WITHOUT touching the save file.
+        /// Called by BubbleSpinnerBridge after SaveManager.ResetCharacterStory() has
+        /// already wiped the progress data on disk.
+        /// </summary>
+        public void EvictConversationCache(string conversationId)
+        {
+            Debug.Log($"[ConversationManager] Evicting cache for: {conversationId}");
+
+            if (activeExecutors.ContainsKey(conversationId))
+            {
+                UnsubscribeFromExecutorEvents(activeExecutors[conversationId]);
+                activeExecutors.Remove(conversationId);
+            }
+
+            activeStates.Remove(conversationId);
+
+            if (currentConversationId == conversationId)
+            {
+                currentExecutor = null;
+                currentConversationId = null;
+            }
+
+            Debug.Log($"[ConversationManager] ✓ Cache evicted for: {conversationId}");
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ CG GALLERY API
         // ═══════════════════════════════════════════════════════════

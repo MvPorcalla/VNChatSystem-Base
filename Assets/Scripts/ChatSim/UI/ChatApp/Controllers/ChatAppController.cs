@@ -740,14 +740,10 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             
             // STEP 3: Force pause state if we interrupted message display
+            // STEP 3: Notify executor if we interrupted mid-sequence (it will handle pause state)
             if (wasInterrupted && currentExecutor != null)
             {
-                var state = currentExecutor.GetState();
-                if (state != null && !state.isInPauseState)
-                {
-                    Debug.Log("[ChatAppController] Messages were interrupted - forcing pause state");
-                    state.isInPauseState = true;
-                }
+                currentExecutor.NotifyInterrupted();
             }
             
             // STEP 4: Save conversation state (INCLUDING forced pause state)

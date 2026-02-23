@@ -159,6 +159,21 @@ namespace BubbleSpinner.Core
         }
 
         /// <summary>
+        /// Called by UI when conversation is exited mid-message sequence.
+        /// Ensures state is saved at a safe resume point.
+        /// </summary>
+        public void NotifyInterrupted()
+        {
+            if (state == null) return;
+
+            if (!state.isInPauseState)
+            {
+                Debug.Log("[DialogueExecutor] Conversation interrupted - forcing pause state for safe resume");
+                state.isInPauseState = true;
+            }
+        }
+
+        /// <summary>
         /// Determine next action but skip checking the current pause point
         /// </summary>
         private void DetermineNextActionSkipPause()

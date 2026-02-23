@@ -525,7 +525,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             GameBootstrap.Conversation.SaveCurrentConversation();
             choiceDisplay.ClearChoices();
 
-            if (HasMoreChapters())
+            if (currentExecutor.HasMoreChapters)
             {
                 Debug.Log("[ChatAppController] More chapters available - showing continue to next chapter button");
                 choiceDisplay.ShowEndButton("Continue to Next Chapter", OnContinueToNextChapterClicked);
@@ -546,26 +546,8 @@ namespace ChatSim.UI.ChatApp.Controllers
         }
         
         // ═══════════════════════════════════════════════════════════
-        // ░ CHAPTER DETECTION & NAVIGATION
+        // ░ CHAPTER NAVIGATION
         // ═══════════════════════════════════════════════════════════
-        
-        /// <summary>
-        /// Check if current conversation has more chapters after current one
-        /// </summary>
-        private bool HasMoreChapters()
-        {
-            if (currentConversation == null || currentExecutor == null)
-                return false;
-            
-            var state = currentExecutor.GetState();
-            if (state == null)
-                return false;
-            
-            int totalChapters = currentConversation.chapters.Count;
-            int currentChapter = state.currentChapterIndex;
-            
-            return currentChapter < totalChapters - 1;
-        }
 
         /// <summary>
         /// Handle "Continue to Next Chapter" button click - advances to next chapter in current conversation

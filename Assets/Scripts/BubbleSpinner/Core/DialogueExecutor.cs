@@ -56,6 +56,12 @@ namespace BubbleSpinner.Core
         public int CurrentMessageIndex => state?.currentMessageIndex ?? 0;
         public ConversationState GetState() => state;
 
+        /// <summary>Returns true if there are more chapters after the current one</summary>
+        public bool HasMoreChapters => 
+            state != null && 
+            conversationAsset != null && 
+            state.currentChapterIndex < conversationAsset.chapters.Count - 1;
+
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════

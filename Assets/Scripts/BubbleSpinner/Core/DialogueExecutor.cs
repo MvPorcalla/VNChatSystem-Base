@@ -240,6 +240,15 @@ namespace BubbleSpinner.Core
             DetermineNextAction();
         }
 
+        /// <summary>
+        /// Called to advance to the next chapter (e.g. from a "Next Chapter" button)
+        /// </summary>
+        public void AdvanceToNextChapter()
+        {
+            Debug.Log("[DialogueExecutor] AdvanceToNextChapter called");
+            LoadNextChapter("Start");
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ CORE PROCESSING LOGIC
         // ═══════════════════════════════════════════════════════════

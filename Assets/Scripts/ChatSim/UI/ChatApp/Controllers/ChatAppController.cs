@@ -521,24 +521,18 @@ namespace ChatSim.UI.ChatApp.Controllers
         private void HandleConversationEnd()
         {
             Debug.Log("[ChatAppController] Conversation ended");
-            
-            // Save conversation state
+
             GameBootstrap.Conversation.SaveCurrentConversation();
-            
-            // Clear choices
             choiceDisplay.ClearChoices();
-            
-            // Check if there are more chapters
-            bool hasMoreChapters = HasMoreChapters();
-            
-            if (hasMoreChapters)
+
+            if (HasMoreChapters())
             {
                 Debug.Log("[ChatAppController] More chapters available - showing continue to next chapter button");
                 choiceDisplay.ShowEndButton("Continue to Next Chapter", OnContinueToNextChapterClicked);
             }
             else
             {
-                Debug.Log("[ChatAppController] No more chapters - showing end/reset button");
+                Debug.Log("[ChatAppController] No more chapters - showing return button");
                 choiceDisplay.ShowEndButton("Return to Contacts", OnReturnToContactsClicked);
             }
         }
@@ -572,44 +566,22 @@ namespace ChatSim.UI.ChatApp.Controllers
             
             return currentChapter < totalChapters - 1;
         }
-        
+
         /// <summary>
-        /// Handle "Continue to Next Chapter" button click
+        /// Handle "Continue to Next Chapter" button click - advances to next chapter in current conversation
         /// </summary>
         private void OnContinueToNextChapterClicked()
         {
             Debug.Log("[ChatAppController] Continue to next chapter clicked");
-            
-            if (currentConversation == null || currentExecutor == null)
+
+            if (currentExecutor == null)
             {
-                Debug.LogError("[ChatAppController] Cannot continue - no active conversation");
+                Debug.LogError("[ChatAppController] Cannot advance chapter - no active executor");
                 return;
             }
-            
-            var state = currentExecutor.GetState();
-            if (state == null)
-            {
-                Debug.LogError("[ChatAppController] Cannot continue - no state");
-                return;
-            }
-            
-            // Move to next chapter
-            state.currentChapterIndex++;
-            
-            // Reset to first node of next chapter
-            state.currentNodeName = "Start"; // BubbleSpinner convention
-            state.currentMessageIndex = 0;
-            state.isInPauseState = false;
-            
-            // Clear UI
+
             choiceDisplay.ClearChoices();
-            
-            // Save state before reloading
-            GameBootstrap.Conversation.ForceSaveCurrentConversation();
-            
-            // Reload conversation (will load new chapter)
-            Debug.Log($"[ChatAppController] Loading chapter {state.currentChapterIndex}");
-            StartCoroutine(ReloadCurrentConversation());
+            currentExecutor.AdvanceToNextChapter();
         }
         
         /// <summary>
@@ -624,38 +596,6 @@ namespace ChatSim.UI.ChatApp.Controllers
             
             // Save and exit conversation (use chat back button logic)
             OnChatBackButtonClicked();
-        }
-        
-        /// <summary>
-        /// Reload current conversation (used after chapter transitions)
-        /// </summary>
-        private IEnumerator ReloadCurrentConversation()
-        {
-            // Unsubscribe from current executor
-            UnsubscribeFromExecutorEvents();
-            
-            // Clear display
-            ClearChatDisplay();
-            
-            yield return null;
-            
-            // Restart conversation (will load from saved state with new chapter)
-            currentExecutor = GameBootstrap.Conversation.StartConversation(currentConversation);
-            
-            if (currentExecutor == null)
-            {
-                Debug.LogError("[ChatAppController] Failed to reload conversation!");
-                yield break;
-            }
-            
-            // Resubscribe to events
-            SubscribeToExecutorEvents();
-            
-            // Load history (should be empty for new chapter)
-            LoadConversationHistory();
-            
-            // Continue from new chapter start
-            currentExecutor.ContinueFromCurrentState();
         }
         
         // ═══════════════════════════════════════════════════════════

@@ -41,7 +41,12 @@ Fix confirmation dialogue currently its messy
 
 ---
 
+TODO: 
+
+Note: BubbleSpinner is a standalone script for parsing `.bub` files. It connects to the UI through a bridge.
+
 What's wrong in ChatAppController
+
 Problem 1: Chapter navigation logic is sitting in the UI layer.
 This block doesn't belong in a UI controller:
 csharpprivate void OnContinueToNextChapterClicked()
@@ -51,11 +56,14 @@ csharpprivate void OnContinueToNextChapterClicked()
     state.currentMessageIndex = 0;
     // ...
 }
+
 The UI is directly mutating ConversationState. That's DialogueExecutor's job. If you ever change how chapters work in BubbleSpinner, you now have to fix the UI too.
+
 Problem 2: Panel navigation and conversation lifecycle are mixed.
 SwitchToChatPanel, SwitchToContactList, OnPhoneBackPressed, OnPhoneHomePressed are navigation concerns. StartConversation, PerformConversationCleanup, executor subscriptions are conversation lifecycle concerns. They're all in one class.
 
 What I'd suggest
+
 One new method on DialogueExecutor in BubbleSpinner:
 csharppublic void AdvanceToNextChapter()
 That moves the state mutation out of the UI entirely.

@@ -53,8 +53,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ═══════════════════════════════════════════════════════════
         
         [Header("Chat Display")]
-        [SerializeField] private ScrollRect chatScrollRect;
-        [SerializeField] private RectTransform chatContent;
         [SerializeField] private ChatMessageSpawner messageDisplay;
         [SerializeField] private ChatChoiceSpawner choiceDisplay;
         
@@ -739,7 +737,6 @@ namespace ChatSim.UI.ChatApp.Controllers
                 timingController.StopCurrentSequence();
             }
             
-            // STEP 3: Force pause state if we interrupted message display
             // STEP 3: Notify executor if we interrupted mid-sequence (it will handle pause state)
             if (wasInterrupted && currentExecutor != null)
             {

@@ -107,21 +107,33 @@ chatProfileName  → Drag: ChatProfileName (from Hierarchy)
 [Chat Mode Toggle]
 chatModeButton   → Drag: ChatModeToggle (from Hierarchy)
 chatModeIcon     → Drag: ChatModeIcon (from Hierarchy)
-fastModeSprite   → Drag: Image
-normalModeSprite → Drag: Image
+fastModeSprite   → Drag: FastMode sprite asset
+normalModeSprite → Drag: NormalMode sprite asset
 
 [Chat Display]
-chatScrollRect   → Drag: ChatPanel (the ScrollRect component)
-chatContent      → Drag: Content (from ChatPanel > Viewport > Content)
 messageDisplay   → Drag: ChatPanel (the ChatMessageSpawner component)
 choiceDisplay    → Drag: ChatChoices (the ChatChoiceSpawner component)
 
-[Typing Indicator]
-typingIndicator  → Drag: TypingIndicator (from Hierarchy)
+[Timing Controller]
+timingController → Drag: ChatAppController (the ChatTimingController component)
+
+[Auto Scroll]
+autoScroll       → Drag: ChatAppController (the ChatAutoScroller component)
 
 [New Message Indicator]
 newMessageIndicator → Drag: NewMessageIndicator (from Hierarchy)
+newMessageButton    → Drag: NewMessageIndicator (the Button component)
 newMessageText      → Drag: IndicatorText (from Hierarchy)
+
+[Phone OS Navigation]
+phoneHomeButton  → Drag: PhoneHomeButton (from Hierarchy)
+phoneBackButton  → Drag: PhoneBackButton (from Hierarchy)
+quitButton       → Drag: QuitButton (from Hierarchy)
+
+[Quit Confirmation]
+quitConfirmationPanel → Drag: QuitConfirmationPanel (from Hierarchy)
+yesQuitButton         → Drag: YesQuitButton (from Hierarchy)
+noQuitButton          → Drag: NoQuitButton (from Hierarchy)
 ```
 
 **ChatTimingController.cs:** (Script)

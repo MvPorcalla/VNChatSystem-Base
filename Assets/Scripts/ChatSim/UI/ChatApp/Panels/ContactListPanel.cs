@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Panels/ContactListPanel.cs
-// Phone Chat Simulation Game - Contact List Controller
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections.Generic;

@@ -80,7 +80,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         [SerializeField] private TextMeshProUGUI newMessageText;
         
         // ═══════════════════════════════════════════════════════════
-        // ░ INSPECTOR REFERENCES - PHONE OS NAVIGATION (NEW - MERGED)
+        // ░ INSPECTOR REFERENCES - PHONE OS NAVIGATION
         // ═══════════════════════════════════════════════════════════
         
         [Header("Phone OS Navigation")]
@@ -94,7 +94,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         [SerializeField] private Button quitButton;
         
         // ═══════════════════════════════════════════════════════════
-        // ░ INSPECTOR REFERENCES - QUIT CONFIRMATION (NEW - MERGED)
+        // ░ INSPECTOR REFERENCES - QUIT CONFIRMATION
         // ═══════════════════════════════════════════════════════════
         
         [Header("Quit Confirmation")]
@@ -214,7 +214,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             
             // ─────────────────────────────────────────────────────────
-            // PHONE OS NAVIGATION (NEW - MERGED FROM UIManager)
+            // PHONE OS NAVIGATION
             // ─────────────────────────────────────────────────────────
             
             if (phoneHomeButton != null)
@@ -582,11 +582,13 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ TIMING CONTROLLER INTERFACE
         // ═══════════════════════════════════════════════════════════
         
+        /// <summary>
+        /// Called by ChatTimingController (same GameObject) when the full message sequence finishes.
+        /// Notifies the executor to determine the next dialogue action.
+        /// </summary>
         private void OnMessagesDisplayComplete()
         {
             Debug.Log("[ChatAppController] Messages display complete");
-            
-            // Notify executor
             currentExecutor?.OnMessagesDisplayComplete();
         }
         
@@ -648,7 +650,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         }
         
         // ═══════════════════════════════════════════════════════════
-        // ░ PHONE OS NAVIGATION (NEW - MERGED FROM ChatAppUIManager)
+        // ░ PHONE OS NAVIGATION
         // ═══════════════════════════════════════════════════════════
         
         /// <summary>
@@ -851,7 +853,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ SCROLLING
         // ═══════════════════════════════════════════════════════════
         
-        public void ForceScrollToBottom()
+        private void ForceScrollToBottom()
         {
             if (autoScroll != null)
             {

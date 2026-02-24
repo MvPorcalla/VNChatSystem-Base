@@ -66,86 +66,10 @@ Here’s a clean GitHub issue version you can paste:
 
 ---
 
-## Title
-
-Refactor ChatAppController to reduce UI → domain coupling
-
-## Description
-
-`ChatAppController` still contains minor boundary violations and leftover structural noise after the chapter transition refactor.
-
-This issue tracks remaining cleanup tasks to enforce clearer separation between UI and DialogueExecutor.
-
----
-
-## Problems Identified
-
-### 1️⃣ UI directly mutates `ConversationState` in cleanup
-
-`PerformConversationCleanup()` forces:
-
-```csharp
-state.isInPauseState = true;
-```
-
-This is domain state and should be handled by `DialogueExecutor` (e.g. `NotifyInterrupted()` or `ForcePauseState()`).
-
-**Impact:** Low risk but violates layering rules.
-
----
-
-### 2️⃣ UI reads chapter structure from `ConversationAsset`
-
-`HasMoreChapters()` queries:
-
-```csharp
-currentConversation.chapters.Count
-```
-
-Chapter availability should be exposed via `DialogueExecutor` (e.g. `bool HasMoreChapters`).
-
-**Impact:** Same category as previously fixed chapter mutation issue.
-
----
-
-### 3️⃣ Dead serialized fields
-
-```csharp
-[SerializeField] private ScrollRect chatScrollRect;
-[SerializeField] private RectTransform chatContent;
-```
-
-Never referenced in code. Likely owned by `ChatAutoScroller`.
-
-**Impact:** Zero functional risk. Cleanup only.
-
----
-
-### 4️⃣ `OnNewMessageDisplayed` visibility unclear
-
-Public method but no visible subscription in this class.
-
-Clarify:
-
-* Who calls it?
-* Should it be event-driven instead?
-
-**Impact:** Architecture clarity.
-
----
-
-## Proposed Phases
-
-Phase 1 — HasMoreChapters() moves to DialogueExecutor
-Same category as the chapter mutation fix. Add a property to DialogueExecutor, remove the asset-querying logic from ChatAppController. Clean boundary, low risk.
-
-Phase 2 — isInPauseState mutation moves out of PerformConversationCleanup()
-Add a method to DialogueExecutor (something like NotifyInterrupted()) so the UI stops writing state directly. Slightly more involved because it needs to feel natural on the executor API.
-
-Phase 3 — Dead serialized fields
-Remove chatScrollRect and chatContent. Zero logic impact, just cleanup.
-
-Phase 4 — OnNewMessageDisplayed visibility
-Clarify who calls it and how. Needs a look at ChatTimingController or ChatMessageSpawner to answer that properly — do you want to paste one of those before we start?
-
----
+Check 1 — currentConversation
+In your IDE, right-click the field name currentConversation and select Find All References (or equivalent).
+You're looking for any references outside ChatAppController.cs. If you find any, leave the field alone. If the only references are these three lines inside the file itself:
+csharpcurrentConversation = conversationAsset;   // StartConversationSequence
+currentConversation = null;                // PerformConversationCleanup
+Debug.LogWarning($"... {currentConversation?.characterName}"); // LoadChatProfileImage x2
+Wait — those last two are in LoadChatProfileImage and OnChatProfileImageLoaded. So it is still used for the debug logs. Leave it for now unless you want to replace those log messages with asset.characterName instead, which would let you remove the field entirely.

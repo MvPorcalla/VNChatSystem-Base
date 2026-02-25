@@ -80,7 +80,7 @@ Sofia: "Node_Casual 9"
 Sofia: "10"
 Sofia: "11"
 
->> media npc type:image path:Sofia/CG2
+>> media npc type:image unlock:true path:Sofia/CG2
 
 -> ...
 

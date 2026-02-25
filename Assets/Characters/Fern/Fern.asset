@@ -20,7 +20,7 @@ MonoBehaviour:
     m_EditorAssetChanged: 0
   conversationId: 379a9f_Fern
   chapters:
-  - {fileID: 4900000, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
+  - {fileID: 2811297602134710623, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
   cgAddressableKeys:
   - Fern/CG1
   - Fern/CG2

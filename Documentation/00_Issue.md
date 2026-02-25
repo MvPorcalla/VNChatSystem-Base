@@ -91,3 +91,8 @@ My main issue is with fast mode:
 
 * Every time we reach a choice or the end button, the pause button shows first before the choice or end button.
 * Replaying is getting out of hand: when I reach the end and re-enter, it keeps replaying from the last pause point.
+
+
+---
+
+also in the fastmode when i select a choice it dont dissapear and stay the choices when it suppossed to dissapear aftter selecting a choice like how the behaviour on the normal mode

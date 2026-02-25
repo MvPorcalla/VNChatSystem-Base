@@ -169,7 +169,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afd9858f9d02b2e449c8adf7e700ca78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameConfig: {fileID: 11400000, guid: 6ab39b1f31f0d4e4baf177766c8b5c62, type: 2}
   saveManager: {fileID: 2068272162}
   sceneFlowManager: {fileID: 1910827535}
   conversationManager: {fileID: 1928526075}
@@ -217,7 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1ae99baa396dc742bce7b1fcb7b812e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableDebugLogs: 1
+  enableDebugLogs: 0
 --- !u!1 &1928526073
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,7 +305,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b69013bf6e0c5744a4b22f2c67be19f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableDebugLogs: 1
+  enableDebugLogs: 0
   prettyPrintJson: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

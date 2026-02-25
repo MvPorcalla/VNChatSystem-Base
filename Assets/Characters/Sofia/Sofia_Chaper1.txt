@@ -4,9 +4,9 @@ title: Start
 ---
 System: "9:42 AM"
 
-Sofia: "Hey… you awake?"
-Sofia: "I know it's kind of early, but I needed to talk to someone."
-Sofia: "This app said you were online, so… here I am."
+Sofia: "1"
+Sofia: "2"
+Sofia: "3"
 
 >> media npc type:image unlock:true path:Sofia/CG1
 
@@ -14,16 +14,16 @@ Sofia: "This app said you were online, so… here I am."
 
 Player: "..."
 
-Sofia: "I'm not great at starting conversations, to be honest."
-Sofia: "Usually I just stare at the screen, type something, delete it, then repeat."
-Sofia: "But today felt different. Quiet. Too quiet."
+Sofia: "4"
+Sofia: "5"
+Sofia: "6"
 
 -> ...
 
 Player: "Yes"
 
-Sofia: "Anyway… thanks for answering."
-Sofia: "What should I do right now?"
+Sofia: "7"
+Sofia: "8"
 
 >> choice
     -> "Ask how she's feeling"
@@ -42,9 +42,9 @@ Sofia: "What should I do right now?"
 
 title: Node_Concern
 ---
-Sofia: "…You noticed that fast, huh?"
-Sofia: "I guess I've been carrying a lot lately."
-Sofia: "Work, expectations, people assuming I'm always okay."
+Sofia: "Node_Concern 9"
+Sofia: "10"
+Sofia: "11"
 
 >> media npc type:image unlock:true path:Sofia/CG2
 
@@ -52,15 +52,15 @@ Sofia: "Work, expectations, people assuming I'm always okay."
 
 Player: "..."
 
-Sofia: "It helps, though. Being asked."
-Sofia: "Maybe I'll tell you more… if you stay."
+Sofia: "12"
+Sofia: "13"
 
 -> ...
 
 Player: "I'm here. Take your time."
 
-Sofia: "That means more than you know."
-Sofia: "Let me show you something that always makes me feel better."
+Sofia: "14"
+Sofia: "15"
 
 >> media npc type:image unlock:true path:Sofia/CG3
 
@@ -76,9 +76,9 @@ Sofia: "Let me show you something that always makes me feel better."
 
 title: Node_Casual
 ---
-Sofia: "Coffee sounds nice."
-Sofia: "I burned mine earlier. Typical me."
-Sofia: "Still… talking like this feels oddly comforting."
+Sofia: "Node_Casual 9"
+Sofia: "10"
+Sofia: "11"
 
 >> media npc type:image path:Sofia/CG2
 
@@ -86,20 +86,20 @@ Sofia: "Still… talking like this feels oddly comforting."
 
 Player: "..."
 
-Sofia: "Maybe I'll open up later."
-Sofia: "For now, let's just pretend this is a normal morning."
+Sofia: "12"
+Sofia: "13"
 
 Player: "Fair enough. One step at a time."
 
-Sofia: "Yeah... one step at a time."
-Sofia: "Here, let me share something with you."
+Sofia: "14"
+Sofia: "15"
 
 >> media npc type:image unlock:true path:Sofia/CG3
 
 -> ...
 Player: "..."
 
-Sofia: "Next"
+Sofia: "16"
 
 <<jump EndNode>>
 
@@ -111,16 +111,16 @@ Sofia: "Next"
 
 title: EndNode
 ---
-Sofia: "I'm glad you replied today."
-Sofia: "Maybe this chat will turn into something more than just messages on a screen."
+Sofia: "Node_EndNode 16"
+Sofia: "17"
 
 >> media npc type:image unlock:true path:Sofia/CG4
 
 -> ...
 Player: "..."
 
-Sofia: "Thanks for listening. Really."
-Sofia: "Talk to you later? 💙"
+Sofia: "18"
+Sofia: "19"
 
 System: "Later that Day."
 

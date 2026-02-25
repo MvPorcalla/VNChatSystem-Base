@@ -629,10 +629,13 @@ namespace ChatSim.UI.ChatApp.Controllers
                 currentExecutor.NotifyInterrupted();
             }
             
-            // STEP 4: Save conversation state (INCLUDING forced pause state)
+            // STEP 4: Force save — must bypass throttle so the correct resumeTarget
+            // (Choices or End) is guaranteed to be on disk before we exit.
+            // SaveCurrentConversation() is throttled and may still have the previous
+            // stop point's resumeTarget (e.g. Pause) in the pending save queue.
             if (currentExecutor != null)
             {
-                GameBootstrap.Conversation.SaveCurrentConversation();
+                GameBootstrap.Conversation.ForceSaveCurrentConversation();
             }
             
             // STEP 5: Unsubscribe from events

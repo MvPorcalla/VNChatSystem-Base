@@ -125,13 +125,44 @@ namespace BubbleSpinner.Data
     }
 
     // ═══════════════════════════════════════════════════════════
+    // ░ RESUME TARGET
+    // ═══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Records exactly what the player was looking at when they exited the conversation.
+    /// Used by ContinueFromCurrentState() to restore the correct UI on re-entry
+    /// without re-deriving state from node inspection (which was the source of
+    /// phantom pause buttons and incorrect replays).
+    ///
+    ///   None        — Fresh start, no previous exit point recorded
+    ///   Pause       — Stopped at a real -> ... pause point (show continue button)
+    ///   Choices     — Stopped at choice buttons (re-show choices directly)
+    ///   End         — Stopped at end/next-chapter button (re-show end button directly)
+    ///   Interrupted — Exited mid-message sequence (show continue button as safe resume)
+    /// </summary>
+    public enum ResumeTarget
+    {
+        None,
+        Pause,
+        Choices,
+        End,
+        Interrupted
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // ░ CONVERSATION STATE (for saves)
     // ═══════════════════════════════════════════════════════════
 
     [Serializable]
     public class ConversationState
     {
-        public const int CURRENT_VERSION = 1;
+        // ── VERSION BUMP ─────────────────────────────────────────
+        // Version 2 adds resumeTarget. Existing saves on version 1
+        // will deserialize resumeTarget as None (default enum value),
+        // which routes to ProcessCurrentNode — same as the old
+        // isInPauseState = false path. Safe migration, no data loss.
+        // ─────────────────────────────────────────────────────────
+        public const int CURRENT_VERSION = 2;
 
         public int version = CURRENT_VERSION;
         public string conversationId;
@@ -139,7 +170,18 @@ namespace BubbleSpinner.Data
         public int currentChapterIndex;
         public string currentNodeName;
         public int currentMessageIndex;
+
+        /// <summary>
+        /// Kept for reference and NotifyInterrupted compatibility.
+        /// Resume routing now uses resumeTarget instead.
+        /// </summary>
         public bool isInPauseState;
+
+        /// <summary>
+        /// The authoritative signal for what to show on re-entry.
+        /// Set by DialogueExecutor at every player-facing stop point.
+        /// </summary>
+        public ResumeTarget resumeTarget;
 
         public List<string> readMessageIds;
         public List<MessageData> messageHistory;
@@ -154,6 +196,7 @@ namespace BubbleSpinner.Data
             currentNodeName = "";
             currentMessageIndex = 0;
             isInPauseState = false;
+            resumeTarget = ResumeTarget.None;
             readMessageIds = new List<string>();
             messageHistory = new List<MessageData>();
             unlockedCGs = new List<string>();

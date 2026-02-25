@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace BubbleSpinner.Data
 {
-
     /// <summary>
     /// Defines the data structures for messages, choices, dialogue nodes, and conversation state used by BubbleSpinner.
     /// These classes are used to represent the parsed dialogue data from .bub files and to manage conversation state during execution.
@@ -26,7 +25,7 @@ namespace BubbleSpinner.Data
             Image,
             System
         }
-        
+
         public MessageType type;
         public string speaker;
         public string content;
@@ -34,13 +33,25 @@ namespace BubbleSpinner.Data
         public string timestamp;
         public string messageId;
         public bool shouldUnlockCG;
-        
-        public MessageData() 
+
+        // ── PHASE 1 FIX (#5) ────────────────────────────────────────────
+        // messageId is NO LONGER generated here.
+        // It is assigned by BubbleSpinnerParser after construction using:
+        //   "{nodeName}_{messageIndexWithinNode}"
+        // This makes IDs deterministic across parses, so readMessageIds
+        // in ConversationState correctly deduplicates on save/load resume.
+        //
+        // timestamp is still set at construction — it represents when
+        // the message object was created (parse time), matching the
+        // existing known limitation documented in the .bub format spec.
+        // ────────────────────────────────────────────────────────────────
+
+        public MessageData()
         {
-            messageId = Guid.NewGuid().ToString();
+            messageId = "";
             timestamp = DateTime.Now.ToString("HH:mm");
         }
-        
+
         public MessageData(MessageType msgType, string msgSpeaker, string msgContent, string imgPath = "")
         {
             type = msgType;
@@ -48,7 +59,7 @@ namespace BubbleSpinner.Data
             content = msgContent;
             imagePath = imgPath;
             timestamp = DateTime.Now.ToString("HH:mm");
-            messageId = Guid.NewGuid().ToString();
+            messageId = "";
             shouldUnlockCG = false;
         }
     }
@@ -63,12 +74,12 @@ namespace BubbleSpinner.Data
         public string choiceText;
         public string targetNode;
         public List<MessageData> playerMessages;
-        
-        public ChoiceData() 
+
+        public ChoiceData()
         {
             playerMessages = new List<MessageData>();
         }
-        
+
         public ChoiceData(string text, string target)
         {
             choiceText = text;
@@ -121,7 +132,7 @@ namespace BubbleSpinner.Data
     public class ConversationState
     {
         public const int CURRENT_VERSION = 1;
-        
+
         public int version = CURRENT_VERSION;
         public string conversationId;
         public string characterName;
@@ -129,11 +140,11 @@ namespace BubbleSpinner.Data
         public string currentNodeName;
         public int currentMessageIndex;
         public bool isInPauseState;
-        
+
         public List<string> readMessageIds;
         public List<MessageData> messageHistory;
         public List<string> unlockedCGs;
-        
+
         public ConversationState()
         {
             version = CURRENT_VERSION;

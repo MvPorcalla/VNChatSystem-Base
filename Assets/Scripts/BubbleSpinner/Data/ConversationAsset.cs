@@ -50,6 +50,14 @@ namespace BubbleSpinner.Data
         public List<TextAsset> chapters = new List<TextAsset>();
 
         // ═══════════════════════════════════════════════════════════
+        // ░ UNIQUE IDENTIFIER
+        // ═══════════════════════════════════════════════════════════
+
+        [Header("Unique Identifier")]
+        [Tooltip("Auto-generated unique ID. DO NOT MODIFY.")]
+        [SerializeField] private string conversationId;
+
+        // ═══════════════════════════════════════════════════════════
         // ░ OPTIONAL - BASIC PROFILE
         // ═══════════════════════════════════════════════════════════
 
@@ -82,14 +90,6 @@ namespace BubbleSpinner.Data
         [Tooltip("e.g. Introverted, caring, easily flustered. Leave empty to display N/A")]
         [TextArea(2, 4)]
         public string personalityTraits = "N/A";
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ UNIQUE IDENTIFIER
-        // ═══════════════════════════════════════════════════════════
-
-        [Header("Unique Identifier")]
-        [Tooltip("Auto-generated unique ID. DO NOT MODIFY.")]
-        [SerializeField] private string conversationId;
 
         // ═══════════════════════════════════════════════════════════
         // ░ CG GALLERY

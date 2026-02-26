@@ -98,14 +98,14 @@ namespace BubbleSpinner.Data
         public string nodeName;
         public List<MessageData> messages;
         public List<ChoiceData> choices;
-        public List<int> pausePoints;
+        public List<PausePoint> pausePoints;
         public string nextNode;
 
         public DialogueNode()
         {
             messages = new List<MessageData>();
             choices = new List<ChoiceData>();
-            pausePoints = new List<int>();
+            pausePoints = new List<PausePoint>();
             nextNode = "";
         }
 
@@ -114,13 +114,54 @@ namespace BubbleSpinner.Data
             nodeName = name;
             messages = new List<MessageData>();
             choices = new List<ChoiceData>();
-            pausePoints = new List<int>();
+            pausePoints = new List<PausePoint>();
             nextNode = "";
         }
 
+        /// <summary>
+        /// Returns true if there is a pause point whose stopIndex matches messageIndex.
+        /// </summary>
         public bool ShouldPauseAfter(int messageIndex)
         {
-            return pausePoints.Contains(messageIndex);
+            foreach (var p in pausePoints)
+                if (p.stopIndex == messageIndex) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the PausePoint whose stopIndex matches messageIndex, or null if none.
+        /// </summary>
+        public PausePoint GetPauseAt(int messageIndex)
+        {
+            foreach (var p in pausePoints)
+                if (p.stopIndex == messageIndex) return p;
+            return null;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ░ PAUSE POINT
+    // ═══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Represents a -> ... pause point in a dialogue node.
+    /// stopIndex        — pause is triggered after the message at this index is shown.
+    /// playerMessageIndex — index of the paired Player: message in node.messages, or -1 if none.
+    /// The parser sets playerMessageIndex by looking ahead from the -> ... line.
+    /// The executor uses HasPlayerMessage to decide whether to emit a player bubble on click.
+    /// </summary>
+    [Serializable]
+    public class PausePoint
+    {
+        public int stopIndex;
+        public int playerMessageIndex;
+
+        public bool HasPlayerMessage => playerMessageIndex >= 0;
+
+        public PausePoint(int stop, int playerMsg = -1)
+        {
+            stopIndex = stop;
+            playerMessageIndex = playerMsg;
         }
     }
 

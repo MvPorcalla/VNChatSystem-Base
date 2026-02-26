@@ -8,6 +8,14 @@ Sofia: "1"
 Sofia: "2"
 Sofia: "3"
 
+Sofia: "Batch 1 - Message A"
+Sofia: "Batch 1 - Message B"
+
+-> ...
+
+Sofia: "Batch 2 - Message C"
+Sofia: "Batch 2 - Message D"
+
 >> media npc type:image unlock:true path:Sofia/CG1
 
 -> ...
@@ -100,6 +108,8 @@ Sofia: "15"
 Player: "..."
 
 Sofia: "16"
+
+-> ...
 
 <<jump EndNode>>
 

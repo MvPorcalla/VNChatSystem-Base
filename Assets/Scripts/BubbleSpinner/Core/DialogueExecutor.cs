@@ -29,6 +29,8 @@ namespace BubbleSpinner.Core
         private IBubbleSpinnerCallbacks callbacks;
         private string pendingJumpNode = null;
 
+        private bool pendingProcessAfterPlayerMessage = false;
+
         // ═══════════════════════════════════════════════════════════
         // ░ EVENTS (UI subscribes to these)
         // ═══════════════════════════════════════════════════════════
@@ -193,7 +195,7 @@ namespace BubbleSpinner.Core
         }
 
         /// <summary>
-        /// Called when pause button is clicked by player.
+        /// Called by UI when player clicks the pause/continue button.
         /// </summary>
         public void OnPauseButtonClicked()
         {
@@ -202,17 +204,31 @@ namespace BubbleSpinner.Core
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.None;
 
-            // Ask: are there any unread messages remaining from the current index
-            // to the next pause point (or end of node if no more pauses exist)?
-            // GetUnreadMessagesToNextPause() already handles both cases correctly —
-            // it returns messages up to the next pause, or up to messages.Count
-            // if no further pause exists. If it returns anything, there is content
-            // to show before we can move on to choices/jump/end.
-            //
-            // The old logic used hasRealPauseAhead (nextPauseIndex < messages.Count)
-            // as a gate, which caused it to skip the final message batch when those
-            // messages came after the last pause point with no subsequent pause.
+            // Check if the current pause point has a paired player message.
+            // If so, emit it first and wait for OnMessagesDisplayComplete
+            // before continuing to the next NPC batch.
+            var pausePoint = currentNode.GetPauseAt(state.currentMessageIndex);
 
+            if (pausePoint != null && pausePoint.HasPlayerMessage)
+            {
+                var playerMessage = currentNode.messages[pausePoint.playerMessageIndex];
+
+                Debug.Log($"[DialogueExecutor] Player-turn pause — emitting player message: '{playerMessage.content}'");
+
+                // Mark as read and add to history
+                state.messageHistory.Add(playerMessage);
+                state.readMessageIds.Add(playerMessage.messageId);
+
+                // Advance index past the player message so ProcessCurrentNode
+                // picks up from the next NPC line after OnMessagesDisplayComplete
+                state.currentMessageIndex = pausePoint.playerMessageIndex + 1;
+                pendingProcessAfterPlayerMessage = true;
+
+                OnMessagesReady?.Invoke(new List<MessageData> { playerMessage });
+                return;
+            }
+
+            // No paired player message — pure pacing pause, continue directly
             var remainingMessages = GetUnreadMessagesToNextPause();
 
             if (remainingMessages.Count > 0)
@@ -285,6 +301,18 @@ namespace BubbleSpinner.Core
                 return;
             }
 
+            // If we just emitted a paired player message from a pause point,
+            // continue processing the node to show the next NPC batch.
+            // DetermineNextAction would skip ProcessCurrentNode and go straight
+            // to choices/jump/end, causing the following NPC messages to be lost.
+            if (pendingProcessAfterPlayerMessage)
+            {
+                pendingProcessAfterPlayerMessage = false;
+                Debug.Log("[DialogueExecutor] Post-player-message — resuming NPC batch");
+                ProcessCurrentNode();
+                return;
+            }
+
             DetermineNextAction();
         }
 
@@ -312,10 +340,6 @@ namespace BubbleSpinner.Core
 
             Debug.Log($"[DialogueExecutor] Processing node: {state.currentNodeName} " +
                      $"(msg {state.currentMessageIndex}/{currentNode.messages.Count})");
-
-            Debug.Log($"[DEBUG] currentMessageIndex={state.currentMessageIndex}, " +
-                    $"readIds count={state.readMessageIds.Count}, " +
-                    $"endIndex={GetEndIndexForNextPause()}");
 
             var messagesToShow = GetUnreadMessagesToNextPause();
 
@@ -349,15 +373,17 @@ namespace BubbleSpinner.Core
             // Priority 1: Check for pause point
             if (currentNode.ShouldPauseAfter(state.currentMessageIndex))
             {
-                // Check if there are actually unread messages after this pause point.
-                // We do this by temporarily checking what GetUnreadMessagesToNextPause()
-                // would return from AFTER the current pause index.
-                int savedIndex = state.currentMessageIndex;
-                state.currentMessageIndex = savedIndex + 1; // peek past the pause
-                var messagesAfterPause = GetUnreadMessagesToNextPause();
-                state.currentMessageIndex = savedIndex; // restore
+                // A pause point is always real — either it has a paired player message,
+                // or it has NPC messages after it, or it's a standalone pacing pause.
+                // All three cases should show the continue button.
+                // The only exception is a pure trailing pause with no player message
+                // and no NPC messages after it — that falls through to choices/end.
+                var pausePoint = currentNode.GetPauseAt(state.currentMessageIndex);
+                bool hasContentAfterPause = pausePoint.HasPlayerMessage ||
+                    GetEndIndexForNextPause(state.currentMessageIndex + 1) > state.currentMessageIndex + 1 ||
+                    state.currentMessageIndex + 1 < currentNode.messages.Count;
 
-                if (messagesAfterPause.Count > 0)
+                if (hasContentAfterPause)
                 {
                     Debug.Log("[DialogueExecutor] → Pause point reached");
                     state.isInPauseState = true;
@@ -366,7 +392,7 @@ namespace BubbleSpinner.Core
                     return;
                 }
 
-                Debug.Log("[DialogueExecutor] → Pause point at end of all messages - falling through to choices/end");
+                Debug.Log("[DialogueExecutor] → Trailing pause with no content after — falling through to choices/end");
             }
 
             // Priority 2: Check for choices
@@ -530,11 +556,27 @@ namespace BubbleSpinner.Core
         {
             int endIndex = currentNode.messages.Count;
 
-            foreach (int pausePoint in currentNode.pausePoints)
+            foreach (var pausePoint in currentNode.pausePoints)
             {
-                if (pausePoint > state.currentMessageIndex)
+                if (pausePoint.stopIndex > state.currentMessageIndex)
                 {
-                    endIndex = pausePoint;
+                    endIndex = pausePoint.stopIndex;
+                    break;
+                }
+            }
+
+            return endIndex;
+        }
+
+        private int GetEndIndexForNextPause(int fromIndex)
+        {
+            int endIndex = currentNode.messages.Count;
+
+            foreach (var pausePoint in currentNode.pausePoints)
+            {
+                if (pausePoint.stopIndex > fromIndex)
+                {
+                    endIndex = pausePoint.stopIndex;
                     break;
                 }
             }
@@ -596,7 +638,7 @@ namespace BubbleSpinner.Core
             foreach (var kvp in currentNodes)
             {
                 Debug.Log($"[DEBUG] Node '{kvp.Key}': {kvp.Value.messages.Count} messages, " +
-                        $"pausePoints=[{string.Join(",", kvp.Value.pausePoints)}]");
+                        $"pausePoints=[{string.Join(",", kvp.Value.pausePoints.ConvertAll(p => $"{p.stopIndex}(pm:{p.playerMessageIndex})"))}]");
             }
         }
 

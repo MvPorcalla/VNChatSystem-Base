@@ -94,7 +94,7 @@ namespace BubbleSpinner.Core
                     }
 
                     if (TryParseJumpCommand(line, context)) continue;
-                    if (TryParsePauseButton(line, context)) continue;
+                    if (TryParsePauseButton(line, context, lines, i)) continue;
                     if (TryParseChoiceBlockStart(line, context)) continue;
                     if (TryParseChoiceBlockEnd(line, context)) continue;
                     if (TryParseChoiceOption(line, context)) continue;
@@ -216,7 +216,7 @@ namespace BubbleSpinner.Core
             return true;
         }
 
-        private static bool TryParsePauseButton(string line, ParserContext ctx)
+        private static bool TryParsePauseButton(string line, ParserContext ctx, string[] lines, int currentLineIndex)
         {
             if (line != "-> ...")
                 return false;
@@ -224,13 +224,57 @@ namespace BubbleSpinner.Core
             if (ctx.processingChoiceContent)
             {
                 Debug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Pause button inside choice block ignored");
-            }
-            else
-            {
-                int pauseAfterMessage = ctx.currentNode.messages.Count;
-                ctx.currentNode.pausePoints.Add(pauseAfterMessage);
+                return true;
             }
 
+            int stopIndex = ctx.currentNode.messages.Count;
+
+            // Look ahead to find the next non-empty, non-comment line.
+            // If it is a Player: line (contains ":" and does not start with
+            // a command prefix), the pause is a player-turn pause and we
+            // record the index where that player message will land.
+            // That index is messages.Count + 0 because the Player: line
+            // will be parsed on the very next iteration and appended at
+            // messages.Count — which equals stopIndex right now.
+            int playerMessageIndex = -1;
+
+            for (int peek = currentLineIndex + 1; peek < lines.Length; peek++)
+            {
+                string peekLine = StripInlineComments(lines[peek].Trim());
+
+                if (string.IsNullOrEmpty(peekLine) || peekLine.StartsWith("//"))
+                    continue;
+
+                // Stop peeking at any command or node boundary
+                if (peekLine.StartsWith(">>") ||
+                    peekLine.StartsWith("<<") ||
+                    peekLine.StartsWith("->") ||
+                    peekLine.StartsWith("title:") ||
+                    peekLine == "---" ||
+                    peekLine == "===")
+                    break;
+
+                // Check if this is a Player: line
+                if (peekLine.Contains(":"))
+                {
+                    int colonIndex = peekLine.IndexOf(':');
+                    string speaker = peekLine.Substring(0, colonIndex).Trim();
+
+                    if (speaker.ToLower() == "player")
+                    {
+                        // This player message will land at messages.Count
+                        // (stopIndex) on the next parse iteration
+                        playerMessageIndex = stopIndex;
+                        Debug.Log($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
+                            $"Player-turn pause detected — player message will be at index {playerMessageIndex}");
+                    }
+                }
+
+                // First non-empty non-comment line seen — stop peeking regardless
+                break;
+            }
+
+            ctx.currentNode.pausePoints.Add(new PausePoint(stopIndex, playerMessageIndex));
             return true;
         }
 
@@ -282,7 +326,7 @@ namespace BubbleSpinner.Core
                 ValidateAndAddChoice(ctx);
             }
 
-            string choiceText = line.Substring(3, line.Length - 4);
+            string choiceText = line.Substring(4, line.Length - 5);
 
             if (string.IsNullOrEmpty(choiceText))
             {

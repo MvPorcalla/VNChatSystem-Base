@@ -18,10 +18,17 @@ MonoBehaviour:
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
-  conversationId: af617d5_Sofia
   chapters:
   - {fileID: 2811297602134710623, guid: 6c4cd854c7c9d654bbc787559bcc6e1a, type: 3}
   - {fileID: 2811297602134710623, guid: c4ce5c862ec567b4eb3a6b7078b99446, type: 3}
+  characterAge: N/A
+  birthdate: N/A
+  relationshipStatus: 3
+  occupation: N/A
+  bio: N/A
+  description: N/A
+  personalityTraits: N/A
+  conversationId: af617d5_Sofia
   cgAddressableKeys:
   - Sofia/CG1
   - Sofia/CG2

@@ -8,40 +8,100 @@ using UnityEngine.AddressableAssets;
 
 namespace BubbleSpinner.Data
 {
+    public enum RelationshipStatus
+    {
+        Unknown,
+        Single,
+        InARelationship,
+        Married,
+        Divorced,
+        Widowed,
+        ItsComplicated
+    }
 
     /// <summary>
     /// ScriptableObject that defines a character and their associated conversation data.
     /// Each ConversationAsset represents a character in the game and contains:
-    /// - Character name and profile image
+    /// - Character info (name, age, birthdate, civil status, occupation, bio, description, personality)
+    /// - Profile image (Addressable reference)
     /// - Unique conversation ID (auto-generated)
     /// - List of dialogue chapters (.bub files)
     /// - List of CGs to unlock (Addressable keys)
-    /// 
-    /// This asset is used by BubbleSpinner to look up conversation data when starting a conversation.
-    /// You can create multiple ConversationAssets for different characters in your game.
-    /// The unique ConversationId is generated automatically based on the character name, but you can modify it if needed (just ensure it remains unique).
-    /// Make sure to keep this asset updated with any new characters or conversations you add to your game.
-    /// Note: This asset is separate from the CharacterDatabase. It is meant to be referenced by the database and used at runtime for conversation management.
-        /// </summary>
-
+    ///
+    /// Required fields: characterName, profileImage, chapters
+    /// Optional fields: all others — default to "N/A" if left empty
+    /// </summary>
     [CreateAssetMenu(fileName = "NewConversation", menuName = "BubbleSpinner/Conversation Asset")]
     public class ConversationAsset : ScriptableObject
     {
-        [Header("Character Info")]
+        // ═══════════════════════════════════════════════════════════
+        // ░ REQUIRED FIELDS
+        // ═══════════════════════════════════════════════════════════
+
+        [Header("Required")]
+        [Tooltip("Character's display name. Must not be empty.")]
         public string characterName;
+
+        [Tooltip("Profile image shown in contact list and chat header.")]
         public AssetReference profileImage;
+
+        [Header("Dialogue Chapters")]
+        [Tooltip("List of .bub files in chapter order. At least one chapter required.")]
+        public List<TextAsset> chapters = new List<TextAsset>();
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ OPTIONAL - BASIC PROFILE
+        // ═══════════════════════════════════════════════════════════
+
+        [Header("Optional - Basic Profile")]
+        [Tooltip("Leave empty to display N/A")]
+        public string characterAge = "N/A";
+
+        [Tooltip("Leave empty to display N/A")]
+        public string birthdate = "N/A";
+
+        [Tooltip("Leave Unknown to display N/A")]
+        public RelationshipStatus relationshipStatus = RelationshipStatus.Unknown;
+
+        [Tooltip("Leave empty to display N/A")]
+        public string occupation = "N/A";
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ OPTIONAL - TEXT PROFILE
+        // ═══════════════════════════════════════════════════════════
+
+        [Header("Optional - Text Profile")]
+        [Tooltip("Short tagline shown in contact list preview. Leave empty to display N/A")]
+        [TextArea(2, 4)]
+        public string bio = "N/A";
+
+        [Tooltip("Longer story background for detail panel. Leave empty to display N/A")]
+        [TextArea(4, 8)]
+        public string description = "N/A";
+
+        [Tooltip("e.g. Introverted, caring, easily flustered. Leave empty to display N/A")]
+        [TextArea(2, 4)]
+        public string personalityTraits = "N/A";
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ UNIQUE IDENTIFIER
+        // ═══════════════════════════════════════════════════════════
 
         [Header("Unique Identifier")]
         [Tooltip("Auto-generated unique ID. DO NOT MODIFY.")]
         [SerializeField] private string conversationId;
 
-        [Header("Dialogue Chapters")]
-        [Tooltip("List of .bub files in chapter order")]
-        public List<TextAsset> chapters = new List<TextAsset>();
+        // ═══════════════════════════════════════════════════════════
+        // ░ CG GALLERY
+        // ═══════════════════════════════════════════════════════════
 
         [Header("CG Gallery")]
         [Tooltip("All CGs for this character (Addressable keys)")]
         public List<string> cgAddressableKeys = new List<string>();
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ CONVERSATION ID
+        // ═══════════════════════════════════════════════════════════
 
         public string ConversationId
         {
@@ -64,6 +124,40 @@ namespace BubbleSpinner.Data
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // ░ HELPER - DISPLAY VALUES WITH N/A FALLBACK
+        // ═══════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Returns the field value or "N/A" if empty.
+        /// Use this in your detail panel UI instead of reading fields directly.
+        /// Example: asset.GetAge() instead of asset.characterAge
+        /// </summary>
+        public string GetAge() => string.IsNullOrWhiteSpace(characterAge) || characterAge == "N/A" ? "N/A" : characterAge;
+        public string GetBirthdate() => string.IsNullOrWhiteSpace(birthdate) || birthdate == "N/A" ? "N/A" : birthdate;
+        public string GetOccupation() => string.IsNullOrWhiteSpace(occupation) || occupation == "N/A" ? "N/A" : occupation;
+        public string GetBio() => string.IsNullOrWhiteSpace(bio) || bio == "N/A" ? "N/A" : bio;
+        public string GetDescription() => string.IsNullOrWhiteSpace(description) || description == "N/A" ? "N/A" : description;
+        public string GetPersonalityTraits() => string.IsNullOrWhiteSpace(personalityTraits) || personalityTraits == "N/A" ? "N/A" : personalityTraits;
+
+        public string GetRelationshipStatus()
+        {
+            switch (relationshipStatus)
+            {
+                case RelationshipStatus.Single:          return "Single";
+                case RelationshipStatus.InARelationship: return "In a Relationship";
+                case RelationshipStatus.Married:         return "Married";
+                case RelationshipStatus.Divorced:        return "Divorced";
+                case RelationshipStatus.Widowed:         return "Widowed";
+                case RelationshipStatus.ItsComplicated:  return "It's Complicated";
+                default:                                 return "N/A";
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ VALIDATION
+        // ═══════════════════════════════════════════════════════════
+
         private void GenerateNewId()
         {
             string guid = System.Guid.NewGuid().ToString("N");
@@ -79,6 +173,16 @@ namespace BubbleSpinner.Data
                 GenerateNewId();
                 UnityEditor.EditorUtility.SetDirty(this);
             }
+
+            // Warn if required fields are missing
+            if (string.IsNullOrWhiteSpace(characterName))
+                Debug.LogWarning($"[ConversationAsset] characterName is empty on {name}!");
+
+            if (profileImage == null || !profileImage.RuntimeKeyIsValid())
+                Debug.LogWarning($"[ConversationAsset] profileImage is not assigned on {name}!");
+
+            if (chapters == null || chapters.Count == 0)
+                Debug.LogWarning($"[ConversationAsset] No chapters assigned on {name}!");
         }
 #endif
     }

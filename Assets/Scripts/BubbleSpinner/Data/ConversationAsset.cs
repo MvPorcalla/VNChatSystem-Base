@@ -8,6 +8,9 @@ using UnityEngine.AddressableAssets;
 
 namespace BubbleSpinner.Data
 {
+    /// <summary>
+    /// Relationship status options for character profiles.
+    /// </summary>
     public enum RelationshipStatus
     {
         Unknown,
@@ -21,21 +24,13 @@ namespace BubbleSpinner.Data
 
     /// <summary>
     /// ScriptableObject that defines a character and their associated conversation data.
-    /// Each ConversationAsset represents a character in the game and contains:
-    /// - Character info (name, age, birthdate, civil status, occupation, bio, description, personality)
-    /// - Profile image (Addressable reference)
-    /// - Unique conversation ID (auto-generated)
-    /// - List of dialogue chapters (.bub files)
-    /// - List of CGs to unlock (Addressable keys)
-    ///
-    /// Required fields: characterName, profileImage, chapters
-    /// Optional fields: all others — default to "N/A" if left empty
+    /// Holds profile info, chapter list, CG keys, and an auto-generated unique ID.
     /// </summary>
     [CreateAssetMenu(fileName = "NewConversation", menuName = "BubbleSpinner/Conversation Asset")]
     public class ConversationAsset : ScriptableObject
     {
         // ═══════════════════════════════════════════════════════════
-        // ░ REQUIRED FIELDS
+        // REQUIRED FIELDS
         // ═══════════════════════════════════════════════════════════
 
         [Header("Required")]
@@ -50,7 +45,7 @@ namespace BubbleSpinner.Data
         public List<TextAsset> chapters = new List<TextAsset>();
 
         // ═══════════════════════════════════════════════════════════
-        // ░ UNIQUE IDENTIFIER
+        // UNIQUE IDENTIFIER
         // ═══════════════════════════════════════════════════════════
 
         [Header("Unique Identifier")]
@@ -58,7 +53,7 @@ namespace BubbleSpinner.Data
         [SerializeField] private string conversationId;
 
         // ═══════════════════════════════════════════════════════════
-        // ░ OPTIONAL - BASIC PROFILE
+        // OPTIONAL - BASIC PROFILE
         // ═══════════════════════════════════════════════════════════
 
         [Header("Optional - Basic Profile")]
@@ -75,7 +70,7 @@ namespace BubbleSpinner.Data
         public string occupation = "N/A";
 
         // ═══════════════════════════════════════════════════════════
-        // ░ OPTIONAL - TEXT PROFILE
+        // OPTIONAL - TEXT PROFILE
         // ═══════════════════════════════════════════════════════════
 
         [Header("Optional - Text Profile")]
@@ -92,7 +87,7 @@ namespace BubbleSpinner.Data
         public string personalityTraits = "N/A";
 
         // ═══════════════════════════════════════════════════════════
-        // ░ CG GALLERY
+        // CG GALLERY
         // ═══════════════════════════════════════════════════════════
 
         [Header("CG Gallery")]
@@ -100,7 +95,7 @@ namespace BubbleSpinner.Data
         public List<string> cgAddressableKeys = new List<string>();
 
         // ═══════════════════════════════════════════════════════════
-        // ░ CONVERSATION ID
+        // CONVERSATION ID
         // ═══════════════════════════════════════════════════════════
 
         public string ConversationId
@@ -125,13 +120,11 @@ namespace BubbleSpinner.Data
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ HELPER - DISPLAY VALUES WITH N/A FALLBACK
+        // HELPER - DISPLAY VALUES WITH N/A FALLBACK
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Returns the field value or "N/A" if empty.
-        /// Use this in your detail panel UI instead of reading fields directly.
-        /// Example: asset.GetAge() instead of asset.characterAge
+        /// Used by UI to display profile info with a consistent fallback for missing data.
         /// </summary>
         public string GetAge() => string.IsNullOrWhiteSpace(characterAge) || characterAge == "N/A" ? "N/A" : characterAge;
         public string GetBirthdate() => string.IsNullOrWhiteSpace(birthdate) || birthdate == "N/A" ? "N/A" : birthdate;
@@ -155,7 +148,7 @@ namespace BubbleSpinner.Data
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ VALIDATION
+        // VALIDATION
         // ═══════════════════════════════════════════════════════════
 
         private void GenerateNewId()

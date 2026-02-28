@@ -1,5 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/BubbleSpinner/Data/MessageData.cs
+// Core data types for BubbleSpinner: messages, choices, dialogue nodes,
+// pause points, resume targets, and serializable conversation state.
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
@@ -7,66 +9,54 @@ using System.Collections.Generic;
 
 namespace BubbleSpinner.Data
 {
-    /// <summary>
-    /// Defines the data structures for messages, choices, dialogue nodes, and conversation state used by BubbleSpinner.
-    /// These classes are used to represent the parsed dialogue data from .bub files and to manage conversation state during execution.
-    /// </summary>
-
-    // ═══════════════════════════════════════════════════════════
-    // ░ MESSAGE DATA
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // MESSAGE DATA
+    // ═══════════════════════════════════════
 
     [Serializable]
     public class MessageData
     {
-        public enum MessageType
-        {
-            Text,
-            Image,
-            System
-        }
+        public enum MessageType { Text, Image, System }
 
         public MessageType type;
         public string speaker;
         public string content;
         public string imagePath;
         public string timestamp;
-        public string messageId;
+        public string messageId;    // Assigned later by parser; empty until then
         public bool shouldUnlockCG;
 
-        // ── PHASE 1 FIX (#5) ────────────────────────────────────────────
-        // messageId is NO LONGER generated here.
-        // It is assigned by BubbleSpinnerParser after construction using:
-        //   "{nodeName}_{messageIndexWithinNode}"
-        // This makes IDs deterministic across parses, so readMessageIds
-        // in ConversationState correctly deduplicates on save/load resume.
-        //
-        // timestamp is still set at construction — it represents when
-        // the message object was created (parse time), matching the
-        // existing known limitation documented in the .bub format spec.
-        // ────────────────────────────────────────────────────────────────
-
+        /// <summary>
+        /// Initializes a blank message with an empty ID and the current time as timestamp.
+        /// </summary>
         public MessageData()
         {
             messageId = "";
             timestamp = DateTime.Now.ToString("HH:mm");
         }
 
+        /// <summary>
+        /// Initializes a message with the specified type, speaker, content, and optional image path.
+        /// </summary>
+        /// <param name="msgType">The type of the message (Text, Image, System).</param>
+        /// <param name="msgSpeaker">The speaker of the message (character name or "System").</param>
+        /// <param name="msgContent">The text content of the message (ignored for Image type).</param>
+        /// <param name="imgPath">The image path for Image type messages (optional).</param>
         public MessageData(MessageType msgType, string msgSpeaker, string msgContent, string imgPath = "")
         {
-            type = msgType;
-            speaker = msgSpeaker;
-            content = msgContent;
-            imagePath = imgPath;
-            timestamp = DateTime.Now.ToString("HH:mm");
-            messageId = "";
+            type          = msgType;
+            speaker       = msgSpeaker;
+            content       = msgContent;
+            imagePath     = imgPath;
+            timestamp     = DateTime.Now.ToString("HH:mm");
+            messageId     = "";
             shouldUnlockCG = false;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ░ CHOICE DATA
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // CHOICE DATA
+    // ═══════════════════════════════════════
 
     [Serializable]
     public class ChoiceData
@@ -75,22 +65,28 @@ namespace BubbleSpinner.Data
         public string targetNode;
         public List<MessageData> playerMessages;
 
+        /// <summary>
+        /// Initializes an empty choice with a blank player message list.
+        /// </summary>
         public ChoiceData()
         {
             playerMessages = new List<MessageData>();
         }
 
+        /// <summary>
+        /// Initializes a choice with the given button text and target node name.
+        /// </summary>
         public ChoiceData(string text, string target)
         {
-            choiceText = text;
-            targetNode = target;
+            choiceText     = text;
+            targetNode     = target;
             playerMessages = new List<MessageData>();
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ░ DIALOGUE NODE
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // DIALOGUE NODE
+    // ═══════════════════════════════════════
 
     [Serializable]
     public class DialogueNode
@@ -101,26 +97,22 @@ namespace BubbleSpinner.Data
         public List<PausePoint> pausePoints;
         public string nextNode;
 
+        /// <summary>
+        /// Initializes an empty dialogue node with blank lists and no next node.
+        /// </summary>
         public DialogueNode()
         {
-            messages = new List<MessageData>();
-            choices = new List<ChoiceData>();
+            messages    = new List<MessageData>();
+            choices     = new List<ChoiceData>();
             pausePoints = new List<PausePoint>();
-            nextNode = "";
+            nextNode    = "";
         }
 
-        public DialogueNode(string name)
+        public DialogueNode(string name) : this()
         {
             nodeName = name;
-            messages = new List<MessageData>();
-            choices = new List<ChoiceData>();
-            pausePoints = new List<PausePoint>();
-            nextNode = "";
         }
 
-        /// <summary>
-        /// Returns true if there is a pause point whose stopIndex matches messageIndex.
-        /// </summary>
         public bool ShouldPauseAfter(int messageIndex)
         {
             foreach (var p in pausePoints)
@@ -129,7 +121,7 @@ namespace BubbleSpinner.Data
         }
 
         /// <summary>
-        /// Returns the PausePoint whose stopIndex matches messageIndex, or null if none.
+        /// Returns the PausePoint at the given message index, or null if none exists.
         /// </summary>
         public PausePoint GetPauseAt(int messageIndex)
         {
@@ -139,16 +131,13 @@ namespace BubbleSpinner.Data
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ░ PAUSE POINT
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // PAUSE POINT
+    // ═══════════════════════════════════════
 
     /// <summary>
-    /// Represents a -> ... pause point in a dialogue node.
-    /// stopIndex        — pause is triggered after the message at this index is shown.
-    /// playerMessageIndex — index of the paired Player: message in node.messages, or -1 if none.
-    /// The parser sets playerMessageIndex by looking ahead from the -> ... line.
-    /// The executor uses HasPlayerMessage to decide whether to emit a player bubble on click.
+    /// Represents a pause point in a dialogue node.
+    /// Stops message flow after <c>stopIndex</c> and optionally pairs with a player message.
     /// </summary>
     [Serializable]
     public class PausePoint
@@ -156,31 +145,34 @@ namespace BubbleSpinner.Data
         public int stopIndex;
         public int playerMessageIndex;
 
+        /// <summary>
+        /// Returns true if this pause point has a paired player message to emit on continue.
+        /// </summary>
         public bool HasPlayerMessage => playerMessageIndex >= 0;
 
+        /// <summary>
+        /// Initializes a pause point at the given stop index with an optional paired player message index.
+        /// </summary>
         public PausePoint(int stop, int playerMsg = -1)
         {
-            stopIndex = stop;
+            stopIndex          = stop;
             playerMessageIndex = playerMsg;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ░ RESUME TARGET
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // RESUME TARGET
+    // ═══════════════════════════════════════
 
     /// <summary>
-    /// Records exactly what the player was looking at when they exited the conversation.
-    /// Used by ContinueFromCurrentState() to restore the correct UI on re-entry
-    /// without re-deriving state from node inspection (which was the source of
-    /// phantom pause buttons and incorrect replays).
-    ///
-    ///   None        — Fresh start, no previous exit point recorded
-    ///   Pause       — Stopped at a real -> ... pause point (show continue button)
-    ///   Choices     — Stopped at choice buttons (re-show choices directly)
-    ///   End         — Stopped at end/next-chapter button (re-show end button directly)
-    ///   Interrupted — Exited mid-message sequence (show continue button as safe resume)
+    /// UI state when exiting a conversation.
+    /// Used to determine where to resume when the player returns to the conversation.
     /// </summary>
+    /// <param name="None">No resume target; default state.</param>
+    /// <param name="Pause">Resume at the most recent pause point.</param>
+    /// <param name="Choices">Resume at the most recent choice point.</param>
+    /// <param name="End">Resume at the end of the conversation (no more messages).</param>
+    /// <param name="Interrupted">Resume at the exact message where the conversation was interrupted.</param>
     public enum ResumeTarget
     {
         None,
@@ -190,19 +182,13 @@ namespace BubbleSpinner.Data
         Interrupted
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ░ CONVERSATION STATE (for saves)
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════
+    // CONVERSATION STATE
+    // ═══════════════════════════════════════
 
     [Serializable]
     public class ConversationState
     {
-        // ── VERSION BUMP ─────────────────────────────────────────
-        // Version 2 adds resumeTarget. Existing saves on version 1
-        // will deserialize resumeTarget as None (default enum value),
-        // which routes to ProcessCurrentNode — same as the old
-        // isInPauseState = false path. Safe migration, no data loss.
-        // ─────────────────────────────────────────────────────────
         public const int CURRENT_VERSION = 2;
 
         public int version = CURRENT_VERSION;
@@ -211,38 +197,33 @@ namespace BubbleSpinner.Data
         public int currentChapterIndex;
         public string currentNodeName;
         public int currentMessageIndex;
-
-        /// <summary>
-        /// Kept for reference and NotifyInterrupted compatibility.
-        /// Resume routing now uses resumeTarget instead.
-        /// </summary>
         public bool isInPauseState;
-
-        /// <summary>
-        /// The authoritative signal for what to show on re-entry.
-        /// Set by DialogueExecutor at every player-facing stop point.
-        /// </summary>
         public ResumeTarget resumeTarget;
-
         public List<string> readMessageIds;
         public List<MessageData> messageHistory;
         public List<string> unlockedCGs;
 
+        /// <summary>
+        /// Initializes a blank conversation state at chapter 0 with empty history lists.
+        /// </summary>
         public ConversationState()
         {
-            version = CURRENT_VERSION;
-            conversationId = "";
-            characterName = "";
+            version             = CURRENT_VERSION;
+            conversationId      = "";
+            characterName       = "";
             currentChapterIndex = 0;
-            currentNodeName = "";
+            currentNodeName     = "";
             currentMessageIndex = 0;
-            isInPauseState = false;
-            resumeTarget = ResumeTarget.None;
-            readMessageIds = new List<string>();
-            messageHistory = new List<MessageData>();
-            unlockedCGs = new List<string>();
+            isInPauseState      = false;
+            resumeTarget        = ResumeTarget.None;
+            readMessageIds      = new List<string>();
+            messageHistory      = new List<MessageData>();
+            unlockedCGs         = new List<string>();
         }
 
+        /// <summary>
+        /// Initializes a blank conversation state with the given conversation ID.
+        /// </summary>
         public ConversationState(string convId) : this()
         {
             conversationId = convId;

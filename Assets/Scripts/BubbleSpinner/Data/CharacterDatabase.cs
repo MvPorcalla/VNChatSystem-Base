@@ -10,11 +10,12 @@ namespace BubbleSpinner.Data
     /// <summary>
     /// ScriptableObject that holds references to all ConversationAssets (characters) in the game.
     /// </summary>
-    /// This is used by BubbleSpinner to look up character data when starting conversations.
-    /// You can create an instance of this database via the Unity Editor and populate it with your ConversationAssets.
-    /// For convenience, it includes an editor-only method to auto-find all ConversationAssets in the project and add them to the database.
-    /// Make sure to keep this database updated with any new characters you add to your game.
-    /// Note: This database is separate from the ConversationManager's runtime state management. It is purely for referencing character data.
+    /// <remarks>
+    /// Used by BubbleSpinner to look up character data when starting conversations.
+    /// Create an instance via the Unity Editor and populate it with ConversationAssets.
+    /// Includes an editor-only method to auto-find all ConversationAssets in the project.
+    /// Note: This database is separate from the ConversationManager's runtime state management.
+    /// </remarks>
     
     [CreateAssetMenu(fileName = "CharacterDatabase", menuName = "BubbleSpinner/Character Database")]
     public class CharacterDatabase : ScriptableObject
@@ -24,7 +25,7 @@ namespace BubbleSpinner.Data
         public List<ConversationAsset> allCharacters = new List<ConversationAsset>();
 
         // ═══════════════════════════════════════════════════════════
-        // ░ QUERY METHODS
+        // QUERY METHODS
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
@@ -35,24 +36,18 @@ namespace BubbleSpinner.Data
             return allCharacters.Find(c => c.ConversationId == conversationId);
         }
 
-        /// <summary>
-        /// Get a character by name
-        /// </summary>
         public ConversationAsset GetCharacterByName(string characterName)
         {
             return allCharacters.Find(c => c.characterName == characterName);
         }
 
-        /// <summary>
-        /// Get all characters
-        /// </summary>
         public List<ConversationAsset> GetAllCharacters()
         {
             return new List<ConversationAsset>(allCharacters);
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ VALIDATION (Editor Only)
+        // VALIDATION (Editor Only)
         // ═══════════════════════════════════════════════════════════
 
         #if UNITY_EDITOR

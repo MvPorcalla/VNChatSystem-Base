@@ -18,7 +18,7 @@ namespace BubbleSpinner.Core
     public class DialogueExecutor
     {
         // ═══════════════════════════════════════════════════════════
-        // ░ DEPENDENCIES (injected)
+        // DEPENDENCIES (injected)
         // ═══════════════════════════════════════════════════════════
 
         private ConversationAsset conversationAsset;
@@ -32,7 +32,7 @@ namespace BubbleSpinner.Core
         private bool pendingProcessAfterPlayerMessage = false;
 
         // ═══════════════════════════════════════════════════════════
-        // ░ EVENTS (UI subscribes to these)
+        // EVENTS (UI subscribes to these)
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>Fired when new messages are ready to display</summary>
@@ -51,7 +51,7 @@ namespace BubbleSpinner.Core
         public event Action<string> OnChapterChange;
 
         // ═══════════════════════════════════════════════════════════
-        // ░ PROPERTIES
+        // PROPERTIES
         // ═══════════════════════════════════════════════════════════
 
         public bool IsInPauseState => state?.isInPauseState ?? false;
@@ -66,7 +66,7 @@ namespace BubbleSpinner.Core
             state.currentChapterIndex < conversationAsset.chapters.Count - 1;
 
         // ═══════════════════════════════════════════════════════════
-        // ░ INITIALIZATION
+        // INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
@@ -86,101 +86,68 @@ namespace BubbleSpinner.Core
             LoadCurrentChapter();
             ValidateState();
 
-            // Set current node
             if (!string.IsNullOrEmpty(state.currentNodeName) && currentNodes.ContainsKey(state.currentNodeName))
             {
                 currentNode = currentNodes[state.currentNodeName];
             }
-
-            Debug.Log($"[DialogueExecutor] Initialized: {asset.characterName} | " +
-                     $"Chapter: {state.currentChapterIndex} | " +
-                     $"Node: {state.currentNodeName} | " +
-                     $"Message: {state.currentMessageIndex} | " +
-                     $"ResumeTarget: {state.resumeTarget}");
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ PUBLIC API - MAIN FLOW CONTROL
+        // PUBLIC API - MAIN FLOW CONTROL
         // ═══════════════════════════════════════════════════════════
 
         /// <summary>
         /// Single public entry point for starting or resuming dialogue after initialization.
-        ///
-        /// Routes based on saved resumeTarget — the authoritative record of what the
-        /// player was looking at when they last exited. This eliminates re-deriving UI
-        /// state from node inspection, which was the cause of phantom pause buttons
-        /// and incorrect message replays.
-        ///
-        ///   None        → fresh start → ProcessCurrentNode()
-        ///   Pause       → was at a real pause point → fire OnPauseReached immediately
-        ///   Interrupted → was mid-messages → fire OnPauseReached (safe resume point)
-        ///   Choices     → was at choices → fire OnChoicesReady immediately
-        ///   End         → was at end/next-chapter → fire OnConversationEnd immediately
+        /// Determines where to resume based on the state's resumeTarget and current node/message indices.
         /// </summary>
         public void ContinueFromCurrentState()
         {
             if (state == null || currentNodes == null)
             {
-                Debug.LogError("[DialogueExecutor] Cannot continue: not initialized");
+                BSDebug.LogError("[DialogueExecutor] Cannot continue: not initialized");
                 return;
             }
 
             if (!currentNodes.ContainsKey(state.currentNodeName))
             {
-                Debug.LogError($"[DialogueExecutor] Node '{state.currentNodeName}' not found");
+                BSDebug.LogError($"[DialogueExecutor] Node '{state.currentNodeName}' not found");
                 return;
             }
 
             currentNode = currentNodes[state.currentNodeName];
 
-            Debug.Log($"[DialogueExecutor] ContinueFromCurrentState: " +
-                      $"Node='{state.currentNodeName}' ResumeTarget={state.resumeTarget} " +
-                      $"MsgIndex={state.currentMessageIndex}");
-
             switch (state.resumeTarget)
             {
                 case ResumeTarget.Pause:
-                    Debug.Log("[DialogueExecutor] Resuming at Pause - firing OnPauseReached");
                     state.isInPauseState = true;
                     OnPauseReached?.Invoke();
                     break;
 
                 case ResumeTarget.Interrupted:
-                    // Mid-sequence exit: messages may have fully saved to history even though
-                    // the timing animation hadn't finished. Check if there are actually unread
-                    // messages remaining — if not, determine next action directly (choices/end)
-                    // rather than showing a phantom pause button.
-                    Debug.Log("[DialogueExecutor] Resuming at Interrupted - checking for unread messages");
+                    // Player exited mid-message sequence — show continue button if there are unread messages, otherwise determine next action directly.
                     var unreadOnResume = GetUnreadMessagesToNextPause();
                     if (unreadOnResume.Count > 0)
                     {
-                        Debug.Log($"[DialogueExecutor] {unreadOnResume.Count} unread messages remain - showing pause button");
                         state.isInPauseState = true;
                         OnPauseReached?.Invoke();
                     }
                     else
                     {
-                        Debug.Log("[DialogueExecutor] No unread messages - determining next action directly");
                         state.isInPauseState = false;
                         state.resumeTarget = ResumeTarget.None;
-                        // DetermineNextActionSkipPause instead of DetermineNextAction here —
-                        // currentMessageIndex is sitting on a pause point when interrupted,
-                        // so DetermineNextAction would see it and fire OnPauseReached again,
-                        // showing a phantom continue button on resume.
+
                         DetermineNextActionSkipPause();
                     }
                     break;
 
                 case ResumeTarget.Choices:
                     // Player was at choices — show them directly, no message processing needed.
-                    Debug.Log("[DialogueExecutor] Resuming at choices - firing OnChoicesReady");
                     state.isInPauseState = false;
                     OnChoicesReady?.Invoke(currentNode.choices);
                     break;
 
                 case ResumeTarget.End:
                     // Player was at the end/next-chapter button — restore it directly.
-                    Debug.Log("[DialogueExecutor] Resuming at end - firing OnConversationEnd");
                     state.isInPauseState = false;
                     OnConversationEnd?.Invoke();
                     break;
@@ -188,39 +155,31 @@ namespace BubbleSpinner.Core
                 case ResumeTarget.None:
                 default:
                     // Fresh start or legacy save (version 1) with no resumeTarget recorded.
-                    Debug.Log("[DialogueExecutor] Fresh start or legacy save - processing node normally");
                     ProcessCurrentNode();
                     break;
             }
         }
 
         /// <summary>
-        /// Called by UI when player clicks the pause/continue button.
+        /// Called by UI when player clicks the pause/continue button at a pause point.
         /// </summary>
         public void OnPauseButtonClicked()
         {
-            Debug.Log("[DialogueExecutor] Pause button clicked - continuing dialogue");
-
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.None;
 
-            // Check if the current pause point has a paired player message.
-            // If so, emit it first and wait for OnMessagesDisplayComplete
-            // before continuing to the next NPC batch.
             var pausePoint = currentNode.GetPauseAt(state.currentMessageIndex);
 
             if (pausePoint != null && pausePoint.HasPlayerMessage)
             {
                 var playerMessage = currentNode.messages[pausePoint.playerMessageIndex];
 
-                Debug.Log($"[DialogueExecutor] Player-turn pause — emitting player message: '{playerMessage.content}'");
+                BSDebug.Log($"[DialogueExecutor] Player-turn pause — emitting player message: '{playerMessage.content}'");
 
-                // Mark as read and add to history
+                // Emit the paired player message for this pause point, 
+                // then continue processing the node to show the next NPC batch.
                 state.messageHistory.Add(playerMessage);
                 state.readMessageIds.Add(playerMessage.messageId);
-
-                // Advance index past the player message so ProcessCurrentNode
-                // picks up from the next NPC line after OnMessagesDisplayComplete
                 state.currentMessageIndex = pausePoint.playerMessageIndex + 1;
                 pendingProcessAfterPlayerMessage = true;
 
@@ -233,12 +192,10 @@ namespace BubbleSpinner.Core
 
             if (remainingMessages.Count > 0)
             {
-                Debug.Log($"[DialogueExecutor] {remainingMessages.Count} unread messages remaining - processing node");
                 ProcessCurrentNode();
             }
             else
             {
-                Debug.Log("[DialogueExecutor] No unread messages remaining - determining next action");
                 DetermineNextActionSkipPause();
             }
         }
@@ -251,7 +208,7 @@ namespace BubbleSpinner.Core
         {
             if (state == null) return;
 
-            Debug.Log("[DialogueExecutor] Conversation interrupted - setting ResumeTarget.Interrupted");
+            BSDebug.Log("[DialogueExecutor] Conversation interrupted - setting ResumeTarget.Interrupted");
             state.isInPauseState = true;
             state.resumeTarget = ResumeTarget.Interrupted;
         }
@@ -261,15 +218,13 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void OnChoiceSelected(ChoiceData choice)
         {
-            Debug.Log($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {choice.targetNode}");
+            BSDebug.Log($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {choice.targetNode}");
 
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.None;
 
             if (choice.playerMessages != null && choice.playerMessages.Count > 0)
             {
-                Debug.Log($"[DialogueExecutor] Queueing {choice.playerMessages.Count} player messages");
-
                 foreach (var msg in choice.playerMessages)
                 {
                     state.messageHistory.Add(msg);
@@ -291,8 +246,6 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void OnMessagesDisplayComplete()
         {
-            Debug.Log("[DialogueExecutor] Messages display complete - determining next action");
-
             if (!string.IsNullOrEmpty(pendingJumpNode))
             {
                 string jumpTarget = pendingJumpNode;
@@ -301,14 +254,10 @@ namespace BubbleSpinner.Core
                 return;
             }
 
-            // If we just emitted a paired player message from a pause point,
-            // continue processing the node to show the next NPC batch.
-            // DetermineNextAction would skip ProcessCurrentNode and go straight
-            // to choices/jump/end, causing the following NPC messages to be lost.
+            // If we just finished displaying a player message from a choice, we may need to resume the NPC batch that follows it.
             if (pendingProcessAfterPlayerMessage)
             {
                 pendingProcessAfterPlayerMessage = false;
-                Debug.Log("[DialogueExecutor] Post-player-message — resuming NPC batch");
                 ProcessCurrentNode();
                 return;
             }
@@ -321,32 +270,27 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void AdvanceToNextChapter()
         {
-            Debug.Log("[DialogueExecutor] AdvanceToNextChapter called");
+            BSDebug.Log("[DialogueExecutor] AdvanceToNextChapter called");
             state.resumeTarget = ResumeTarget.None;
             LoadNextChapter("Start");
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ CORE PROCESSING LOGIC
+        // CORE PROCESSING LOGIC
         // ═══════════════════════════════════════════════════════════
 
         private void ProcessCurrentNode()
         {
             if (currentNode == null || state == null)
             {
-                Debug.LogError("[DialogueExecutor] Cannot process: invalid state");
+                BSDebug.LogError("[DialogueExecutor] Cannot process: invalid state");
                 return;
             }
-
-            Debug.Log($"[DialogueExecutor] Processing node: {state.currentNodeName} " +
-                     $"(msg {state.currentMessageIndex}/{currentNode.messages.Count})");
 
             var messagesToShow = GetUnreadMessagesToNextPause();
 
             if (messagesToShow.Count > 0)
             {
-                Debug.Log($"[DialogueExecutor] Queueing {messagesToShow.Count} new messages");
-
                 foreach (var message in messagesToShow)
                 {
                     state.messageHistory.Add(message);
@@ -361,23 +305,21 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                Debug.Log("[DialogueExecutor] No new messages to display");
                 DetermineNextAction();
             }
         }
 
+        /// <summary>
+        /// Determines what to do after finishing a batch of messages, in priority order:
+        /// 1) If there's a pause point at the current message index, enter pause state
+        /// 2) Else if there are choices, show them
+        /// 3) Else if there's an auto-jump, jump to the target node
+        /// 4) Else end the conversation (or next chapter)
+        /// </summary>
         private void DetermineNextAction()
         {
-            Debug.Log($"[DialogueExecutor] Determining next action for node: {currentNode.nodeName}");
-
-            // Priority 1: Check for pause point
             if (currentNode.ShouldPauseAfter(state.currentMessageIndex))
             {
-                // A pause point is always real — either it has a paired player message,
-                // or it has NPC messages after it, or it's a standalone pacing pause.
-                // All three cases should show the continue button.
-                // The only exception is a pure trailing pause with no player message
-                // and no NPC messages after it — that falls through to choices/end.
                 var pausePoint = currentNode.GetPauseAt(state.currentMessageIndex);
                 bool hasContentAfterPause = pausePoint.HasPlayerMessage ||
                     GetEndIndexForNextPause(state.currentMessageIndex + 1) > state.currentMessageIndex + 1 ||
@@ -385,82 +327,71 @@ namespace BubbleSpinner.Core
 
                 if (hasContentAfterPause)
                 {
-                    Debug.Log("[DialogueExecutor] → Pause point reached");
                     state.isInPauseState = true;
                     state.resumeTarget = ResumeTarget.Pause;
                     OnPauseReached?.Invoke();
                     return;
                 }
-
-                Debug.Log("[DialogueExecutor] → Trailing pause with no content after — falling through to choices/end");
             }
 
-            // Priority 2: Check for choices
             if (currentNode.choices != null && currentNode.choices.Count > 0)
             {
-                Debug.Log($"[DialogueExecutor] → Showing {currentNode.choices.Count} choices");
                 state.isInPauseState = false;
                 state.resumeTarget = ResumeTarget.Choices;
                 OnChoicesReady?.Invoke(currentNode.choices);
                 return;
             }
 
-            // Priority 3: Check for auto-jump
             if (!string.IsNullOrEmpty(currentNode.nextNode))
             {
-                Debug.Log($"[DialogueExecutor] → Auto-jump to: {currentNode.nextNode}");
                 state.isInPauseState = false;
                 state.resumeTarget = ResumeTarget.None;
                 JumpToNode(currentNode.nextNode);
                 return;
             }
 
-            // Priority 4: End of conversation
-            Debug.Log("[DialogueExecutor] → End of conversation");
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.End;
             OnConversationEnd?.Invoke();
         }
 
         /// <summary>
-        /// Determine next action skipping the current pause point.
-        /// Called after the player clicks the pause/continue button.
+        /// Determines next action while skipping pause points. 
+        /// Used when resuming from Interrupted state or when player clicks continue without a paired player message.
+        /// Priority order is the same as DetermineNextAction but without the pause check:
+        /// 1) If there are choices, show them
+        /// 2) Else if there's an auto-jump, jump to the target node
+        /// 3) Else end the conversation (or next chapter)
+        /// Note: This method does not modify the state.resumeTarget 
+        /// since it's only used when resuming from a known state where we want to skip directly to the next actionable step.
         /// </summary>
         private void DetermineNextActionSkipPause()
         {
-            Debug.Log($"[DialogueExecutor] Determining next action (skipping pause) for node: {currentNode.nodeName}");
-
-            // Priority 1: Check for choices
             if (currentNode.choices != null && currentNode.choices.Count > 0)
             {
-                Debug.Log($"[DialogueExecutor] → Showing {currentNode.choices.Count} choices");
                 state.resumeTarget = ResumeTarget.Choices;
                 OnChoicesReady?.Invoke(currentNode.choices);
                 return;
             }
 
-            // Priority 2: Check for auto-jump
             if (!string.IsNullOrEmpty(currentNode.nextNode))
             {
-                Debug.Log($"[DialogueExecutor] → Auto-jump to: {currentNode.nextNode}");
                 state.resumeTarget = ResumeTarget.None;
                 JumpToNode(currentNode.nextNode);
                 return;
             }
 
-            // Priority 3: End of conversation
-            Debug.Log("[DialogueExecutor] → End of conversation");
             state.resumeTarget = ResumeTarget.End;
             OnConversationEnd?.Invoke();
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ NODE NAVIGATION
+        // NODE NAVIGATION
         // ═══════════════════════════════════════════════════════════
 
         private void JumpToNode(string nodeName)
         {
-            Debug.Log($"[DialogueExecutor] Jumping to node: {nodeName}");
+            BSDebug.Log($"[DialogueExecutor] Jumping to node: {nodeName}");
 
             if (currentNodes.ContainsKey(nodeName))
             {
@@ -471,7 +402,7 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                Debug.Log($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
+                BSDebug.Log($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
                 LoadNextChapter(nodeName);
             }
         }
@@ -480,7 +411,7 @@ namespace BubbleSpinner.Core
         {
             if (state.currentChapterIndex >= conversationAsset.chapters.Count - 1)
             {
-                Debug.Log("[DialogueExecutor] Already at last chapter - ending conversation");
+                BSDebug.Log("[DialogueExecutor] Already at last chapter - ending conversation");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
@@ -491,19 +422,19 @@ namespace BubbleSpinner.Core
             var nextChapter = conversationAsset.chapters[state.currentChapterIndex];
             if (nextChapter == null)
             {
-                Debug.LogError($"[DialogueExecutor] Chapter {state.currentChapterIndex} is NULL!");
+                BSDebug.LogError($"[DialogueExecutor] Chapter {state.currentChapterIndex} is NULL!");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
             }
 
-            Debug.Log($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
+            BSDebug.Log($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
 
             currentNodes = BubbleSpinnerParser.Parse(nextChapter, conversationAsset.characterName);
 
             if (currentNodes == null || currentNodes.Count == 0)
             {
-                Debug.LogError($"[DialogueExecutor] Failed to parse chapter {state.currentChapterIndex}");
+                BSDebug.LogError($"[DialogueExecutor] Failed to parse chapter {state.currentChapterIndex}");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
@@ -522,14 +453,14 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                Debug.LogError($"[DialogueExecutor] Node '{targetNode}' not found in chapter {state.currentChapterIndex}");
+                BSDebug.LogError($"[DialogueExecutor] Node '{targetNode}' not found in chapter {state.currentChapterIndex}");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
             }
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ MESSAGE COLLECTION
+        // MESSAGE COLLECTION
         // ═══════════════════════════════════════════════════════════
 
         private List<MessageData> GetUnreadMessagesToNextPause()
@@ -585,7 +516,7 @@ namespace BubbleSpinner.Core
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ CG UNLOCK LOGIC
+        // CG UNLOCK LOGIC
         // ═══════════════════════════════════════════════════════════
 
         private void CheckAndUnlockCG(MessageData message)
@@ -595,18 +526,18 @@ namespace BubbleSpinner.Core
 
             if (state.unlockedCGs.Contains(message.imagePath))
             {
-                Debug.Log($"[DialogueExecutor] CG already unlocked: {message.imagePath}");
+                BSDebug.Log($"[DialogueExecutor] CG already unlocked: {message.imagePath}");
                 return;
             }
 
             state.unlockedCGs.Add(message.imagePath);
-            Debug.Log($"[DialogueExecutor] 🎨 CG UNLOCKED: {message.imagePath}");
+            BSDebug.Log($"[DialogueExecutor] CG UNLOCKED: {message.imagePath}");
 
             callbacks?.OnCGUnlocked(message.imagePath);
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ VALIDATION
+        // VALIDATION
         // ═══════════════════════════════════════════════════════════
 
         private void ValidateChapterIndex()
@@ -614,7 +545,7 @@ namespace BubbleSpinner.Core
             if (state.currentChapterIndex < 0 ||
                 state.currentChapterIndex >= conversationAsset.chapters.Count)
             {
-                Debug.LogWarning($"[DialogueExecutor] Invalid chapter index {state.currentChapterIndex}, resetting to 0");
+                BSDebug.LogWarning($"[DialogueExecutor] Invalid chapter index {state.currentChapterIndex}, resetting to 0");
                 state.currentChapterIndex = 0;
                 state.currentMessageIndex = 0;
                 state.readMessageIds.Clear();
@@ -633,13 +564,7 @@ namespace BubbleSpinner.Core
             if (currentNodes == null || currentNodes.Count == 0)
                 throw new InvalidOperationException($"Failed to parse chapter {state.currentChapterIndex}");
 
-            Debug.Log($"[DialogueExecutor] Loaded chapter {state.currentChapterIndex} with {currentNodes.Count} nodes");
-
-            foreach (var kvp in currentNodes)
-            {
-                Debug.Log($"[DEBUG] Node '{kvp.Key}': {kvp.Value.messages.Count} messages, " +
-                        $"pausePoints=[{string.Join(",", kvp.Value.pausePoints.ConvertAll(p => $"{p.stopIndex}(pm:{p.playerMessageIndex})"))}]");
-            }
+            BSDebug.Log($"[DialogueExecutor] Loaded chapter {state.currentChapterIndex} with {currentNodes.Count} nodes");
         }
 
         private void ValidateState()
@@ -648,7 +573,7 @@ namespace BubbleSpinner.Core
                 !currentNodes.ContainsKey(state.currentNodeName))
             {
                 var firstNode = GetFirstNodeName();
-                Debug.LogWarning($"[DialogueExecutor] Invalid node '{state.currentNodeName}', resetting to '{firstNode}'");
+                BSDebug.LogWarning($"[DialogueExecutor] Invalid node '{state.currentNodeName}', resetting to '{firstNode}'");
                 state.currentNodeName = firstNode;
                 state.currentMessageIndex = 0;
                 state.resumeTarget = ResumeTarget.None;
@@ -659,7 +584,7 @@ namespace BubbleSpinner.Core
                 var node = currentNodes[state.currentNodeName];
                 if (state.currentMessageIndex < 0 || state.currentMessageIndex > node.messages.Count)
                 {
-                    Debug.LogWarning($"[DialogueExecutor] Invalid message index {state.currentMessageIndex}, resetting to 0");
+                    BSDebug.LogWarning($"[DialogueExecutor] Invalid message index {state.currentMessageIndex}, resetting to 0");
                     state.currentMessageIndex = 0;
                     state.resumeTarget = ResumeTarget.None;
                 }

@@ -1,6 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/HomeScreen/Contacts/ContactsAppDetailPanel.cs
-// Phone Chat Simulation Game - Contact Detail Panel
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -12,73 +11,61 @@ namespace ChatSim.UI.HomeScreen.Contacts
 {
     /// <summary>
     /// Shows full character info when a contact is tapped.
-    /// Pulls all data from ConversationAsset. Shows "N/A" for missing fields.
-    /// Also owns the Reset Story button — calls back to ContactsAppItem.RequestReset().
+    /// Pulls all data from ConversationAsset via the Get*() helper methods.
+    /// Shows "N/A" for missing fields automatically.
     ///
-    /// Attach to: ContactsAppDetailPanel GameObject (child of ContactsPanel)
+    /// Attach to: ContactsAppDetailPanel GameObject (child of ContactsAppPanel, starts inactive)
     ///
     /// Hierarchy:
     ///   ContactsAppDetailPanel              ← ATTACH THIS SCRIPT (starts inactive)
     ///   ├── Overlay                         ← Image, black ~50% alpha, Raycast Target ON
-    ///   └── DetailCard                      ← Image, card background
-    ///       ├── CloseButton                 ← Button — hides this panel
-    ///       ├── ProfileImage                ← Image component
-    ///       ├── NameText                    ← TextMeshProUGUI
-    ///       ├── InfoGroup                   ← Vertical layout
-    ///       │   ├── AgeText                 ← TextMeshProUGUI   (TODO: wire to ConversationAsset.age)
-    ///       │   ├── BirthdateText           ← TextMeshProUGUI   (TODO: wire to ConversationAsset.birthdate)
-    ///       │   ├── BioText                 ← TextMeshProUGUI   (TODO: wire to ConversationAsset.bio)
-    ///       │   └── DescriptionText         ← TextMeshProUGUI   (TODO: wire to ConversationAsset.description)
-    ///       └── ResetButton                 ← Button — calls ContactsAppItem.RequestReset()
-    ///           └── Text                    ← TextMeshProUGUI "Reset Story"
-    ///
-    /// TODO: Add these fields to ConversationAsset.cs when ready:
-    ///
-    ///   [Header("Character Profile")]
-    ///   public string age = "";
-    ///   public string birthdate = "";
-    ///   [TextArea(2, 4)] public string bio = "";
-    ///   [TextArea(2, 4)] public string description = "";
-    ///
-    ///   Then replace the N/A placeholder lines below with:
-    ///   ageText.text       = string.IsNullOrWhiteSpace(asset.age)         ? NA : asset.age;
-    ///   birthdateText.text = string.IsNullOrWhiteSpace(asset.birthdate)   ? NA : asset.birthdate;
-    ///   bioText.text       = string.IsNullOrWhiteSpace(asset.bio)         ? NA : asset.bio;
-    ///   descriptionText.text = string.IsNullOrWhiteSpace(asset.description) ? NA : asset.description;
+    ///   └── DetailCard
+    ///       ├── CloseButton
+    ///       ├── ProfileImage                ← TODO: wire when Addressables ready
+    ///       ├── NameText
+    ///       ├── InfoGroup
+    ///       │   ├── AgeText
+    ///       │   ├── BirthdateText
+    ///       │   ├── RelationshipStatusText
+    ///       │   ├── OccupationText
+    ///       │   ├── BioText
+    ///       │   ├── DescriptionText
+    ///       │   └── PersonalityTraitsText
+    ///       └── ResetButton
+    ///           └── Text
     /// </summary>
     public class ContactsAppDetailPanel : MonoBehaviour
     {
-        #region Inspector References
+        // ═══════════════════════════════════════════════════════════
+        // INSPECTOR REFERENCES
+        // ═══════════════════════════════════════════════════════════
 
-        [Header("UI Elements")]
+        [Header("Header")]
         [SerializeField] private Button closeButton;
-        [SerializeField] private Image profileImage;
+        [SerializeField] private Image profileImage;        // TODO: load from Addressables
         [SerializeField] private TextMeshProUGUI nameText;
 
         [Header("Info Fields")]
         [SerializeField] private TextMeshProUGUI ageText;
         [SerializeField] private TextMeshProUGUI birthdateText;
+        [SerializeField] private TextMeshProUGUI relationshipStatusText;
+        [SerializeField] private TextMeshProUGUI occupationText;
         [SerializeField] private TextMeshProUGUI bioText;
         [SerializeField] private TextMeshProUGUI descriptionText;
+        [SerializeField] private TextMeshProUGUI personalityTraitsText;
 
-        [Header("Reset")]
+        [Header("Actions")]
         [SerializeField] private Button resetButton;
 
-        #endregion
-
-        #region Constants
-
-        private const string NA = "N/A";
-
-        #endregion
-
-        #region State
+        // ═══════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════
 
         private ContactsAppItem _caller;
 
-        #endregion
-
-        #region Unity Lifecycle
+        // ═══════════════════════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ═══════════════════════════════════════════════════════════
 
         private void Awake()
         {
@@ -90,56 +77,48 @@ namespace ChatSim.UI.HomeScreen.Contacts
             SetupButtons();
         }
 
-        #endregion
-
-        #region Setup
+        // ═══════════════════════════════════════════════════════════
+        // SETUP
+        // ═══════════════════════════════════════════════════════════
 
         private void SetupButtons()
         {
             if (closeButton != null)
-            {
-                closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(Hide);
-            }
             else
-            {
-                Debug.LogError("[ContactsAppDetailPanel] closeButton is not assigned!");
-            }
+                Debug.LogError("[ContactsAppDetailPanel] closeButton not assigned!");
 
             if (resetButton != null)
-            {
-                resetButton.onClick.RemoveAllListeners();
                 resetButton.onClick.AddListener(OnResetClicked);
-            }
             else
-            {
-                Debug.LogError("[ContactsAppDetailPanel] resetButton is not assigned!");
-            }
+                Debug.LogError("[ContactsAppDetailPanel] resetButton not assigned!");
         }
 
-        #endregion
-
-        #region Public API
+        // ═══════════════════════════════════════════════════════════
+        // PUBLIC API
+        // ═══════════════════════════════════════════════════════════
 
         /// <summary>
         /// Show the detail panel for a character.
-        /// Called by ContactsAppItem when tapped.
+        /// Called by ContactsAppItem.OnItemClicked().
         /// </summary>
-        /// <param name="asset">Character data source</param>
-        /// <param name="caller">Item that opened this panel — used for reset callback</param>
         public void Show(ConversationAsset asset, ContactsAppItem caller)
         {
+            if (asset == null)
+            {
+                Debug.LogError("[ContactsAppDetailPanel] Cannot show — asset is null!");
+                return;
+            }
+
             _caller = caller;
-
             PopulateInfo(asset);
-
             gameObject.SetActive(true);
 
             Debug.Log($"[ContactsAppDetailPanel] Showing detail for: {asset.characterName}");
         }
 
         /// <summary>
-        /// Hide the detail panel.
+        /// Hide the detail panel without taking any action.
         /// </summary>
         public void Hide()
         {
@@ -147,9 +126,9 @@ namespace ChatSim.UI.HomeScreen.Contacts
             gameObject.SetActive(false);
         }
 
-        #endregion
-
-        #region Population
+        // ═══════════════════════════════════════════════════════════
+        // POPULATION
+        // ═══════════════════════════════════════════════════════════
 
         private void PopulateInfo(ConversationAsset asset)
         {
@@ -157,37 +136,43 @@ namespace ChatSim.UI.HomeScreen.Contacts
             if (nameText != null)
                 nameText.text = asset.characterName;
 
-            // Profile image
-            // TODO: Uncomment when profile images are ready in Addressables
+            // TODO: Load profile image from Addressables when ready
             // if (profileImage != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
             // {
             //     var handle = asset.profileImage.LoadAssetAsync<Sprite>();
             //     handle.Completed += h =>
             //     {
-            //         if (profileImage != null && h.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
+            //         if (profileImage != null && h.Status == AsyncOperationStatus.Succeeded)
             //             profileImage.sprite = h.Result;
             //     };
             // }
 
-            // TODO: Replace all NA placeholders below once fields are added to ConversationAsset.cs
-            // See header comment in this file for full instructions.
-
+            // Info fields — all use ConversationAsset's Get*() helpers for N/A fallback
             if (ageText != null)
-                ageText.text = NA;          // TODO: asset.age
+                ageText.text = asset.GetAge();
 
             if (birthdateText != null)
-                birthdateText.text = NA;    // TODO: asset.birthdate
+                birthdateText.text = asset.GetBirthdate();
+
+            if (relationshipStatusText != null)
+                relationshipStatusText.text = asset.GetRelationshipStatus();
+
+            if (occupationText != null)
+                occupationText.text = asset.GetOccupation();
 
             if (bioText != null)
-                bioText.text = NA;          // TODO: asset.bio
+                bioText.text = asset.GetBio();
 
             if (descriptionText != null)
-                descriptionText.text = NA;  // TODO: asset.description
+                descriptionText.text = asset.GetDescription();
+
+            if (personalityTraitsText != null)
+                personalityTraitsText.text = asset.GetPersonalityTraits();
         }
 
-        #endregion
-
-        #region Reset Button
+        // ═══════════════════════════════════════════════════════════
+        // RESET
+        // ═══════════════════════════════════════════════════════════
 
         private void OnResetClicked()
         {
@@ -197,12 +182,10 @@ namespace ChatSim.UI.HomeScreen.Contacts
                 return;
             }
 
-            // Hide this panel first, then route through the item's reset logic
-            // (item will show confirmation dialog if enabled)
+            // Hide detail panel first, then route through item's reset logic
+            // (item handles confirmation dialog if enabled)
             Hide();
             _caller.RequestReset();
         }
-
-        #endregion
     }
 }

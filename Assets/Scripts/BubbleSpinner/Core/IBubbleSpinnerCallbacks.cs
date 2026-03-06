@@ -12,6 +12,32 @@ namespace BubbleSpinner.Core
     public interface IBubbleSpinnerCallbacks
     {
         // ═══════════════════════════════════════════════════════════
+        // RESET PATTERN — READ THIS IF YOU IMPLEMENT A STORY RESET
+        // ═══════════════════════════════════════════════════════════
+        //
+        // BubbleSpinner does NOT own the full reset flow.
+        // Your game's save system owns the disk wipe.
+        // BubbleSpinner only cleans up its in-memory session after.
+        //
+        // Correct reset pattern for your game:
+        //
+        //   Step 1 — Your save system wipes or zeroes the conversation state on disk
+        //   Step 2 — Your save system fires an event or calls a method to notify BubbleSpinner
+        //   Step 3 — Call ConversationManager.EvictConversationCache(conversationId)
+        //
+        // Example (ChatSim implementation):
+        //   SaveManager.ResetCharacterStory()        ← Step 1 + fires event
+        //       → BubbleSpinnerBridge catches event  ← Step 2
+        //           → ConversationManager.EvictConversationCache()  ← Step 3
+        //
+        // WHY NOT use ConversationManager.ResetConversation()?
+        //   That method calls DeleteConversationState() which fully removes
+        //   the save entry. If your game needs to zero-out instead of delete
+        //   (to preserve metadata like character name), handle it in your
+        //   save system and use EvictConversationCache() afterward.
+        // ═══════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════
         // SAVE / LOAD
         // ═══════════════════════════════════════════════════════════
 

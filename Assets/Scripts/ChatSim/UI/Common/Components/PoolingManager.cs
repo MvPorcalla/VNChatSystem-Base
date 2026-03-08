@@ -9,37 +9,39 @@ namespace ChatSim.UI.Common.Components
 {
     /// <summary>
     /// Generic object pooling manager for efficient reuse of UI elements and game objects.
-    /// attach to ChatAppController GameObject
+    /// Attach to: ChatAppController GameObject
+    /// Each spawner (ChatMessageSpawner, ChatChoiceSpawner) tracks its own active objects.
+    /// PoolingManager only manages the inactive pool — it does not track what is currently in use.
     /// </summary>
     public class PoolingManager : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
         // ░ POOL STORAGE
         // ═══════════════════════════════════════════════════════════
-        
+
         private Dictionary<GameObject, Queue<GameObject>> pools = new Dictionary<GameObject, Queue<GameObject>>();
-        private Dictionary<GameObject, GameObject> activeObjects = new Dictionary<GameObject, GameObject>();
         private Transform poolRoot;
-        
+
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
-        
+
         private void Awake()
         {
             poolRoot = new GameObject("_PooledObjects").transform;
             poolRoot.SetParent(transform);
             poolRoot.gameObject.SetActive(false);
-            
+
             Debug.Log("[PoolingManager] Initialized");
         }
-        
+
         // ═══════════════════════════════════════════════════════════
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
-        
+
         /// <summary>
-        /// Get an object from pool or create new one
+        /// Get an object from pool or create a new one.
+        /// Caller is responsible for tracking active objects.
         /// </summary>
         public GameObject Get(GameObject prefab, Transform parent = null, bool activateOnGet = false)
         {
@@ -48,62 +50,49 @@ namespace ChatSim.UI.Common.Components
                 Debug.LogError("[PoolingManager] Cannot get object from null prefab");
                 return null;
             }
-            
-            // Create pool if doesn't exist
+
             if (!pools.ContainsKey(prefab))
-            {
                 pools[prefab] = new Queue<GameObject>();
-            }
-            
+
             GameObject obj;
-            
-            // Reuse from pool if available
+
             if (pools[prefab].Count > 0)
             {
                 obj = pools[prefab].Dequeue();
-                
+
                 if (parent != null)
-                {
                     obj.transform.SetParent(parent, false);
-                }
             }
             else
             {
-                // Create new instance
                 obj = Instantiate(prefab, parent);
-                
-                // Add PooledObject component to track prefab
+
                 var pooledObject = obj.GetComponent<PooledObject>();
                 if (pooledObject == null)
-                {
                     pooledObject = obj.AddComponent<PooledObject>();
-                }
+
                 pooledObject.SetPrefab(prefab);
             }
-            
-            // Track as active
-            activeObjects[obj] = prefab;
-            
+
             // Reset transform
             obj.transform.localPosition = Vector3.zero;
             obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
-            
+
             if (activateOnGet)
-            {
                 obj.SetActive(true);
-            }
-            
+
             return obj;
         }
-        
+
         /// <summary>
-        /// Return object to pool
+        /// Return object to pool.
+        /// Caller should call ResetForPool() on the component before recycling.
         /// </summary>
         public void Recycle(GameObject obj)
         {
             if (obj == null) return;
-            
+
             var pooledObject = obj.GetComponent<PooledObject>();
             if (pooledObject == null || pooledObject.Prefab == null)
             {
@@ -111,71 +100,57 @@ namespace ChatSim.UI.Common.Components
                 Destroy(obj);
                 return;
             }
-            
+
             GameObject prefab = pooledObject.Prefab;
-            
-            // Remove from active tracking
-            if (activeObjects.ContainsKey(obj))
-            {
-                activeObjects.Remove(obj);
-            }
-            
-            // Only clear dynamic content if needed
-            if (ShouldClearContent(pooledObject))
-            {
+
+            // Clear dynamic content if needed
+            if (!pooledObject.PreserveContent)
                 ClearDynamicContent(obj);
-            }
-            
-            // Deactivate and reparent
+
+            // Deactivate and reparent to pool root
             obj.SetActive(false);
             obj.transform.SetParent(poolRoot, false);
-            
-            // Add back to pool
+
             if (!pools.ContainsKey(prefab))
-            {
                 pools[prefab] = new Queue<GameObject>();
-            }
-            
+
             pools[prefab].Enqueue(obj);
         }
-        
+
         /// <summary>
-        /// Pre-warm pool with objects
+        /// Pre-warm pool with inactive instances to avoid instantiation spikes at runtime.
         /// </summary>
         public void PreWarm(GameObject prefab, int count)
         {
             if (prefab == null || count <= 0) return;
-            
+
             if (!pools.ContainsKey(prefab))
-            {
                 pools[prefab] = new Queue<GameObject>();
-            }
-            
+
             for (int i = 0; i < count; i++)
             {
                 GameObject obj = Instantiate(prefab, poolRoot);
                 obj.SetActive(false);
-                
+
                 var pooledObject = obj.GetComponent<PooledObject>();
                 if (pooledObject == null)
-                {
                     pooledObject = obj.AddComponent<PooledObject>();
-                }
+
                 pooledObject.SetPrefab(prefab);
-                
                 pools[prefab].Enqueue(obj);
             }
-            
+
             Debug.Log($"[PoolingManager] Pre-warmed {count} instances of {prefab.name}");
         }
-        
+
         /// <summary>
-        /// Clear all pools and destroy objects
+        /// Destroy all pooled objects and clear all pools.
+        /// Does not affect active objects — callers must recycle or destroy those themselves.
         /// </summary>
         public void ClearAllPools()
         {
             int totalDestroyed = 0;
-            
+
             foreach (var pool in pools.Values)
             {
                 while (pool.Count > 0)
@@ -188,49 +163,34 @@ namespace ChatSim.UI.Common.Components
                     }
                 }
             }
-            
+
             pools.Clear();
-            activeObjects.Clear();
-            
             Debug.Log($"[PoolingManager] Cleared all pools - destroyed {totalDestroyed} objects");
         }
-        
+
         // ═══════════════════════════════════════════════════════════
-        // ░ HELPER METHODS
+        // ░ HELPERS
         // ═══════════════════════════════════════════════════════════
-        
+
         /// <summary>
-        /// Check if content should be cleared based on PooledObject settings
-        /// </summary>
-        private bool ShouldClearContent(PooledObject pooledObject)
-        {
-            return !pooledObject.PreserveContent;
-        }
-        
-        /// <summary>
-        /// Clear text and button listeners from recycled objects
+        /// Fallback content clear for objects that don't implement ResetForPool().
+        /// Clears all TMP text and root button listeners.
         /// </summary>
         private void ClearDynamicContent(GameObject obj)
         {
-            // Clear text
             var textComponents = obj.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
             foreach (var text in textComponents)
-            {
                 text.text = string.Empty;
-            }
-            
-            // Clear button listeners
-            var button = obj.GetComponent<UnityEngine.UI.Button>();
-            if (button != null)
-            {
-                button.onClick.RemoveAllListeners();
-            }
+
+            var button = obj.GetComponentsInChildren<UnityEngine.UI.Button>(true);
+            foreach (var btn in button)
+                btn.onClick.RemoveAllListeners();
         }
-        
+
         // ═══════════════════════════════════════════════════════════
-        // ░ CLEANUP
+        // ░ LIFECYCLE
         // ═══════════════════════════════════════════════════════════
-        
+
         private void OnDestroy()
         {
             ClearAllPools();

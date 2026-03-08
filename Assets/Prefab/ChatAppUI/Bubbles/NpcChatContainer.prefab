@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2945140047232559465}
-  - component: {fileID: 1228764340523009994}
+  - component: {fileID: 1969157774404287843}
   - component: {fileID: 1260751612076458000}
   - component: {fileID: 159211705193351869}
   - component: {fileID: 3954531732796887125}
@@ -40,7 +40,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1228764340523009994
+--- !u!114 &1969157774404287843
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -49,11 +49,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1903432624188754094}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 250498258dcedf844a34a9784e3304cd, type: 3}
+  m_Script: {fileID: 11500000, guid: 201653b8bb000ab439bcc6d3d931e9e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   messageText: {fileID: 7443489006764570270}
-  messageImage: {fileID: 0}
   canvasGroup: {fileID: 3954531732796887125}
 --- !u!114 &1260751612076458000
 MonoBehaviour:
@@ -150,7 +149,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 333.91, y: -46.815002}
+  m_AnchoredPosition: {x: 333.91, y: -0}
   m_SizeDelta: {x: 667.82, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3511476783317069646

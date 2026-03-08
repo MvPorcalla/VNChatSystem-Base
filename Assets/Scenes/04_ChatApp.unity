@@ -2460,6 +2460,8 @@ MonoBehaviour:
   playerTextBubblePrefab: {fileID: 3739213027003183351, guid: c7d02cfb0651e3c48ba3388d4d3ffae3, type: 3}
   playerImageBubblePrefab: {fileID: 3536857194912240893, guid: 3711b76ccc0fdb541900fab6c41c8107, type: 3}
   chatContent: {fileID: 2094409215}
+  poolingManager: {fileID: 1578891959}
+  prewarmCount: 10
 --- !u!1 &1186336512
 GameObject:
   m_ObjectHideFlags: 0
@@ -2614,6 +2616,8 @@ MonoBehaviour:
   choiceButtonPrefab: {fileID: 5659985874068007626, guid: ecb65608ef18e3b47b248bb558bae0ff, type: 3}
   continueButtonPrefab: {fileID: 269026532013858266, guid: aa600d77635054549b5b3b4dd1e99013, type: 3}
   choiceContainer: {fileID: 1186336513}
+  poolingManager: {fileID: 0}
+  prewarmCount: 4
 --- !u!1 &1270690957
 GameObject:
   m_ObjectHideFlags: 0

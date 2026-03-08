@@ -30,5 +30,17 @@ namespace ChatSim.UI.ChatApp.Components
                 button.onClick.AddListener(() => onClick?.Invoke());
             }
         }
+
+        /// <summary>
+        /// Called by ChatChoiceSpawner before returning this button to the pool.
+        /// </summary>
+        public void ResetForPool()
+        {
+            if (buttonText != null)
+                buttonText.text = string.Empty;
+
+            if (button != null)
+                button.onClick.RemoveAllListeners();
+        }
     }
 }

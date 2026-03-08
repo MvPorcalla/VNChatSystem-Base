@@ -2,93 +2,100 @@
 // Assets/Scripts/UI/ChatApp/Core/ChatMessageSpawner.cs
 // ════════════════════════════════════════════════════════════════════════
 
+using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
 using ChatSim.UI.ChatApp.Components;
+using ChatSim.UI.Common.Components;
 
 namespace ChatSim.UI.ChatApp.Controllers
 {
     /// <summary>
     /// Handles message bubble spawning and display.
+    /// Pools MessageBubble (text/system) prefabs for performance.
+    /// ImageMessageBubble is NOT pooled due to async Addressables loading.
     /// </summary>
     public class ChatMessageSpawner : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
-        // ░ PREFAB REFERENCES
+        // ░ INSPECTOR REFERENCES
         // ═══════════════════════════════════════════════════════════
-        
+
         [Header("Message Prefabs")]
         [SerializeField] private GameObject systemBubblePrefab;
         [SerializeField] private GameObject npcTextBubblePrefab;
         [SerializeField] private GameObject npcImageBubblePrefab;
         [SerializeField] private GameObject playerTextBubblePrefab;
         [SerializeField] private GameObject playerImageBubblePrefab;
-        
+
         [Header("Content Container")]
         [SerializeField] private RectTransform chatContent;
-        
+
+        [Header("Pooling")]
+        [SerializeField] private PoolingManager poolingManager;
+        [SerializeField] private int prewarmCount = 10;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ STATE
+        // ═══════════════════════════════════════════════════════════
+
+        // Tracks pooled bubbles (text + system) for recycle on clear
+        private List<GameObject> pooledBubbles = new List<GameObject>();
+
+        // Tracks non-pooled image bubbles for destroy on clear
+        private List<GameObject> imageBubbles = new List<GameObject>();
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ INITIALIZATION
+        // ═══════════════════════════════════════════════════════════
+
+        private void Start()
+        {
+            PrewarmPools();
+        }
+
+        private void PrewarmPools()
+        {
+            if (poolingManager == null) return;
+
+            // Only prewarm text/system bubbles — image bubbles are not pooled
+            if (npcTextBubblePrefab != null)
+                poolingManager.PreWarm(npcTextBubblePrefab, prewarmCount);
+
+            if (playerTextBubblePrefab != null)
+                poolingManager.PreWarm(playerTextBubblePrefab, prewarmCount / 2);
+
+            if (systemBubblePrefab != null)
+                poolingManager.PreWarm(systemBubblePrefab, 3);
+
+            Debug.Log("[ChatMessageSpawner] Pools prewarmed");
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
-        
+
+        public Transform GetChatContent() => chatContent;
+
         /// <summary>
-        /// Returns the content container where message bubbles are spawned.
-        /// </summary>
-        public Transform GetChatContent()
-        {
-            return chatContent;
-        }
-        
-        /// <summary>
-        /// Display a message bubble (text, image, or system)
-        /// UPDATED: Now handles MessageType.Image with async loading
+        /// Display a message bubble.
+        /// Text and system bubbles are pooled.
+        /// Image bubbles are instantiated directly (not pooled).
         /// </summary>
         public void DisplayMessage(MessageData msg, bool instant = false)
         {
-            GameObject bubblePrefab = GetBubblePrefab(msg);
-            
-            if (bubblePrefab == null)
-            {
-                Debug.LogError($"[ChatMessageSpawner] No prefab for type: {msg.type}, speaker: {msg.speaker}");
-                return;
-            }
-            
-            // Instantiate bubble
-            GameObject bubbleObj = Instantiate(bubblePrefab, chatContent);
-            
-            // Initialize bubble based on type
             if (msg.type == MessageData.MessageType.Image)
             {
-                // Image bubble (CG) - uses ImageMessageBubble component
-                var imageBubble = bubbleObj.GetComponent<ImageMessageBubble>();
-                if (imageBubble != null)
-                {
-                    imageBubble.Initialize(msg, instant);
-                }
-                else
-                {
-                    Debug.LogError($"[ChatMessageSpawner] ImageMessageBubble component missing on image prefab!");
-                    Destroy(bubbleObj);
-                }
+                SpawnImageBubble(msg, instant);
             }
             else
             {
-                // Text or System bubble - uses MessageBubble component
-                var bubble = bubbleObj.GetComponent<MessageBubble>();
-                if (bubble != null)
-                {
-                    bubble.Initialize(msg, instant);
-                }
-                else
-                {
-                    Debug.LogError($"[ChatMessageSpawner] MessageBubble component missing on prefab!");
-                    Destroy(bubbleObj);
-                }
+                SpawnPooledBubble(msg, instant);
             }
         }
-        
+
         /// <summary>
-        /// Clear all messages from the chat (e.g. when switching conversations)
+        /// Recycles all pooled bubbles and destroys all image bubbles.
         /// </summary>
         public void ClearAllMessages()
         {
@@ -98,73 +105,141 @@ namespace ChatSim.UI.ChatApp.Controllers
                 return;
             }
 
-            int destroyedCount = 0;
-            
-            // Destroy all children
-            for (int i = chatContent.childCount - 1; i >= 0; i--)
+            // Recycle pooled text/system bubbles
+            foreach (var bubble in pooledBubbles)
             {
-                Transform child = chatContent.GetChild(i);
-                Destroy(child.gameObject);
-                destroyedCount++;
+                if (bubble == null) continue;
+
+                var messageBubble = bubble.GetComponent<TextMessageBubble>();
+                messageBubble?.ResetForPool();
+                poolingManager.Recycle(bubble);
             }
-            
-            Debug.Log($"[ChatMessageSpawner] Cleared {destroyedCount} messages");
+            pooledBubbles.Clear();
+
+            // Destroy image bubbles (not pooled)
+            foreach (var bubble in imageBubbles)
+            {
+                if (bubble != null)
+                    Destroy(bubble);
+            }
+            imageBubbles.Clear();
+
+            Debug.Log("[ChatMessageSpawner] All messages cleared");
         }
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ SPAWNING
+        // ═══════════════════════════════════════════════════════════
+
+        private void SpawnPooledBubble(MessageData msg, bool instant)
+        {
+            GameObject prefab = GetTextBubblePrefab(msg);
+
+            if (prefab == null)
+            {
+                Debug.LogError($"[ChatMessageSpawner] No prefab for type: {msg.type}, speaker: {msg.speaker}");
+                return;
+            }
+
+            GameObject bubbleObj = poolingManager != null
+                ? poolingManager.Get(prefab, chatContent, activateOnGet: true)
+                : Instantiate(prefab, chatContent);
+
+            var bubble = bubbleObj.GetComponent<TextMessageBubble>();
+            if (bubble != null)
+            {
+                bubble.Initialize(msg, instant);
+                pooledBubbles.Add(bubbleObj);
+            }
+            else
+            {
+                Debug.LogError("[ChatMessageSpawner] MessageBubble component missing!");
+                Destroy(bubbleObj);
+            }
+        }
+
+        private void SpawnImageBubble(MessageData msg, bool instant)
+        {
+            GameObject prefab = IsPlayerMessage(msg.speaker)
+                ? playerImageBubblePrefab
+                : npcImageBubblePrefab;
+
+            if (prefab == null)
+            {
+                Debug.LogError($"[ChatMessageSpawner] No image prefab for speaker: {msg.speaker}");
+                return;
+            }
+
+            // Image bubbles always instantiated — never pooled
+            GameObject bubbleObj = Instantiate(prefab, chatContent);
+
+            var imageBubble = bubbleObj.GetComponent<ImageMessageBubble>();
+            if (imageBubble != null)
+            {
+                imageBubble.Initialize(msg, instant);
+                imageBubbles.Add(bubbleObj);
+            }
+            else
+            {
+                Debug.LogError("[ChatMessageSpawner] ImageMessageBubble component missing!");
+                Destroy(bubbleObj);
+            }
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ PREFAB SELECTION
         // ═══════════════════════════════════════════════════════════
-        
-        private GameObject GetBubblePrefab(MessageData msg)
+
+        private GameObject GetTextBubblePrefab(MessageData msg)
         {
             switch (msg.type)
             {
                 case MessageData.MessageType.System:
                     return systemBubblePrefab;
-                
+
                 case MessageData.MessageType.Text:
-                    return IsPlayerMessage(msg.speaker) ? playerTextBubblePrefab : npcTextBubblePrefab;
-                
-                case MessageData.MessageType.Image:
-                    return IsPlayerMessage(msg.speaker) ? playerImageBubblePrefab : npcImageBubblePrefab;
-                
+                    return IsPlayerMessage(msg.speaker)
+                        ? playerTextBubblePrefab
+                        : npcTextBubblePrefab;
+
                 default:
-                    Debug.LogWarning($"[ChatMessageSpawner] Unknown message type: {msg.type}");
                     return null;
             }
         }
-        
+
         private bool IsPlayerMessage(string speaker)
         {
             return speaker.ToLower() == "player" || speaker.StartsWith("#");
         }
-        
+
         // ═══════════════════════════════════════════════════════════
-        // ░ VALIDATION (EDITOR)
+        // ░ VALIDATION
         // ═══════════════════════════════════════════════════════════
-        
-        #if UNITY_EDITOR
+
+#if UNITY_EDITOR
         private void OnValidate()
         {
-            // Validate prefab assignments
             if (systemBubblePrefab == null)
                 Debug.LogWarning("[ChatMessageSpawner] systemBubblePrefab not assigned!");
-            
+
             if (npcTextBubblePrefab == null)
                 Debug.LogWarning("[ChatMessageSpawner] npcTextBubblePrefab not assigned!");
-            
+
             if (npcImageBubblePrefab == null)
                 Debug.LogWarning("[ChatMessageSpawner] npcImageBubblePrefab not assigned!");
-            
+
             if (playerTextBubblePrefab == null)
                 Debug.LogWarning("[ChatMessageSpawner] playerTextBubblePrefab not assigned!");
-            
+
             if (playerImageBubblePrefab == null)
                 Debug.LogWarning("[ChatMessageSpawner] playerImageBubblePrefab not assigned!");
-            
+
             if (chatContent == null)
                 Debug.LogError("[ChatMessageSpawner] chatContent not assigned!");
+
+            if (poolingManager == null)
+                Debug.LogWarning("[ChatMessageSpawner] poolingManager not assigned - will fall back to Instantiate!");
         }
-        #endif
+#endif
     }
 }

@@ -180,7 +180,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2079341430347924516}
-  - component: {fileID: 3852712451422418635}
+  - component: {fileID: 6666460977619215369}
   - component: {fileID: 829227742684222898}
   - component: {fileID: 6267439433763901738}
   - component: {fileID: 3162164956027580336}
@@ -211,7 +211,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3852712451422418635
+--- !u!114 &6666460977619215369
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -220,11 +220,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3739213027003183351}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 250498258dcedf844a34a9784e3304cd, type: 3}
+  m_Script: {fileID: 11500000, guid: 201653b8bb000ab439bcc6d3d931e9e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   messageText: {fileID: 1129394596505784618}
-  messageImage: {fileID: 0}
   canvasGroup: {fileID: 3162164956027580336}
 --- !u!114 &829227742684222898
 MonoBehaviour:

@@ -293,6 +293,16 @@ namespace ChatSim.UI.ChatApp.Controllers
             PerformConversationCleanup();
             SwitchToContactList();
         }
+
+        /// <summary>
+        /// Called when a scene transition is about to happen (Home button, Quit).
+        /// Performs cleanup without switching panels — scene change makes panel state irrelevant.
+        /// </summary>
+        public void ExitForSceneTransition()
+        {
+            PerformConversationCleanup();
+            // intentionally does NOT call SwitchToContactList()
+        }
         
         // ═══════════════════════════════════════════════════════════
         // ░ UI SETUP

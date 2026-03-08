@@ -102,7 +102,7 @@ namespace ChatSim.UI.HomeScreen
             Debug.Log("[ChatAppNavButtons] Home pressed");
 
             if (chatAppController != null && chatAppController.IsChatActive)
-                chatAppController.ExitToContactList();
+                chatAppController.ExitForSceneTransition();
 
             GameBootstrap.SceneFlow.GoToPhoneScreen();
         }

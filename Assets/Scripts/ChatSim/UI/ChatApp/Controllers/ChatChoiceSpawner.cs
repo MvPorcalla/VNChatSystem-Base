@@ -9,127 +9,97 @@ using UnityEngine;
 using UnityEngine.UI;
 using BubbleSpinner.Data;
 using ChatSim.UI.ChatApp.Components;
+using ChatSim.UI.Common.Components;
 
 namespace ChatSim.UI.ChatApp.Controllers
 {
     /// <summary>
     /// Handles spawning and displaying choice buttons.
-    /// Attach to: ChatChoices GameObject
+    /// Choice buttons are pooled for performance.
     /// </summary>
     public class ChatChoiceSpawner : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
         // ░ INSPECTOR REFERENCES
         // ═══════════════════════════════════════════════════════════
-        
+
         [Header("Prefabs")]
         [SerializeField] private GameObject choiceButtonPrefab;
-        
+
         [Header("Optional: Separate Continue Button Styling")]
         [Tooltip("Leave empty to use choiceButtonPrefab for continue/end buttons")]
         [SerializeField] private GameObject continueButtonPrefab;
-        
+
         [Header("Container")]
         [SerializeField] private RectTransform choiceContainer;
-        
+
+        [Header("Pooling")]
+        [SerializeField] private PoolingManager poolingManager;
+        [SerializeField] private int prewarmCount = 4;
+
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
         // ═══════════════════════════════════════════════════════════
-        
+
         private Action<ChoiceData> onChoiceSelected;
-        
+        private List<GameObject> activeButtons = new List<GameObject>();
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ INITIALIZATION
+        // ═══════════════════════════════════════════════════════════
+
+        private void Start()
+        {
+            PrewarmPools();
+        }
+
+        private void PrewarmPools()
+        {
+            if (poolingManager == null) return;
+
+            if (choiceButtonPrefab != null)
+                poolingManager.PreWarm(choiceButtonPrefab, prewarmCount);
+
+            if (continueButtonPrefab != null)
+                poolingManager.PreWarm(continueButtonPrefab, 1);
+
+            Debug.Log("[ChatChoiceSpawner] Pools prewarmed");
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
-        
+
         public void DisplayChoices(List<ChoiceData> choices, Action<ChoiceData> callback)
         {
             ClearChoices();
-            
+
             onChoiceSelected = callback;
-            
+
             foreach (var choice in choices)
-            {
                 SpawnChoiceButton(choice);
-            }
-            
+
             gameObject.SetActive(true);
-            
-            // Rebuild layout
             StartCoroutine(RebuildLayoutDelayed());
         }
-        
-        /// <summary>
-        /// Show continue button (for pause points)
-        /// </summary>
+
         public void ShowContinueButton(Action callback)
         {
             ClearChoices();
-            
-            GameObject prefabToUse = continueButtonPrefab != null ? continueButtonPrefab : choiceButtonPrefab;
-            
-            if (prefabToUse == null)
-            {
-                Debug.LogError("[ChatChoiceSpawner] No button prefab assigned!");
-                return;
-            }
-            
-            GameObject continueObj = Instantiate(prefabToUse, choiceContainer);
-            
-            var button = continueObj.GetComponent<ChoiceButton>();
-            if (button != null)
-            {
-                button.Initialize("...", callback);
-            }
-            else
-            {
-                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing on continue button prefab!");
-            }
-            
+            SpawnUtilityButton("...", callback);
             gameObject.SetActive(true);
-            
-            // Rebuild layout
             StartCoroutine(RebuildLayoutDelayed());
         }
-        
-        /// <summary>
-        /// Show end button (e.g. "Continue to Next Chapter" or "Return to Contacts")
-        /// Used for:
-        /// - "Continue to Next Chapter" (when more chapters exist)
-        /// - "Return to Contacts" (when conversation is complete)
-        /// </summary>
+
         public void ShowEndButton(string buttonText, Action callback)
         {
             ClearChoices();
-            
-            GameObject prefabToUse = continueButtonPrefab != null ? continueButtonPrefab : choiceButtonPrefab;
-            
-            if (prefabToUse == null)
-            {
-                Debug.LogError("[ChatChoiceSpawner] No button prefab assigned!");
-                return;
-            }
-            
-            GameObject endObj = Instantiate(prefabToUse, choiceContainer);
-            
-            var button = endObj.GetComponent<ChoiceButton>();
-            if (button != null)
-            {
-                button.Initialize(buttonText, callback);
-            }
-            else
-            {
-                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing on end button prefab!");
-            }
-            
+            SpawnUtilityButton(buttonText, callback);
             gameObject.SetActive(true);
-            
-            // Rebuild layout
             StartCoroutine(RebuildLayoutDelayed());
-            
             Debug.Log($"[ChatChoiceSpawner] Showing end button: {buttonText}");
         }
-        
+
         public void ClearChoices()
         {
             if (choiceContainer == null)
@@ -138,18 +108,27 @@ namespace ChatSim.UI.ChatApp.Controllers
                 return;
             }
 
-            foreach (Transform child in choiceContainer)
+            foreach (var btn in activeButtons)
             {
-                Destroy(child.gameObject);
+                if (btn == null) continue;
+
+                var choiceButton = btn.GetComponent<ChoiceButton>();
+                choiceButton?.ResetForPool();
+
+                if (poolingManager != null)
+                    poolingManager.Recycle(btn);
+                else
+                    Destroy(btn);
             }
-            
+
+            activeButtons.Clear();
             gameObject.SetActive(false);
         }
-        
+
         // ═══════════════════════════════════════════════════════════
-        // ░ CHOICE SPAWNING
+        // ░ SPAWNING
         // ═══════════════════════════════════════════════════════════
-        
+
         private void SpawnChoiceButton(ChoiceData choice)
         {
             if (choiceButtonPrefab == null)
@@ -158,36 +137,67 @@ namespace ChatSim.UI.ChatApp.Controllers
                 return;
             }
 
-            GameObject buttonObj = Instantiate(choiceButtonPrefab, choiceContainer);
-            
-            var button = buttonObj.GetComponent<ChoiceButton>();
+            GameObject btnObj = poolingManager != null
+                ? poolingManager.Get(choiceButtonPrefab, choiceContainer, activateOnGet: true)
+                : Instantiate(choiceButtonPrefab, choiceContainer);
+
+            var button = btnObj.GetComponent<ChoiceButton>();
             if (button != null)
             {
                 button.Initialize(choice.choiceText, () => OnChoiceClicked(choice));
+                activeButtons.Add(btnObj);
             }
             else
             {
-                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing on choice button prefab!");
+                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing!");
+                Destroy(btnObj);
             }
         }
-        
+
+        private void SpawnUtilityButton(string text, Action callback)
+        {
+            GameObject prefab = continueButtonPrefab != null
+                ? continueButtonPrefab
+                : choiceButtonPrefab;
+
+            if (prefab == null)
+            {
+                Debug.LogError("[ChatChoiceSpawner] No button prefab assigned!");
+                return;
+            }
+
+            GameObject btnObj = poolingManager != null
+                ? poolingManager.Get(prefab, choiceContainer, activateOnGet: true)
+                : Instantiate(prefab, choiceContainer);
+
+            var button = btnObj.GetComponent<ChoiceButton>();
+            if (button != null)
+            {
+                button.Initialize(text, callback);
+                activeButtons.Add(btnObj);
+            }
+            else
+            {
+                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing!");
+                Destroy(btnObj);
+            }
+        }
+
         private void OnChoiceClicked(ChoiceData choice)
         {
             onChoiceSelected?.Invoke(choice);
         }
-        
+
         // ═══════════════════════════════════════════════════════════
-        // ░ LAYOUT REBUILD
+        // ░ LAYOUT
         // ═══════════════════════════════════════════════════════════
-        
+
         private IEnumerator RebuildLayoutDelayed()
         {
             yield return new WaitForEndOfFrame();
 
             if (choiceContainer != null)
-            {
                 LayoutRebuilder.ForceRebuildLayoutImmediate(choiceContainer);
-            }
         }
     }
 }

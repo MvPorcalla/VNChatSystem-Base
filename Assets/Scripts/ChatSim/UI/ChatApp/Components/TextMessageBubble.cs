@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// Assets/Scripts/UI/ChatApp/Components/MessageBubble.cs
+// Assets/Scripts/UI/ChatApp/Components/TextMessageBubble.cs
 // ════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
@@ -14,14 +14,13 @@ namespace ChatSim.UI.ChatApp.Components
     /// Attached to each message bubble prefab.
     /// Handles initialization of text/image content and any bubble-specific animations.
     /// </summary>
-    public class MessageBubble : MonoBehaviour
+    public class TextMessageBubble : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
         // ░ COMPONENTS
         // ═══════════════════════════════════════════════════════════
         
         [SerializeField] private TextMeshProUGUI messageText;
-        [SerializeField] private Image messageImage;
         [SerializeField] private CanvasGroup canvasGroup;
         
         // Auto-resize component reference
@@ -40,7 +39,7 @@ namespace ChatSim.UI.ChatApp.Components
                 
                 if (autoResize == null)
                 {
-                    Debug.LogWarning($"[MessageBubble] AutoResizeText not found on {gameObject.name} - text won't auto-resize");
+                    Debug.LogWarning($"[TextMessageBubble] AutoResizeText not found on {gameObject.name} - text won't auto-resize");
                 }
             }
         }
@@ -57,11 +56,29 @@ namespace ChatSim.UI.ChatApp.Components
                 case MessageData.MessageType.Text:
                     InitializeTextBubble(msg, instant);
                     break;
-                
-                case MessageData.MessageType.Image:
-                    InitializeImageBubble(msg, instant);
-                    break;
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ POOLING RESET
+        // ═══════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Called by ChatMessageSpawner before returning this bubble to the pool.
+        /// Clears all content so stale data never shows on reuse.
+        /// </summary>
+        public void ResetForPool()
+        {
+            // Stop any running fade coroutine
+            StopAllCoroutines();
+
+            // Clear text
+            if (messageText != null)
+                messageText.text = string.Empty;
+
+            // Reset alpha
+            if (canvasGroup != null)
+                canvasGroup.alpha = 1f;
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -81,32 +98,6 @@ namespace ChatSim.UI.ChatApp.Components
                     // Fallback to direct assignment
                     messageText.text = msg.content;
                 }
-            }
-            
-            // Fade-in animation (unless instant)
-            if (!instant && canvasGroup != null)
-            {
-                StartCoroutine(FadeIn());
-            }
-            else if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 1f;
-            }
-        }
-        
-        // ═══════════════════════════════════════════════════════════
-        // ░ IMAGE BUBBLE INITIALIZATION
-        // ═══════════════════════════════════════════════════════════
-        
-        private void InitializeImageBubble(MessageData msg, bool instant)
-        {
-            // TODO: Load image from Addressables using msg.imagePath
-            // For now, just show placeholder
-            
-            if (messageImage != null)
-            {
-                // Future: LoadImageFromAddressables(msg.imagePath);
-                Debug.LogWarning($"[MessageBubble] Image loading not yet implemented for: {msg.imagePath}");
             }
             
             // Fade-in animation (unless instant)

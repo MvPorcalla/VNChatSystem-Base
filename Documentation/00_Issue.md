@@ -96,3 +96,42 @@ My main issue is with fast mode:
 ---
 
 also in the fastmode when i select a choice it dont dissapear and stay the choices when it suppossed to dissapear aftter selecting a choice like how the behaviour on the normal mode
+
+
+Good question. Let me give you an honest assessment.
+
+**Short answer: The architecture is sound, but yes — parts are over-engineered for what they currently do.**
+
+---
+
+**GameBootstrap.cs** — mostly fine, one real issue
+
+The `IEnumerator Start()` approach for waiting on scene load is unnecessary complexity. You're wiring up a lambda, subscribing to an event, and yielding — just to load one scene on boot. `SceneFlow.LoadScene(nextScene)` fires and the coroutine inside `SceneFlowManager` handles everything. You don't need to await confirmation in `Start()`.
+
+`DetermineNextScene()` is a single-line method that always returns the same value. Just inline it.
+
+---
+
+**GameEvents.cs** — this is the main offender
+
+`ClearAllEvents()` setting every event to `null` from `Awake()` is a red flag. It means any system that subscribed before bootstrap runs gets silently wiped. That's a hidden dependency order bug waiting to happen. Events should be managed through proper subscribe/unsubscribe discipline, not nuked on startup.
+
+`ENABLE_EVENT_LOGGING` is declared but never used — the `Log()` method uses `[Conditional]` instead. Dead code.
+
+`LogEventCount()` is defined but never called anywhere.
+
+---
+
+**SaveManager.cs** — genuinely good
+
+Atomic save pattern (temp → swap → backup) is the right call for mobile. Backup recovery is solid. The `FormatPlaytime()` utility method is dead code though — never called outside editor tools.
+
+The `Update()` in editor only for hotkeys is a reasonable pattern, though a custom Editor window would be cleaner.
+
+---
+
+**SceneFlowManager.cs** — clean and proportionate
+
+This one is actually well-scoped. No complaints.
+
+---

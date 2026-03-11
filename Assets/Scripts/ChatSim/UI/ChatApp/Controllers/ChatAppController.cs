@@ -16,18 +16,14 @@ using ChatSim.Core;
 namespace ChatSim.UI.ChatApp.Controllers
 {
     /// <summary>
-    /// Main controller for Chat App UI - interfaces with BubbleSpinner.
-    /// Attach to: ChatAppController GameObject
-    /// </summary>
-    
-    /// <summary>
+    /// Main controller for Chat App UI. Attach to: ChatAppController GameObject.
+    ///
     /// Handles LIVE UI communication with BubbleSpinner.
     /// Subscribes directly to DialogueExecutor events for real-time dialogue flow.
     ///
     /// Does NOT handle save/load/reset — those go through BubbleSpinnerBridge
     /// because they need to survive between sessions and be decoupled from UI.
     /// </summary>
-    /// 
     public class ChatAppController : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
@@ -648,19 +644,19 @@ namespace ChatSim.UI.ChatApp.Controllers
                 currentExecutor.NotifyInterrupted();
             }
             
-            // STEP 4: Force save — must bypass throttle so the correct resumeTarget
-            // (Choices or End) is guaranteed to be on disk before we exit.
-            // SaveCurrentConversation() is throttled and may still have the previous
-            // stop point's resumeTarget (e.g. Pause) in the pending save queue.
+            // STEP 4: Force save BEFORE nulling currentExecutor or unsubscribing.
+            // ORDER CRITICAL: ForceSaveCurrentConversation() relies on ConversationManager
+            // having a valid currentConversationId, which is cleared when the executor
+            // is nulled. Moving this step after Step 5 or 6 will cause a silent no-op save.
             if (currentExecutor != null)
             {
                 GameBootstrap.Conversation.ForceSaveCurrentConversation();
             }
             
-            // STEP 5: Unsubscribe from events
+            // STEP 5: Unsubscribe from events AFTER save (executor must still be valid above)
             UnsubscribeFromExecutorEvents();
             
-            // STEP 6: Clear current executor and conversation references
+            // STEP 6: Clear references only after save and unsubscribe are complete
             currentExecutor = null;
             currentConversation = null;
             
@@ -764,6 +760,13 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
         }
         
+        /// <summary>
+        /// Waits two frames before scrolling to bottom.
+        /// Two frames are required: the first allows Unity to activate and layout
+        /// the newly spawned message bubbles, the second ensures ContentSizeFitter
+        /// has recalculated the scroll rect's content height before we scroll.
+        /// One frame is not sufficient — scroll position calculation uses stale height.
+        /// </summary>
         private IEnumerator ScrollToBottomDelayed()
         {
             yield return new WaitForEndOfFrame();

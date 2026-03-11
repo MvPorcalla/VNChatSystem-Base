@@ -383,6 +383,12 @@ namespace BubbleSpinner.Core
             string speaker = line.Substring(0, colonIndex).Trim();
             string content = line.Substring(colonIndex + 1).Trim();
 
+            if (!System.Text.RegularExpressions.Regex.IsMatch(speaker, @"^#?[\w\s]+$"))
+            {
+                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Invalid speaker format, skipping: {line}");
+                return false;
+            }
+
             if (string.IsNullOrEmpty(speaker))
             {
                 BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty speaker: {line}");

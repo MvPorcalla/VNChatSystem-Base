@@ -437,15 +437,6 @@ namespace BubbleSpinner.Core
             }
         }
 
-        private void OnApplicationFocus(bool hasFocus)
-        {
-            if (!hasFocus && CurrentExecutor != null && !string.IsNullOrEmpty(currentConversationId))
-            {
-                BSDebug.Log("[ConversationManager] App lost focus - force saving conversation");
-                ForceSaveCurrentConversation();
-            }
-        }
-
         private void OnApplicationQuit()
         {
             if (CurrentExecutor != null && !string.IsNullOrEmpty(currentConversationId))

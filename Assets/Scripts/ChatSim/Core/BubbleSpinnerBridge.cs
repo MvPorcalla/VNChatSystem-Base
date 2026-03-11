@@ -10,21 +10,13 @@ using ChatSim.Data;
 namespace ChatSim.Core
 {
     /// <summary>
-    /// Bridge class that implements IBubbleSpinnerCallbacks to connect BubbleSpinner's conversation system
-    /// with ChatSim's game-specific logic.
-    /// Handles saving/loading conversation state using ChatSim's SaveManager and triggers
-    /// ChatSim events when conversations start, end, or when CGs are unlocked.
-    /// </summary>
-    
-    /// <summary>
-    /// Handles PERSISTENCE communication between BubbleSpinner and ChatSim.
-    /// Save, load, delete, reset — anything that touches the save file goes here.
+    /// Implements IBubbleSpinnerCallbacks to bridge BubbleSpinner's conversation system
+    /// with ChatSim's persistence layer.
     ///
-    /// Does NOT handle live UI events (messages, choices, pause).
-    /// Those go directly from DialogueExecutor to ChatAppController
-    /// because they are real-time and have no persistence concern.
+    /// Handles save, load, delete, and reset — anything that touches the save file goes here.
+    /// Does NOT handle live UI events (messages, choices, pause) — those go directly from
+    /// DialogueExecutor to ChatAppController because they are real-time and stateless.
     /// </summary>
-
     public class BubbleSpinnerBridge : IBubbleSpinnerCallbacks
     {
         private ConversationManager _conversationManager;
@@ -48,7 +40,14 @@ namespace ChatSim.Core
         {
             if (_cachedSaveData == null)
             {
-                _cachedSaveData = GameBootstrap.Save.LoadGame() ?? GameBootstrap.Save.CreateNewSave();
+                _cachedSaveData = GameBootstrap.Save.LoadGame();
+
+                if (_cachedSaveData == null)
+                {
+                    Debug.LogError("[BubbleSpinnerBridge] Failed to load save data — cache is empty. Save operations will be skipped until data is available.");
+                    return null;
+                }
+
                 Debug.Log("[BubbleSpinnerBridge] SaveData loaded into cache");
             }
 
@@ -68,6 +67,7 @@ namespace ChatSim.Core
             }
 
             var saveData = GetSaveData();
+            if (saveData == null) return false;
 
             var index = saveData.conversationStates.FindIndex(c => c.conversationId == state.conversationId);
 
@@ -87,12 +87,15 @@ namespace ChatSim.Core
         public ConversationState LoadConversationState(string conversationId)
         {
             var saveData = GetSaveData();
+            if (saveData == null) return null;
+
             return saveData.conversationStates.Find(c => c.conversationId == conversationId);
         }
 
         public void DeleteConversationState(string conversationId)
         {
             var saveData = GetSaveData();
+            if (saveData == null) return;
 
             int removed = saveData.conversationStates.RemoveAll(c => c.conversationId == conversationId);
 

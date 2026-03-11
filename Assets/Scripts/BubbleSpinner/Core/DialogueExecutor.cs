@@ -242,7 +242,10 @@ namespace BubbleSpinner.Core
 
         /// <summary>
         /// Called by UI when messages have finished displaying (including after a choice's player messages).
-        /// Checks if there is a pending jump from a choice selection that needs to be processed, otherwise
+        /// Checks in priority order:
+        /// 1) If a pending jump exists from a choice selection, executes it
+        /// 2) If a player message was just displayed, resumes NPC processing
+        /// 3) Otherwise determines the next dialogue action normally
         /// </summary>
         public void OnMessagesDisplayComplete()
         {
@@ -310,22 +313,34 @@ namespace BubbleSpinner.Core
         }
 
         /// <summary>
-        /// Determines what to do after finishing a batch of messages, in priority order:
-        /// 1) If there's a pause point at the current message index, enter pause state
-        /// 2) Else if there are choices, show them
-        /// 3) Else if there's an auto-jump, jump to the target node
-        /// 4) Else end the conversation (or next chapter)
+        /// Returns true if there is meaningful content remaining after a pause point —
+        /// either a paired player message, more messages in the current batch,
+        /// or remaining messages in the node.
+        /// Prevents showing a continue button at the very end of a node where nothing follows.
         /// </summary>
+        private bool HasContentAfterPause(PausePoint pausePoint)
+        {
+            if (pausePoint.HasPlayerMessage)
+                return true;
+
+            int nextIndex = state.currentMessageIndex + 1;
+
+            if (GetEndIndexForNextPause(nextIndex) > nextIndex)
+                return true;
+
+            if (nextIndex < currentNode.messages.Count)
+                return true;
+
+            return false;
+        }
+
         private void DetermineNextAction()
         {
             if (currentNode.ShouldPauseAfter(state.currentMessageIndex))
             {
                 var pausePoint = currentNode.GetPauseAt(state.currentMessageIndex);
-                bool hasContentAfterPause = pausePoint.HasPlayerMessage ||
-                    GetEndIndexForNextPause(state.currentMessageIndex + 1) > state.currentMessageIndex + 1 ||
-                    state.currentMessageIndex + 1 < currentNode.messages.Count;
 
-                if (hasContentAfterPause)
+                if (HasContentAfterPause(pausePoint))
                 {
                     state.isInPauseState = true;
                     state.resumeTarget = ResumeTarget.Pause;
@@ -483,29 +498,19 @@ namespace BubbleSpinner.Core
             return unread;
         }
 
-        private int GetEndIndexForNextPause()
+        /// <summary>
+        /// Returns the index at which the next pause point stops message processing.
+        /// If no pause point exists beyond fromIndex, returns the total message count.
+        /// Defaults to state.currentMessageIndex when no fromIndex is provided.
+        /// </summary>
+        private int GetEndIndexForNextPause(int fromIndex = -1)
         {
+            int startFrom = fromIndex >= 0 ? fromIndex : state.currentMessageIndex;
             int endIndex = currentNode.messages.Count;
 
             foreach (var pausePoint in currentNode.pausePoints)
             {
-                if (pausePoint.stopIndex > state.currentMessageIndex)
-                {
-                    endIndex = pausePoint.stopIndex;
-                    break;
-                }
-            }
-
-            return endIndex;
-        }
-
-        private int GetEndIndexForNextPause(int fromIndex)
-        {
-            int endIndex = currentNode.messages.Count;
-
-            foreach (var pausePoint in currentNode.pausePoints)
-            {
-                if (pausePoint.stopIndex > fromIndex)
+                if (pausePoint.stopIndex > startFrom)
                 {
                     endIndex = pausePoint.stopIndex;
                     break;

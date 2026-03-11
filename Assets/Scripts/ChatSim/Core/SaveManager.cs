@@ -430,8 +430,9 @@ namespace ChatSim.Core
         
         #endregion
 
-        #region Utilities
-        
+        #region Editor Debug Tools
+        #if UNITY_EDITOR
+
         private string FormatPlaytime(float seconds)
         {
             TimeSpan time = TimeSpan.FromSeconds(seconds);
@@ -443,11 +444,6 @@ namespace ChatSim.Core
             else
                 return $"{time.Seconds}s";
         }
-        
-        #endregion
-
-        #region Editor Debug Tools
-        #if UNITY_EDITOR
         
         private void Update()
         {

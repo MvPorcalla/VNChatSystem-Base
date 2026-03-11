@@ -21,19 +21,13 @@ namespace ChatSim.Core
     public static class GameEvents
     {
         #region Logging Control
-        
-        #if UNITY_EDITOR
-        private const bool ENABLE_EVENT_LOGGING = true;
-        #else
-        private const bool ENABLE_EVENT_LOGGING = false;
-        #endif
-        
+
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         private static void Log(string message)
         {
             Debug.Log($"[GameEvents] {message}");
         }
-        
+
         #endregion
 
         // ════════════════════════════════════════════════════════════════
@@ -149,15 +143,6 @@ namespace ChatSim.Core
             OnCharacterStoryReset = null;
             
             Log("All events cleared");
-        }
-        
-        private static void LogEventCount(string eventName, Delegate eventDelegate)
-        {
-            int count = eventDelegate?.GetInvocationList()?.Length ?? 0;
-            if (count > 0)
-            {
-                Debug.Log($"  {eventName}: {count} subscriber(s)");
-            }
         }
         
         // ════════════════════════════════════════════════════════════════

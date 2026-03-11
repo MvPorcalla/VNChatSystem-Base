@@ -11,7 +11,6 @@ namespace ChatSim.UI.HomeScreen
 {
     /// <summary>
     /// Handles the three phone OS navigation buttons: Home, Back, and Quit.
-    /// Context-sensitive: behavior changes depending on which panel is active.
     /// Attach to: NavigationBar GameObject
     /// </summary>
     public class ChatAppNavButtons : MonoBehaviour

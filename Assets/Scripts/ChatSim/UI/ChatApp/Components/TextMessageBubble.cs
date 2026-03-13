@@ -69,16 +69,17 @@ namespace ChatSim.UI.ChatApp.Components
         /// </summary>
         public void ResetForPool()
         {
-            // Stop any running fade coroutine
             StopAllCoroutines();
 
-            // Clear text
             if (messageText != null)
                 messageText.text = string.Empty;
 
-            // Reset alpha
             if (canvasGroup != null)
                 canvasGroup.alpha = 1f;
+
+            // Reset AutoResize width tracking so next SetText always recalculates correctly.
+            if (autoResize != null)
+                autoResize.ForceReinitialize();
         }
         
         // ═══════════════════════════════════════════════════════════

@@ -173,20 +173,17 @@ namespace ChatSim.UI.ChatApp
         
         private void Update()
         {
-            if (!viewerPanel.activeSelf || imageRect == null)
+            if (viewerPanel == null || !viewerPanel.activeSelf || imageRect == null)
                 return;
-            
-            // Handle pinch-to-zoom (mobile)
+
             if (Input.touchCount == 2)
             {
                 HandlePinchZoom();
             }
-            // Handle single touch drag (pan)
             else if (Input.touchCount == 1)
             {
                 HandleDrag();
             }
-            // Handle mouse wheel zoom (editor/PC)
             else if (Input.mouseScrollDelta.y != 0)
             {
                 HandleMouseWheelZoom();
@@ -197,27 +194,22 @@ namespace ChatSim.UI.ChatApp
         {
             Touch touch0 = Input.GetTouch(0);
             Touch touch1 = Input.GetTouch(1);
-            
-            // Get previous touch positions
+
             Vector2 touch0PrevPos = touch0.position - touch0.deltaPosition;
             Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
-            
-            // Calculate previous and current distances
+
             float prevMagnitude = (touch0PrevPos - touch1PrevPos).magnitude;
             float currentMagnitude = (touch0.position - touch1.position).magnitude;
-            
-            // Calculate zoom delta
             float difference = currentMagnitude - prevMagnitude;
-            float zoomDelta = difference * zoomSpeed * Time.deltaTime;
-            
-            // Apply zoom
+            float zoomDelta = difference * zoomSpeed;
+
             SetZoom(currentZoom + zoomDelta);
         }
         
         private void HandleDrag()
         {
             Touch touch = Input.GetTouch(0);
-            
+
             if (touch.phase == TouchPhase.Began)
             {
                 isDragging = true;
@@ -227,6 +219,7 @@ namespace ChatSim.UI.ChatApp
             {
                 Vector2 delta = touch.position - lastTouchPosition;
                 imageRect.anchoredPosition += delta;
+                imageRect.anchoredPosition = ClampPosition(imageRect.anchoredPosition);
                 lastTouchPosition = touch.position;
             }
             else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
@@ -250,6 +243,9 @@ namespace ChatSim.UI.ChatApp
         {
             currentZoom = Mathf.Clamp(newZoom, minZoom, maxZoom);
             imageRect.localScale = Vector3.one * currentZoom;
+
+            if (Mathf.Approximately(currentZoom, minZoom))
+                imageRect.anchoredPosition = Vector2.zero;
         }
         
         private void ResetTransform()
@@ -261,6 +257,20 @@ namespace ChatSim.UI.ChatApp
                 imageRect.localScale = Vector3.one;
                 imageRect.anchoredPosition = Vector2.zero;
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ HELPERS
+        // ═══════════════════════════════════════════════════════════
+
+        private Vector2 ClampPosition(Vector2 position)
+        {
+            float maxX = imageRect.rect.width * (currentZoom - 1f) * 0.5f;
+            float maxY = imageRect.rect.height * (currentZoom - 1f) * 0.5f;
+            return new Vector2(
+                Mathf.Clamp(position.x, -maxX, maxX),
+                Mathf.Clamp(position.y, -maxY, maxY)
+            );
         }
         
         // ═══════════════════════════════════════════════════════════

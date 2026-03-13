@@ -186,23 +186,25 @@ namespace ChatSim.UI.ChatApp.Controllers
         }
 
         /// <summary>
-        /// Force scroll to bottom and reset tracking (for loading new chat)
+        /// Force scroll to bottom and reset tracking (for loading new chat).
+        /// Explicitly resets wasAtBottom so auto-scroll resumes from a known state.
         /// </summary>
         public void ForceScrollToBottom()
         {
-            if (!TryInitialize())
+            // Only reinitialize if not already set up — avoids implicit state reset via TryInitialize
+            if (!isInitialized && !TryInitialize())
             {
                 Debug.LogWarning("[ChatAutoScroller] Cannot force scroll - initialization failed");
                 return;
             }
 
-            // Reset tracking to force auto-scroll behavior
+            // Explicitly reset tracking state — this is intentional for a forced scroll
             wasAtBottom = true;
             lastContentHeight = contentTransform.rect.height;
             lastChildCount = contentTransform.childCount;
-            
+
             ScrollToBottom();
-            
+
             Debug.Log("[ChatAutoScroller] Forced scroll to bottom and reset tracking");
         }
 

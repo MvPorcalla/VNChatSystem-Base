@@ -149,7 +149,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             var callbackToCancel = pendingCallback;
             pendingCallback = null;
 
-            StopAllSequenceCoroutines();
+            StopCurrentSequenceIfRunning(); // ← single method, same behaviour
             CleanupTypingIndicator();
             ClearMessageQueue();
 
@@ -236,13 +236,9 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (isFastMode)
                 return false;
 
-            string speaker = message.speaker.ToLower();
-            
-            // Show for NPC text messages only
             return typingIndicatorPrefab != null &&
-                   speaker != "player" &&
-                   speaker != "system" &&
-                   message.type == MessageData.MessageType.Text;
+                !message.IsPlayerMessage &&
+                message.type == MessageData.MessageType.Text;
         }
 
         /// <summary>
@@ -310,8 +306,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (isFastMode)
                 return fastModeSpeed;
 
-            string speaker = message.speaker.ToLower();
-            if (speaker == "player" || speaker.StartsWith("#"))
+            if (message.IsPlayerMessage)
                 return playerMessageDelay;
 
             return messageDelay;
@@ -334,15 +329,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         private void ResetSequenceState()
         {
             isSequenceCancelled = false;
-        }
-
-        private void StopAllSequenceCoroutines()
-        {
-            if (currentMessageSequence != null)
-            {
-                StopCoroutine(currentMessageSequence);
-                currentMessageSequence = null;
-            }
         }
 
         private void ClearMessageQueue()

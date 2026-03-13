@@ -243,40 +243,43 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             Debug.Log($"[ChatAppController] Starting conversation: {conversationAsset.characterName}");
             
+            if (currentExecutor != null)
+            {
+                Debug.LogWarning("[ChatAppController] StartConversation called while executor active — cleaning up previous");
+                PerformConversationCleanup();
+            }
+
             // STEP 1: Switch to chat panel FIRST
             SwitchToChatPanel();
-            
+
             // STEP 2: Wait for panel to activate
             yield return null;
             Canvas.ForceUpdateCanvases();
-            
+
             // STEP 3: Store reference
             currentConversation = conversationAsset;
-            
+
             // STEP 4: Setup UI
             SetupChatHeader(conversationAsset);
             ClearChatDisplay();
             HideNewMessageIndicator();
-            
+
             // STEP 5: Start conversation via GameBootstrap
             currentExecutor = GameBootstrap.Conversation.StartConversation(conversationAsset);
-            
+
             if (currentExecutor == null)
             {
                 Debug.LogError("[ChatAppController] Failed to start conversation!");
                 yield break;
             }
-            
+
             // STEP 6: Subscribe to executor events
             SubscribeToExecutorEvents();
-            
+
             // STEP 7: Load conversation history (if resuming)
             LoadConversationHistory();
-            
+
             // STEP 8: Start dialogue flow
-            // ContinueFromCurrentState handles both fresh start and pause resume internally.
-            // If paused, ProcessCurrentNode finds no unread messages → DetermineNextAction
-            // fires OnPauseReached → HandlePauseReached shows the continue button via event.
             currentExecutor.ContinueFromCurrentState();
         }
         

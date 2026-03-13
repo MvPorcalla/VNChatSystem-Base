@@ -113,7 +113,11 @@ namespace ChatSim.UI.ChatApp.Controllers
 
                 var messageBubble = bubble.GetComponent<TextMessageBubble>();
                 messageBubble?.ResetForPool();
-                poolingManager.Recycle(bubble);
+
+                if (poolingManager != null)
+                    poolingManager.Recycle(bubble);
+                else
+                    Destroy(bubble);
             }
             pooledBubbles.Clear();
 
@@ -161,7 +165,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
         private void SpawnImageBubble(MessageData msg, bool instant)
         {
-            GameObject prefab = IsPlayerMessage(msg.speaker)
+            GameObject prefab = msg.IsPlayerMessage
                 ? playerImageBubblePrefab
                 : npcImageBubblePrefab;
 
@@ -171,7 +175,6 @@ namespace ChatSim.UI.ChatApp.Controllers
                 return;
             }
 
-            // Image bubbles always instantiated — never pooled
             GameObject bubbleObj = Instantiate(prefab, chatContent);
 
             var imageBubble = bubbleObj.GetComponent<ImageMessageBubble>();
@@ -199,18 +202,13 @@ namespace ChatSim.UI.ChatApp.Controllers
                     return systemBubblePrefab;
 
                 case MessageData.MessageType.Text:
-                    return IsPlayerMessage(msg.speaker)
+                    return msg.IsPlayerMessage
                         ? playerTextBubblePrefab
                         : npcTextBubblePrefab;
 
                 default:
                     return null;
             }
-        }
-
-        private bool IsPlayerMessage(string speaker)
-        {
-            return speaker.ToLower() == "player" || speaker.StartsWith("#");
         }
 
         // ═══════════════════════════════════════════════════════════

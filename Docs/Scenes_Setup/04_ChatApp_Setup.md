@@ -22,8 +22,8 @@ This guide covers the complete setup for the `04_ChatApp` scene from scratch: hi
 | `ChoiceButton.cs` | `ChatSim.UI.ChatApp.Components` |
 | `FullscreenCGViewer.cs` | `ChatSim.UI.ChatApp` |
 | `ChatAppNavButtons.cs` | `ChatSim.UI.HomeScreen` |
-| `PoolingManager.cs` | `ChatSim.UI.Common.Components` |
-| `PooledObject.cs` | `ChatSim.UI.Common.Components` |
+| `PoolingManager.cs` | `ChatSim.UI.Common.Pooling` |
+| `PooledObject.cs` | `ChatSim.UI.Common.Pooling` |
 | `AutoResizeText.cs` | `ChatSim.UI.Common.Components` |
 
 ---

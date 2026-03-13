@@ -44,6 +44,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
         private Action<ChoiceData> onChoiceSelected;
         private List<GameObject> activeButtons = new List<GameObject>();
+        private Coroutine rebuildLayoutCoroutine;
 
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
@@ -81,7 +82,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 SpawnChoiceButton(choice);
 
             gameObject.SetActive(true);
-            StartCoroutine(RebuildLayoutDelayed());
+            rebuildLayoutCoroutine = StartCoroutine(RebuildLayoutDelayed());
         }
 
         public void ShowContinueButton(Action callback)
@@ -89,7 +90,8 @@ namespace ChatSim.UI.ChatApp.Controllers
             ClearChoices();
             SpawnUtilityButton("...", callback);
             gameObject.SetActive(true);
-            StartCoroutine(RebuildLayoutDelayed());
+            rebuildLayoutCoroutine = StartCoroutine(RebuildLayoutDelayed());
+
         }
 
         public void ShowEndButton(string buttonText, Action callback)
@@ -97,12 +99,19 @@ namespace ChatSim.UI.ChatApp.Controllers
             ClearChoices();
             SpawnUtilityButton(buttonText, callback);
             gameObject.SetActive(true);
-            StartCoroutine(RebuildLayoutDelayed());
+            rebuildLayoutCoroutine = StartCoroutine(RebuildLayoutDelayed());
             Debug.Log($"[ChatChoiceSpawner] Showing end button: {buttonText}");
         }
 
         public void ClearChoices()
         {
+            // Cancel pending layout rebuild before clearing
+            if (rebuildLayoutCoroutine != null)
+            {
+                StopCoroutine(rebuildLayoutCoroutine);
+                rebuildLayoutCoroutine = null;
+            }
+
             if (choiceContainer == null)
             {
                 Debug.LogError("[ChatChoiceSpawner] choiceContainer is null!");
@@ -199,6 +208,8 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (choiceContainer != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(choiceContainer);
+
+            rebuildLayoutCoroutine = null;
         }
     }
 }

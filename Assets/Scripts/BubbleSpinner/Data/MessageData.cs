@@ -52,6 +52,27 @@ namespace BubbleSpinner.Data
             messageId     = "";
             shouldUnlockCG = false;
         }
+
+        /// <summary>
+        /// Returns true if this message was sent by the player.
+        /// Canonical speaker check — used by timing, spawning, and any future consumers.
+        /// Covers both explicit "Player" speaker and "#"-prefixed inline player messages.
+        /// </summary>
+        public bool IsPlayerMessage =>
+            string.Equals(speaker, "player", StringComparison.OrdinalIgnoreCase) ||
+            (speaker != null && speaker.StartsWith("#"));
+
+        /// <summary>
+        /// Returns true if this message is a system message (timestamps, scene labels, etc).
+        /// </summary>
+        public bool IsSystemMessage =>
+            string.Equals(speaker, "system", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Returns true if this message was sent by an NPC.
+        /// Any speaker that is not the player and not the system.
+        /// </summary>
+        public bool IsNpcMessage => !IsPlayerMessage && !IsSystemMessage;
     }
 
     // ═══════════════════════════════════════

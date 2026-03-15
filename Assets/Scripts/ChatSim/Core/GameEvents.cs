@@ -85,6 +85,14 @@ namespace ChatSim.Core
         public static event Action<string> OnContactAdded;      // contactId
         public static event Action<string> OnContactUpdated;    // contactId
         public static event Action<string> OnCharacterStoryReset;   // conversationId
+
+        // ════════════════════════════════════════════════════════════════════════
+        // SETTINGS EVENTS
+        // ════════════════════════════════════════════════════════════════════════
+
+        public static event Action<float> OnTextSizeChanged;    // fontSize value
+        public static event Action<bool> OnMessageSpeedChanged; // isFastMode
+        public static event Action OnAllStoriesReset;
         
         // ════════════════════════════════════════════════════════════════
         // PROGRESSION EVENTS
@@ -133,6 +141,11 @@ namespace ChatSim.Core
             // Contact events
             OnContactAdded = null;
             OnContactUpdated = null;
+
+            // Settings events
+            OnTextSizeChanged = null;
+            OnMessageSpeedChanged = null;
+            OnAllStoriesReset = null;
             
             // Progression events
             OnStoryFlagSet = null;
@@ -297,6 +310,28 @@ namespace ChatSim.Core
         {
             OnCharacterStoryReset?.Invoke(conversationId);
             Log($"Character story reset: {conversationId}");
+        }
+
+        // ════════════════════════════════════════════════════════════════════════
+        // EVENT TRIGGERS - Settings
+        // ════════════════════════════════════════════════════════════════════════
+
+        public static void TriggerTextSizeChanged(float fontSize)
+        {
+            OnTextSizeChanged?.Invoke(fontSize);
+            Log($"Text size changed: {fontSize}");
+        }
+
+        public static void TriggerMessageSpeedChanged(bool isFastMode)
+        {
+            OnMessageSpeedChanged?.Invoke(isFastMode);
+            Log($"Message speed changed: {(isFastMode ? "Fast" : "Normal")}");
+        }
+
+        public static void TriggerAllStoriesReset()
+        {
+            OnAllStoriesReset?.Invoke();
+            Log("All stories reset");
         }
         
         // ════════════════════════════════════════════════════════════════

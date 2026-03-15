@@ -26,6 +26,7 @@ namespace ChatSim.Core
         {
             _conversationManager = conversationManager;
             GameEvents.OnCharacterStoryReset += OnCharacterStoryReset;
+            GameEvents.OnAllStoriesReset += OnAllStoriesReset;
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -141,9 +142,16 @@ namespace ChatSim.Core
             _conversationManager?.EvictConversationCache(conversationId);
         }
 
+        private void OnAllStoriesReset()
+        {
+            Debug.Log("[BubbleSpinnerBridge] All stories reset — invalidating cache");
+            _cachedSaveData = null;
+        }
+
         public void Cleanup()
         {
             GameEvents.OnCharacterStoryReset -= OnCharacterStoryReset;
+            GameEvents.OnAllStoriesReset -= OnAllStoriesReset;
             _cachedSaveData = null;
             _conversationManager = null;
         }

@@ -240,6 +240,26 @@ namespace BubbleSpinner.Core
             BSDebug.Log($"[ConversationManager] ✓ Cache evicted for: {conversationId}");
         }
 
+        /// <summary>
+        /// Evicts ALL in-memory session caches without touching disk.
+        /// Use after SaveManager.ResetAllData() has wiped the disk.
+        /// </summary>
+        public void EvictAllConversationCaches()
+        {
+            BSDebug.Log($"[ConversationManager] Evicting all session caches ({activeSessions.Count} sessions)");
+
+            foreach (var session in activeSessions.Values)
+            {
+                if (session?.executor != null)
+                    UnsubscribeFromExecutorEvents(session.executor);
+            }
+
+            activeSessions.Clear();
+            currentConversationId = null;
+
+            BSDebug.Log("[ConversationManager] ✓ All session caches evicted");
+        }
+
         // ═══════════════════════════════════════════════════════════
         // CG GALLERY API
         // ═══════════════════════════════════════════════════════════

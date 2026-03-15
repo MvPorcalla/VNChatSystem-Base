@@ -241,6 +241,9 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
             Debug.Log($"[ContactsAppItem] Executing story reset for: {_conversationAsset.characterName}");
             GameBootstrap.Save.ResetCharacterStory(_conversationAsset.ConversationId);
+
+            // Evict in-memory cache so next open loads fresh from disk
+            GameBootstrap.Conversation?.EvictConversationCache(_conversationAsset.ConversationId);
         }
 
         #endregion

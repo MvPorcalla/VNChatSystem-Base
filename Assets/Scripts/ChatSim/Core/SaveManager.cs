@@ -367,6 +367,59 @@ namespace ChatSim.Core
 
             return saved;
         }
+
+        /// <summary>
+        /// Resets ALL conversation states back to the beginning.
+        /// Clears all message history, read IDs, unlocked CGs, and progress for every character.
+        /// Called by SettingsPanel when the player confirms Reset All Stories.
+        /// </summary>
+        public bool ResetAllData()
+        {
+            SaveData saveData = GetOrCreateSaveData();
+
+            if (saveData == null)
+            {
+                LogError("ResetAllData: Failed to load save data!");
+                return false;
+            }
+
+            if (saveData.conversationStates == null || saveData.conversationStates.Count == 0)
+            {
+                LogWarning("ResetAllData: No conversation states to reset.");
+                return false;
+            }
+
+            // Reset every conversation state
+            foreach (var state in saveData.conversationStates)
+            {
+                if (state == null) continue;
+
+                state.currentChapterIndex = 0;
+                state.currentNodeName     = "";
+                state.currentMessageIndex = 0;
+                state.isInPauseState      = false;
+                state.resumeTarget        = ResumeTarget.None;
+                state.readMessageIds.Clear();
+                state.messageHistory.Clear();
+                state.unlockedCGs.Clear();
+                state.version             = ConversationState.CURRENT_VERSION;
+            }
+
+            bool saved = SaveGame(saveData);
+
+            if (saved)
+            {
+                Log($"✓ All stories reset ({saveData.conversationStates.Count} conversations cleared)");
+                GameEvents.TriggerAllStoriesReset();
+            }
+            else
+            {
+                LogError("ResetAllData: Save failed after resetting all stories!");
+            }
+
+            return saved;
+        }
+
         #endregion
 
         #region Private Helpers

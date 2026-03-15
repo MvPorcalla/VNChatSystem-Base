@@ -96,28 +96,34 @@ namespace ChatSim.UI.HomeScreen.Gallery
                 Debug.LogError("[GalleryThumbnailItem] Cannot load: cgKey is null/empty!");
                 yield break;
             }
-            
+
+            // Guard against double load — if handle is already valid, skip
+            if (loadHandle.IsValid())
+            {
+                Debug.LogWarning($"[GalleryThumbnailItem] Load already in progress for: {cgKey}");
+                yield break;
+            }
+
             // Load via Addressables
             loadHandle = Addressables.LoadAssetAsync<Sprite>(cgKey);
             yield return loadHandle;
-            
+
             if (loadHandle.Status == AsyncOperationStatus.Succeeded)
             {
                 loadedSprite = loadHandle.Result;
-                
+
                 if (thumbnailImage != null)
                 {
                     thumbnailImage.sprite = loadedSprite;
                     thumbnailImage.color = Color.white;
                 }
-                
+
                 Debug.Log($"[GalleryThumbnailItem] Loaded: {cgKey}");
             }
             else
             {
                 Debug.LogError($"[GalleryThumbnailItem] Failed to load: {cgKey}");
-                
-                // Show error state
+
                 if (thumbnailImage != null)
                 {
                     thumbnailImage.color = new Color(1f, 0.3f, 0.3f, 1f);

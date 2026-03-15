@@ -73,58 +73,63 @@ namespace ChatSim.UI.HomeScreen.Gallery
         public void RefreshGallery()
         {
             ClearGallery();
-            
+
             if (characterDatabase == null)
             {
                 Debug.LogError("[GalleryController] CharacterDatabase not assigned!");
                 return;
             }
-            
+
             currentSaveData = GameBootstrap.Save?.GetOrCreateSaveData();
-            
+
             if (currentSaveData == null)
             {
                 Debug.LogError("[GalleryController] Failed to load save data!");
                 return;
             }
-            
+
             var allCharacters = characterDatabase.GetAllCharacters();
-            
+
             if (allCharacters == null || allCharacters.Count == 0)
             {
-                Debug.LogWarning("[GalleryController] CharacterDatabase is empty! Use 'Auto-Find All Characters' in the database inspector.");
+                Debug.LogWarning("[GalleryController] CharacterDatabase is empty!");
                 return;
             }
-            
+
+            // Build lookup once — single scan of save data regardless of character count
+            var unlockedCGsLookup = BuildUnlockedCGsLookup();
+
             int totalUnlocked = 0;
             int totalCGs = 0;
-            
+
             foreach (var convAsset in allCharacters)
             {
                 if (convAsset == null) continue;
-                
-                var unlockedCGs = GetUnlockedCGsForConversation(convAsset.ConversationId);
-                
+
                 if (convAsset.cgAddressableKeys == null || convAsset.cgAddressableKeys.Count == 0)
                 {
                     Debug.LogWarning($"[GalleryController] {convAsset.characterName} has no CGs defined");
                     continue;
                 }
-                
+
+                // Use lookup instead of scanning save data per character
+                unlockedCGsLookup.TryGetValue(convAsset.ConversationId, out HashSet<string> unlockedCGs);
+                unlockedCGs ??= new HashSet<string>();
+
                 if (!showEmptySections && unlockedCGs.Count == 0)
                 {
                     Debug.Log($"[GalleryController] Skipping {convAsset.characterName} (0 CGs unlocked)");
                     continue;
                 }
-                
+
                 totalUnlocked += unlockedCGs.Count;
                 totalCGs += convAsset.cgAddressableKeys.Count;
-                
+
                 CreateCharacterSection(convAsset, unlockedCGs);
             }
-            
+
             UpdateProgressDisplay(totalUnlocked, totalCGs);
-            
+
             Debug.Log($"[GalleryController] Gallery refreshed: {totalUnlocked}/{totalCGs} CGs unlocked from {allCharacters.Count} characters");
         }
         
@@ -139,10 +144,16 @@ namespace ChatSim.UI.HomeScreen.Gallery
                 Debug.LogError("[GalleryController] Missing characterSectionPrefab or contentContainer!");
                 return;
             }
-            
+
             GameObject section = Instantiate(characterSectionPrefab, contentContainer);
             spawnedObjects.Add(section);
-            
+
+            if (section.transform.childCount < 2)
+            {
+                Debug.LogError($"[GalleryController] CGContainer prefab must have at least 2 children (CharacterName, CGGrid). Found: {section.transform.childCount}");
+                return;
+            }
+
             TextMeshProUGUI headerText = section.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
             if (headerText != null)
             {
@@ -150,16 +161,20 @@ namespace ChatSim.UI.HomeScreen.Gallery
                 int total = convAsset.cgAddressableKeys.Count;
                 headerText.text = $"{convAsset.characterName} — {unlocked}/{total}";
             }
-            
+            else
+            {
+                Debug.LogError("[GalleryController] CGContainer child 0 missing TextMeshProUGUI component!");
+            }
+
             Transform gridContainer = section.transform.GetChild(1);
-            
+
             foreach (string cgKey in convAsset.cgAddressableKeys)
             {
                 bool isUnlocked = unlockedCGs.Contains(cgKey);
-                
+
                 if (!showLockedCGs && !isUnlocked)
                     continue;
-                
+
                 CreateThumbnail(cgKey, isUnlocked, gridContainer);
             }
         }
@@ -213,33 +228,26 @@ namespace ChatSim.UI.HomeScreen.Gallery
         // ═══════════════════════════════════════════════════════════
         // ░ SAVE DATA QUERIES
         // ═══════════════════════════════════════════════════════════
-        
+
         /// <summary>
-        /// Get all unlocked CGs for a specific conversation from save data
+        /// Builds a lookup dictionary of all unlocked CGs per conversation.
+        /// Called once per RefreshGallery — avoids repeated list scans per character.
         /// </summary>
-        private HashSet<string> GetUnlockedCGsForConversation(string conversationId)
+        private Dictionary<string, HashSet<string>> BuildUnlockedCGsLookup()
         {
-            var unlockedSet = new HashSet<string>();
-            
+            var lookup = new Dictionary<string, HashSet<string>>();
+
             if (currentSaveData?.conversationStates == null)
-                return unlockedSet;
-            
+                return lookup;
+
             foreach (var convState in currentSaveData.conversationStates)
             {
-                if (convState.conversationId == conversationId)
-                {
-                    if (convState.unlockedCGs != null)
-                    {
-                        foreach (string cgKey in convState.unlockedCGs)
-                        {
-                            unlockedSet.Add(cgKey);
-                        }
-                    }
-                    break;
-                }
+                if (convState?.unlockedCGs == null) continue;
+
+                lookup[convState.conversationId] = new HashSet<string>(convState.unlockedCGs);
             }
-            
-            return unlockedSet;
+
+            return lookup;
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -279,13 +287,6 @@ namespace ChatSim.UI.HomeScreen.Gallery
         // ═══════════════════════════════════════════════════════════
         
         #if UNITY_EDITOR
-        [ContextMenu("Debug/Refresh Gallery")]
-        private void DebugRefresh()
-        {
-            RefreshGallery();
-            Debug.Log("✓ Gallery manually refreshed");
-        }
-        
         [ContextMenu("Debug/Print Gallery Stats")]
         private void DebugPrintStats()
         {
@@ -294,33 +295,38 @@ namespace ChatSim.UI.HomeScreen.Gallery
                 Debug.LogError("CharacterDatabase not assigned!");
                 return;
             }
-            
-            var saveData = GameBootstrap.Save?.GetOrCreateSaveData();
-            if (saveData == null) return;
-            
+
+            currentSaveData = GameBootstrap.Save?.GetOrCreateSaveData();
+            if (currentSaveData == null) return;
+
+            // Build lookup the same way RefreshGallery does
+            var unlockedCGsLookup = BuildUnlockedCGsLookup();
+
             Debug.Log("╔═══════════════ GALLERY STATS ═══════════════╗");
-            
+
             var allCharacters = characterDatabase.GetAllCharacters();
-            
+
             foreach (var convAsset in allCharacters)
             {
                 if (convAsset == null) continue;
-                
-                var unlocked = GetUnlockedCGsForConversation(convAsset.ConversationId);
+
+                unlockedCGsLookup.TryGetValue(convAsset.ConversationId, out HashSet<string> unlocked);
+                unlocked ??= new HashSet<string>();
+
                 int total = convAsset.cgAddressableKeys?.Count ?? 0;
                 float percentage = total > 0 ? (unlocked.Count / (float)total) * 100f : 0f;
-                
+
                 Debug.Log($"║ {convAsset.characterName}");
                 Debug.Log($"║   {unlocked.Count}/{total} ({percentage:F1}%)");
-                
+
                 if (unlocked.Count > 0)
                 {
                     Debug.Log($"║   Unlocked: {string.Join(", ", unlocked)}");
                 }
-                
+
                 Debug.Log("╠═════════════════════════════════════════════╣");
             }
-            
+
             Debug.Log("╚═════════════════════════════════════════════╝");
         }
         
@@ -333,30 +339,30 @@ namespace ChatSim.UI.HomeScreen.Gallery
             
             if (contentContainer == null)
             {
-                Debug.LogError("║ ❌ Content Container not assigned!");
+                Debug.LogError("║ Content Container not assigned!");
                 allValid = false;
             }
             
             if (characterSectionPrefab == null)
             {
-                Debug.LogError("║ ❌ Character Section Prefab not assigned!");
+                Debug.LogError("║ Character Section Prefab not assigned!");
                 allValid = false;
             }
             
             if (thumbnailPrefab == null)
             {
-                Debug.LogError("║ ❌ Thumbnail Prefab not assigned!");
+                Debug.LogError("║ Thumbnail Prefab not assigned!");
                 allValid = false;
             }
             
             if (fullscreenViewer == null)
             {
-                Debug.LogWarning("║ ⚠️ Fullscreen Viewer not assigned!");
+                Debug.LogWarning("║ Fullscreen Viewer not assigned!");
             }
             
             if (characterDatabase == null)
             {
-                Debug.LogError("║ ❌ CharacterDatabase not assigned!");
+                Debug.LogError("║ CharacterDatabase not assigned!");
                 allValid = false;
             }
             else
@@ -369,7 +375,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
                     var asset = allCharacters[i];
                     if (asset == null)
                     {
-                        Debug.LogError($"║   [{i}] ❌ NULL reference in database!");
+                        Debug.LogError($"║   [{i}] NULL reference in database!");
                         allValid = false;
                     }
                     else

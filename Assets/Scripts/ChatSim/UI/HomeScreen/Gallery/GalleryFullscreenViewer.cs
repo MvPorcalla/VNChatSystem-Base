@@ -33,7 +33,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         [Header("Zoom Settings")]
         [SerializeField] private float minZoom = 1f;
         [SerializeField] private float maxZoom = 3f;
-        [SerializeField] private float zoomSpeed = 0.1f;
+        [SerializeField] private float zoomSpeed = 0.001f;
         [SerializeField] private float doubleTapZoom = 2f;
         [SerializeField] private float doubleTapTime = 0.3f;
         
@@ -70,19 +70,19 @@ namespace ChatSim.UI.HomeScreen.Gallery
             if (cgImage != null)
             {
                 imageRect = cgImage.rectTransform;
+                cgImage.preserveAspect = true; // ← add this
             }
-            
+
             if (viewerPanel != null)
             {
                 panelRect = viewerPanel.GetComponent<RectTransform>();
             }
-            
+
             if (closeButton != null)
             {
                 closeButton.onClick.AddListener(Hide);
             }
-            
-            // Start hidden
+
             if (viewerPanel != null)
             {
                 viewerPanel.SetActive(false);
@@ -217,10 +217,9 @@ namespace ChatSim.UI.HomeScreen.Gallery
         
         private void Update()
         {
-            if (!viewerPanel.activeSelf || imageRect == null)
+            if (viewerPanel == null || !viewerPanel.activeSelf || imageRect == null)
                 return;
-            
-            // Mobile touch input
+
             if (Input.touchCount == 2)
             {
                 HandlePinchZoom();
@@ -229,7 +228,6 @@ namespace ChatSim.UI.HomeScreen.Gallery
             {
                 HandleTouch();
             }
-            // Desktop input (editor/PC)
             else if (Input.mouseScrollDelta.y != 0)
             {
                 HandleMouseWheelZoom();
@@ -296,20 +294,19 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             Touch touch0 = Input.GetTouch(0);
             Touch touch1 = Input.GetTouch(1);
-            
+
             Vector2 touch0PrevPos = touch0.position - touch0.deltaPosition;
             Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
-            
+
             float prevMagnitude = (touch0PrevPos - touch1PrevPos).magnitude;
             float currentMagnitude = (touch0.position - touch1.position).magnitude;
-            
+
             float difference = currentMagnitude - prevMagnitude;
-            float zoomDelta = difference * zoomSpeed * Time.deltaTime;
-            
-            // Calculate pinch center
+            float zoomDelta = difference * zoomSpeed; // removed Time.deltaTime
+
             Vector2 pinchCenter = (touch0.position + touch1.position) / 2f;
             Vector2 imageLocalCenter = GetImageLocalPosition(pinchCenter);
-            
+
             SetZoom(currentZoom + zoomDelta, imageLocalCenter);
         }
         

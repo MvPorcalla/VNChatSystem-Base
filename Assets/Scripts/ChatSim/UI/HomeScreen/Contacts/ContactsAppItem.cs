@@ -96,23 +96,33 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
         private void SetupProfileImage(ConversationAsset asset)
         {
-            // TODO: Uncomment when profile images are ready in Addressables
+            if (profileImage == null)
+            {
+                Debug.LogWarning($"[ContactsAppItem] profileImage not assigned on {gameObject.name}");
+                return;
+            }
 
-            // if (profileImage == null)
-            // {
-            //     Debug.LogWarning($"[ContactsAppItem] profileImage not assigned on {gameObject.name}");
-            //     return;
-            // }
+            if (asset.profileImage == null || !asset.profileImage.RuntimeKeyIsValid())
+            {
+                Debug.LogWarning($"[ContactsAppItem] No valid profile image for {asset.characterName}");
+                return;
+            }
 
-            // if (asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
-            // {
-            //     _imageLoadHandle = asset.profileImage.LoadAssetAsync<Sprite>();
-            //     _imageLoadHandle.Completed += OnProfileImageLoaded;
-            // }
-            // else
-            // {
-            //     Debug.LogWarning($"[ContactsAppItem] No valid profile image for {asset.characterName}");
-            // }
+            // If already loaded by a previous item, reuse the sprite directly
+            if (asset.profileImage.OperationHandle.IsValid() && asset.profileImage.OperationHandle.IsDone)
+            {
+                var sprite = asset.profileImage.OperationHandle.Convert<Sprite>().Result;
+                if (sprite != null && profileImage != null)
+                {
+                    profileImage.sprite = sprite;
+                    Debug.Log($"[ContactsAppItem] ✓ Using cached profile image: {asset.characterName}");
+                }
+                return;
+            }
+
+            // Fresh load
+            _imageLoadHandle = asset.profileImage.LoadAssetAsync<Sprite>();
+            _imageLoadHandle.Completed += OnProfileImageLoaded;
         }
 
         private void SetupItemButton()
@@ -239,9 +249,8 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
         private void OnDestroy()
         {
-            // TODO: Uncomment when profile image loading is enabled
-            // if (_imageLoadHandle.IsValid())
-            //     Addressables.Release(_imageLoadHandle);
+            if (_imageLoadHandle.IsValid())
+                Addressables.Release(_imageLoadHandle);
         }
 
         #endregion

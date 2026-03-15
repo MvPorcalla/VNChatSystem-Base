@@ -57,7 +57,6 @@ namespace ChatSim.UI.HomeScreen.Contacts
         private void Start()
         {
             ValidateReferences();
-            PopulateContacts();
         }
 
         private void OnEnable()

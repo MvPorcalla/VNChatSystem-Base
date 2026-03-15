@@ -59,16 +59,11 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
         #region Unity Lifecycle
 
-// AFTER
-private void Awake()
-{
-    gameObject.SetActive(false);
-}
-
-private void Start()
-{
-    SetupButtons();
-}
+        private void Awake()
+        {
+            SetupButtons();
+            gameObject.SetActive(false);
+        }
 
         #endregion
 

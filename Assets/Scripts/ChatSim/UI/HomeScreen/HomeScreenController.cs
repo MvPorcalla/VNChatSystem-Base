@@ -57,6 +57,12 @@ namespace ChatSim.UI.HomeScreen
                 Destroy(gameObject);
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void Start()
         {
             InitializeApps();
@@ -81,7 +87,14 @@ namespace ChatSim.UI.HomeScreen
             {
                 if (!app.enabled)
                 {
-                    app.button.gameObject.SetActive(false);
+                    if (app.button != null)
+                        app.button.gameObject.SetActive(false);
+                    continue;
+                }
+
+                if (app.button == null)
+                {
+                    Debug.LogWarning($"[HomeScreenController] Button not assigned for app: {app.appName}");
                     continue;
                 }
 

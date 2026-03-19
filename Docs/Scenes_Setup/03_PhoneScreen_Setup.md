@@ -20,6 +20,7 @@ This guide covers the complete setup for the `03_PhoneScreen` scene: hierarchy, 
 | `ContactsAppDetails.cs` | `ChatSim.UI.HomeScreen.Contacts` — **[FUTURE]** |
 | `SettingsPanel.cs` | `ChatSim.UI.HomeScreen.Settings` |
 | `ResetConfirmationDialog.cs` | `ChatSim.UI.Overlay.Dialogs` |
+| `ToastNotification.cs` | `ChatSim.UI.Overlay` |
 
 ---
 
@@ -127,7 +128,13 @@ This guide covers the complete setup for the `03_PhoneScreen` scene: hierarchy, 
     │   │   │           └── NoButton                    (Button)
     │   │   │               └── Text                    (TMP — "No")
     │   │   │
-    │   │   ├── NotificationPopup                       ← [FUTURE]
+    │   │   ├── ToastNotification                       ← ToastNotification — ACTIVE
+    │   │   │   └── ToastPanel                          ← CanvasGroup — INACTIVE (script manages visibility)
+    │   │   │       ├── Header
+    │   │   │       │   ├── Icon                        (Image)
+    │   │   │       │   └── Title                       (TMP)
+    │   │   │       └── MessageText                     (TMP)
+    │   │   │
     │   │   └── Tooltip                                 ← [FUTURE]
     │   │
     │   └── Transitions                                 ← [FUTURE]
@@ -147,6 +154,7 @@ This guide covers the complete setup for the `03_PhoneScreen` scene: hierarchy, 
 > - `Overlays` — **active** (container is always active; children manage their own visibility)
 > - `ResetConfirmationDialog` — **active** (inner `ResetDialog` starts inactive — set by script in `Awake`)
 > - `QuitConfirmationPanel` — **active** (inner `QuitDialog` starts inactive)
+> - `ToastNotification` — **active** (inner `ToastPanel` starts inactive — set by script in `Awake`)
 
 ---
 
@@ -233,6 +241,7 @@ ContactsAppItem (root)   ← Button (itemButton) + ContactsAppItem
 | `ContactsPanel` | `ContactsAppPanel` |
 | `SettingsPanel` | `SettingsPanel` |
 | `ResetConfirmationDialog` | `ResetConfirmationDialog` |
+| `ToastNotification` | `ToastNotification` |
 
 > `ResetConfirmationDialog` is now a **shared overlay** under `Overlays` — it is no longer a child of `ContactsPanel`. It is referenced by both `ContactsAppPanel` and `SettingsPanel` via Inspector assignment.
 
@@ -405,6 +414,33 @@ noButton            → ResetDialog/ContentPanel/Content/NoButton (Button)
 
 ---
 
+### ToastNotification
+
+```
+[UI Elements]
+toastPanel    → ToastPanel (GameObject)
+titleText     → ToastPanel/Header/Title (TMP)
+messageText   → ToastPanel/MessageText (TMP)
+icon          → ToastPanel/Header/Icon (Image)
+canvasGroup   → CanvasGroup on ToastPanel
+
+[Icons]
+successSprite → checkmark sprite (from Project) or leave None
+infoSprite    → info sprite (from Project) or leave None
+warningSprite → warning sprite (from Project) or leave None
+
+[Timing]
+holdDuration  → 2.5
+fadeDuration  → 0.3
+slideDistance → 80
+```
+
+> `ToastNotification` subscribes to `GameEvents.OnCharacterStoryReset` and `GameEvents.OnAllStoriesReset` automatically in `OnEnable` — no manual wiring to `ContactsAppItem` or `SettingsPanel` is needed. The toast fires whenever a reset is confirmed.
+
+> Icon sprites are optional. If left as `None`, the icon color still updates per `ToastType` but no sprite will display.
+
+---
+
 ## Part 5 — Content Layout Setup
 
 On the `Content` GameObject inside both `GalleryPanel` and `ContactsPanel` scroll views, add these two components:
@@ -437,6 +473,7 @@ SCENE OBJECTS — Active / Inactive
 ☐ Overlays                     — active (container always active)
 ☐ ResetConfirmationDialog      — active (inner ResetDialog starts inactive — set by script)
 ☐ QuitConfirmationPanel        — active (inner QuitDialog starts inactive)
+☐ ToastNotification            — active (inner ToastPanel starts inactive — set by script)
 
 HomeScreenController
 ☐ homeScreenPanel assigned
@@ -523,6 +560,19 @@ ResetConfirmationDialog
 ☐ yesButton assigned
 ☐ noButton assigned
 ☐ ResetConfirmationDialog GameObject left ACTIVE in scene
+
+ToastNotification
+☐ ToastNotification.cs attached to ToastNotification GameObject
+☐ toastPanel assigned (ToastPanel child)
+☐ titleText assigned (ToastPanel/Header/Title)
+☐ messageText assigned (ToastPanel/MessageText)
+☐ icon assigned (ToastPanel/Header/Icon)
+☐ canvasGroup assigned (CanvasGroup on ToastPanel)
+☐ successSprite assigned (or leave None)
+☐ infoSprite assigned (or leave None)
+☐ warningSprite assigned (or leave None)
+☐ CanvasGroup component added to ToastPanel
+☐ ToastNotification GameObject left ACTIVE in scene
 ```
 
 ---
@@ -567,3 +617,9 @@ Each `AppButton` entry in `HomeScreenController.apps` must have either `targetSc
 
 **QuitConfirmationPanel doesn't appear**
 `quitConfirmationPanel` on `HomeScreenNavButtons` is pointing to the old location. The panel has moved — drag it from `Overlays/QuitConfirmationPanel` in the Hierarchy.
+
+**Toast doesn't appear after reset**
+`ToastNotification` GameObject is inactive in the scene — it must be **active** so `OnEnable` runs and subscribes to `GameEvents`. Also confirm `ToastPanel` (the inner panel) is **inactive** — the script sets it active via `Show()`. If both are active or both are inactive the toast won't work correctly.
+
+**Toast appears at wrong position or flies off screen**
+`ToastPanel`'s `anchoredPosition` in the editor is the resting position — set it exactly where you want the toast to sit when visible. The slide animation uses that position as its anchor. If `ToastPanel` was inactive when you positioned it, activate it temporarily, adjust the position, then leave it inactive before saving.

@@ -169,6 +169,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (bubble != null)
             {
                 bubble.Initialize(msg, instant);
+                bubble.ApplyFontSize(PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, PlayerPrefKeys.DefaultTextSize)); // ← add this
                 pooledBubbles.Add(bubbleObj);
             }
             else

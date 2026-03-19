@@ -6,7 +6,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using ChatSim.Core;
 
 namespace ChatSim.UI.ChatApp.Components
 {
@@ -21,10 +20,7 @@ namespace ChatSim.UI.ChatApp.Components
         public void Initialize(string text, Action onClick)
         {
             if (buttonText != null)
-            {
                 buttonText.text = text;
-                buttonText.fontSize = PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, PlayerPrefKeys.DefaultTextSize);
-            }
 
             if (button != null)
             {

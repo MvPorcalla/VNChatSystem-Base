@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using TMPro;
 using BubbleSpinner.Data;
 using ChatSim.UI.Common.Components;
-using ChatSim.Core;
 
 namespace ChatSim.UI.ChatApp.Components
 {
@@ -39,9 +38,6 @@ namespace ChatSim.UI.ChatApp.Components
 
                 if (autoResize == null)
                     Debug.LogWarning($"[TextMessageBubble] AutoResizeText not found on {gameObject.name}");
-
-                float savedSize = PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, PlayerPrefKeys.DefaultTextSize);
-                messageText.fontSize = savedSize;
             }
         }
         

@@ -69,20 +69,6 @@ namespace ChatSim.UI.ChatApp.Controllers
             Debug.Log("[ChatChoiceSpawner] Pools prewarmed");
         }
 
-        //═══════════════════════════════════════════════════════════
-        // ░ EVENT HANDLERS
-        //═══════════════════════════════════════════════════════════
-
-        private void OnEnable()
-        {
-            GameEvents.OnTextSizeChanged += OnTextSizeChanged;
-        }
-
-        private void OnDisable()
-        {
-            GameEvents.OnTextSizeChanged -= OnTextSizeChanged;
-        }
-
         // ═══════════════════════════════════════════════════════════
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
@@ -225,21 +211,6 @@ namespace ChatSim.UI.ChatApp.Controllers
                 LayoutRebuilder.ForceRebuildLayoutImmediate(choiceContainer);
 
             rebuildLayoutCoroutine = null;
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ TEXT SIZE
-        // ═══════════════════════════════════════════════════════════
-
-        private void OnTextSizeChanged(float fontSize)
-        {
-            foreach (var btn in activeButtons)
-            {
-                if (btn == null) continue;
-                btn.GetComponent<ChoiceButton>()?.ApplyFontSize(fontSize);
-            }
-
-            Debug.Log($"[ChatChoiceSpawner] Font size applied to {activeButtons.Count} buttons: {fontSize}");
         }
     }
 }

@@ -106,12 +106,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         public bool IsChatActive => chatAppPanel != null && chatAppPanel.activeSelf;
         
         // ═══════════════════════════════════════════════════════════
-        // ░ CONSTANTS
-        // ═══════════════════════════════════════════════════════════
-        
-        private const string FAST_MODE_PREF_KEY = "ChatFastMode";
-        
-        // ═══════════════════════════════════════════════════════════
         // ░ UNITY LIFECYCLE
         // ═══════════════════════════════════════════════════════════
         
@@ -210,15 +204,13 @@ namespace ChatSim.UI.ChatApp.Controllers
                 autoScroll.OnScrollReachedBottom -= OnScrollReachedBottom;
             }
         }
-        
+
         private void LoadFastModePreference()
         {
-            isFastMode = PlayerPrefs.GetInt(FAST_MODE_PREF_KEY, 0) == 1;
-            
+            isFastMode = PlayerPrefs.GetInt(PlayerPrefKeys.FastMode, PlayerPrefKeys.DefaultFastMode) == 1;
+
             if (timingController != null)
-            {
                 timingController.SetFastMode(isFastMode);
-            }
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -680,7 +672,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             isFastMode = !isFastMode;
             
             // Save preference
-            PlayerPrefs.SetInt(FAST_MODE_PREF_KEY, isFastMode ? 1 : 0);
+            PlayerPrefs.SetInt(PlayerPrefKeys.FastMode, isFastMode ? 1 : 0);
             PlayerPrefs.Save();
             
             // Update timing controller

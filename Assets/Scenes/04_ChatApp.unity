@@ -678,22 +678,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 585770213}
     m_Modifications:
-    - target: {fileID: 1014167221832581778, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1014167221832581778, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1014167221832581778, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1014167221832581778, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2910491148348900575, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
       propertyPath: m_Name
       value: NavigationBar
@@ -780,38 +764,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5769107032989878942, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5808083800106238771, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5808083800106238771, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5808083800106238771, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5808083800106238771, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8212006563649113434, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8212006563649113434, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8212006563649113434, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8212006563649113434, guid: 1c6fb3cc55d92ed4ba1a9152a150575d, type: 3}
-      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -2523,7 +2475,7 @@ MonoBehaviour:
   choiceButtonPrefab: {fileID: 5659985874068007626, guid: ecb65608ef18e3b47b248bb558bae0ff, type: 3}
   continueButtonPrefab: {fileID: 269026532013858266, guid: aa600d77635054549b5b3b4dd1e99013, type: 3}
   choiceContainer: {fileID: 1186336513}
-  poolingManager: {fileID: 0}
+  poolingManager: {fileID: 1578891959}
   prewarmCount: 4
 --- !u!1 &1270690957
 GameObject:

@@ -30,7 +30,7 @@ namespace ChatSim.UI.ChatApp
         [Header("Zoom Settings")]
         [SerializeField] private float minZoom = 1f;
         [SerializeField] private float maxZoom = 3f;
-        [SerializeField] private float zoomSpeed = 0.1f;
+        [SerializeField] private float zoomSpeed = 0.001f;
         
         [Header("Animation")]
         [SerializeField] private float fadeDuration = 0.3f;
@@ -55,6 +55,7 @@ namespace ChatSim.UI.ChatApp
             if (cgImage != null)
             {
                 imageRect = cgImage.rectTransform;
+                cgImage.preserveAspect = true;
             }
             
             if (closeButton != null)
@@ -192,6 +193,8 @@ namespace ChatSim.UI.ChatApp
         
         private void HandlePinchZoom()
         {
+            isDragging = false;
+
             Touch touch0 = Input.GetTouch(0);
             Touch touch1 = Input.GetTouch(1);
 
@@ -265,11 +268,20 @@ namespace ChatSim.UI.ChatApp
 
         private Vector2 ClampPosition(Vector2 position)
         {
-            float maxX = imageRect.rect.width * (currentZoom - 1f) * 0.5f;
-            float maxY = imageRect.rect.height * (currentZoom - 1f) * 0.5f;
+            if (imageRect == null) return position;
+
+            RectTransform parentRect = imageRect.parent as RectTransform;
+            if (parentRect == null) return position;
+
+            Vector2 imageSize = imageRect.rect.size * currentZoom;
+            Vector2 panelSize = parentRect.rect.size;
+
+            Vector2 maxPan = (imageSize - panelSize) / 2f;
+            maxPan = Vector2.Max(maxPan, Vector2.zero);
+
             return new Vector2(
-                Mathf.Clamp(position.x, -maxX, maxX),
-                Mathf.Clamp(position.y, -maxY, maxY)
+                Mathf.Clamp(position.x, -maxPan.x, maxPan.x),
+                Mathf.Clamp(position.y, -maxPan.y, maxPan.y)
             );
         }
         

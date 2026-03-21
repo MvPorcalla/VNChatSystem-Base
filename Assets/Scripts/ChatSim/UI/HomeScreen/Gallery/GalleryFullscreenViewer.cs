@@ -27,9 +27,6 @@ namespace ChatSim.UI.HomeScreen.Gallery
         [SerializeField] private TextMeshProUGUI cgNameText;
         [SerializeField] private CanvasGroup canvasGroup;
         
-        [Header("Background")]
-        [SerializeField] private Image backgroundOverlay; // Dark overlay behind image
-        
         [Header("Zoom Settings")]
         [SerializeField] private float minZoom = 1f;
         [SerializeField] private float maxZoom = 3f;

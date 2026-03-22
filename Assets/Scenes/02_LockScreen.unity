@@ -1287,16 +1287,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07522d199bf1fbb4987df930585b579b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxIndividualNotifications: 3
+  config: {fileID: 11400000, guid: 988fa27a0c6750f44bcfcf86841b4150, type: 2}
   timeText: {fileID: 763714288}
   dateText: {fileID: 132059277}
   contentGroup: {fileID: 1866475754}
   notificationContainer: {fileID: 1881787365}
   notificationItemPrefab: {fileID: 3722429154716828795, guid: 404cbafb1d907814987a1358a6abb727, type: 3}
   moreIndicator: {fileID: 8577794664914771736}
-  swipeThreshold: 300
-  fadeSwipeRange: 400
-  enableDebugLogs: 1
 --- !u!1 &1866475752
 GameObject:
   m_ObjectHideFlags: 0

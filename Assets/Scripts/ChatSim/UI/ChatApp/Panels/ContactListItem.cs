@@ -34,7 +34,6 @@ namespace ChatSim.UI.ChatApp.Panels
         private ConversationAsset conversationAsset;
         private ChatAppController chatController;
         private AsyncOperationHandle<Sprite> imageLoadHandle;
-        private const int MaxPreviewLength = 40;
         
         #endregion
         
@@ -49,48 +48,27 @@ namespace ChatSim.UI.ChatApp.Panels
             conversationAsset = asset;
             chatController = controller;
             
-            // Set character name
             if (profileName != null)
-            {
                 profileName.text = asset.characterName;
-            }
             
-            // Load profile image from Addressables
             if (profileIMG != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
-            {
                 LoadProfileImage(asset.profileImage);
-            }
             else
-            {
                 Debug.LogWarning($"[ContactListItem] No valid profile image for {asset.characterName}");
-            }
             
-            // Hide badge by default (can show if there are unread messages)
             if (badge != null)
-            {
                 badge.SetActive(false);
-            }
             
-            // Setup button click
             if (button != null)
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(OnButtonClicked);
             }
             else
-            {
                 Debug.LogError("[ContactListItem] Button component not assigned!");
-            }
 
             if (lastMessageText != null)
-            {
-                if (string.IsNullOrEmpty(lastMessage))
-                    lastMessageText.text = "";
-                else if (lastMessage.Length > MaxPreviewLength)
-                    lastMessageText.text = lastMessage[..MaxPreviewLength] + "...";
-                else
-                    lastMessageText.text = lastMessage;
-            }
+                lastMessageText.text = lastMessage ?? "";
         }
         
         #endregion

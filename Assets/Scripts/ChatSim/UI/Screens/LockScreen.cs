@@ -23,15 +23,11 @@ namespace ChatSim.UI.Screens
     public class LockScreen : MonoBehaviour
     {
         // ─────────────────────────────────────────────
-        // Notification Limit
+        // Config
         // ─────────────────────────────────────────────
 
-        /// <summary>
-        /// Max individual notifications shown.
-        /// 0 = skip individual notifications, show summary only.
-        /// </summary>
-        [Header("Notification Settings")]
-        [SerializeField] private int maxIndividualNotifications = 3;
+        [Header("Config")]
+        [SerializeField] private GameConfig config;
 
         // ─────────────────────────────────────────────
         // UI References
@@ -44,19 +40,8 @@ namespace ChatSim.UI.Screens
 
         [Header("Notifications")]
         [SerializeField] private GameObject notificationContainer;
-        [SerializeField] private GameObject notificationItemPrefab;  // needs: senderText (TMP) + previewText (TMP)
-        [SerializeField] private GameObject moreIndicator;  // simple TMP text — "more..."
-
-
-        [Header("Swipe Settings")]
-        [Tooltip("Minimum swipe distance in pixels to trigger unlock")]
-        [SerializeField] private float swipeThreshold = 300f;
-
-        [Tooltip("How many pixels of upward swipe = fully faded out")]
-        [SerializeField] private float fadeSwipeRange = 400f;
-
-        [Header("Debug")]
-        [SerializeField] private bool enableDebugLogs = true;
+        [SerializeField] private GameObject notificationItemPrefab;
+        [SerializeField] private GameObject moreIndicator;
 
         // ─────────────────────────────────────────────
         // Private State
@@ -67,11 +52,25 @@ namespace ChatSim.UI.Screens
         private bool _isUnlocking = false;
 
         // ─────────────────────────────────────────────
+        // Config Accessors (fallback to defaults if config missing)
+        // ─────────────────────────────────────────────
+
+        private float SwipeThreshold => config != null ? config.swipeThreshold : 300f;
+        private float FadeSwipeRange => config != null ? config.fadeSwipeRange : 400f;
+        private int MaxNotifications => config != null ? config.maxIndividualNotifications : 3;
+        private string TimeFormat => config != null ? config.GetTimeFormatString() : "HH:mm";
+        private string DateFormat => config != null ? config.GetDateFormatString() : "dddd, MMMM dd";
+        private bool DebugLogs => config != null ? config.lockScreenDebugLogs : true;
+
+        // ─────────────────────────────────────────────
         // Unity Lifecycle
         // ─────────────────────────────────────────────
 
         private void Start()
         {
+            if (config == null)
+                Debug.LogWarning("[LockScreen] No config assigned — using defaults");
+
             UpdateTimeDate();
 
             if (contentGroup != null)
@@ -99,10 +98,10 @@ namespace ChatSim.UI.Screens
         private void UpdateTimeDate()
         {
             if (timeText != null)
-                timeText.text = System.DateTime.Now.ToString("HH:mm");
+                timeText.text = System.DateTime.Now.ToString(TimeFormat);
 
             if (dateText != null)
-                dateText.text = System.DateTime.Now.ToString("dddd, MMMM dd");
+                dateText.text = System.DateTime.Now.ToString(DateFormat);
         }
 
         // ─────────────────────────────────────────────
@@ -127,7 +126,7 @@ namespace ChatSim.UI.Screens
             if (moreIndicator != null)
                 moreIndicator.SetActive(false);
 
-            if (maxIndividualNotifications == 0) return;
+            if (MaxNotifications == 0) return;
 
             if (GameBootstrap.Save == null)
             {
@@ -148,7 +147,7 @@ namespace ChatSim.UI.Screens
 
             Log($"Unread conversations: {unread.Count}");
 
-            int individualCount = Mathf.Min(unread.Count, maxIndividualNotifications);
+            int individualCount = Mathf.Min(unread.Count, MaxNotifications);
             int remainingCount  = unread.Count - individualCount;
 
             for (int i = 0; i < individualCount; i++)
@@ -158,10 +157,6 @@ namespace ChatSim.UI.Screens
                 ShowMoreIndicator();
         }
 
-        /// <summary>
-        /// Derives unread conversations from save state.
-        /// Unread = has started (messageHistory > 0) AND waiting at Pause or Interrupted.
-        /// </summary>
         private List<ConversationState> GetUnreadConversations(SaveData saveData)
         {
             var unread = new List<ConversationState>();
@@ -187,7 +182,6 @@ namespace ChatSim.UI.Screens
         {
             GameObject item = Instantiate(notificationItemPrefab, notificationContainer.transform);
 
-            // Find sender and preview TMP fields by name
             TextMeshProUGUI senderText  = FindTMP(item, "SenderText");
             TextMeshProUGUI previewText = FindTMP(item, "PreviewText");
 
@@ -207,10 +201,6 @@ namespace ChatSim.UI.Screens
             }
         }
 
-        /// <summary>
-        /// Returns the last NPC message text from message history.
-        /// Falls back to "New message" if none found.
-        /// </summary>
         private string GetLastNpcMessage(ConversationState state)
         {
             if (state.messageHistory == null) return "New message";
@@ -231,9 +221,6 @@ namespace ChatSim.UI.Screens
             return "New message";
         }
 
-        /// <summary>
-        /// Finds a TextMeshProUGUI child by GameObject name.
-        /// </summary>
         private TextMeshProUGUI FindTMP(GameObject root, string childName)
         {
             Transform found = root.transform.Find(childName);
@@ -263,9 +250,9 @@ namespace ChatSim.UI.Screens
 
                 if (Input.GetMouseButtonUp(0))
                 {
-                    Log($"Swipe delta: {delta}px (threshold: {swipeThreshold}px)");
+                    Log($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
 
-                    if (delta >= swipeThreshold)
+                    if (delta >= SwipeThreshold)
                         OnUnlockTriggered();
                     else
                         ResetFade();
@@ -291,9 +278,9 @@ namespace ChatSim.UI.Screens
 
                     if (touch.phase == TouchPhase.Ended)
                     {
-                        Log($"Swipe delta: {delta}px (threshold: {swipeThreshold}px)");
+                        Log($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
 
-                        if (delta >= swipeThreshold)
+                        if (delta >= SwipeThreshold)
                             OnUnlockTriggered();
                         else
                             ResetFade();
@@ -313,7 +300,7 @@ namespace ChatSim.UI.Screens
         {
             if (contentGroup == null) return;
 
-            float t = Mathf.Clamp01(swipeDelta / fadeSwipeRange);
+            float t = Mathf.Clamp01(swipeDelta / FadeSwipeRange);
             contentGroup.alpha = 1f - t;
         }
 
@@ -348,12 +335,12 @@ namespace ChatSim.UI.Screens
 
         private void Log(string message)
         {
-            if (enableDebugLogs) Debug.Log($"[LockScreen] {message}");
+            if (DebugLogs) Debug.Log($"[LockScreen] {message}");
         }
 
         private void LogWarning(string message)
         {
-            if (enableDebugLogs) Debug.LogWarning($"[LockScreen] {message}");
+            if (DebugLogs) Debug.LogWarning($"[LockScreen] {message}");
         }
     }
 }

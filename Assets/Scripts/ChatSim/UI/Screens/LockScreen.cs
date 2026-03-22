@@ -119,7 +119,10 @@ namespace ChatSim.UI.Screens
 
             // Clear existing
             foreach (Transform child in notificationContainer.transform)
-                Destroy(child.gameObject);
+            {
+                if (child.gameObject != moreIndicator)
+                    Destroy(child.gameObject);
+            }
 
             if (moreIndicator != null)
                 moreIndicator.SetActive(false);
@@ -198,7 +201,10 @@ namespace ChatSim.UI.Screens
         private void ShowMoreIndicator()
         {
             if (moreIndicator != null)
+            {
                 moreIndicator.SetActive(true);
+                moreIndicator.transform.SetAsLastSibling();
+            }
         }
 
         /// <summary>
@@ -213,7 +219,12 @@ namespace ChatSim.UI.Screens
             {
                 var msg = state.messageHistory[i];
                 if (msg == null) continue;
-                if (msg.IsNpcMessage && !string.IsNullOrEmpty(msg.content))
+                if (msg.IsSystemMessage) continue;
+
+                if (msg.type == MessageData.MessageType.Image)
+                    return msg.IsPlayerMessage ? "You sent an image." : "Sent an image.";
+
+                if (msg.type == MessageData.MessageType.Text && !string.IsNullOrEmpty(msg.content))
                     return msg.content;
             }
 

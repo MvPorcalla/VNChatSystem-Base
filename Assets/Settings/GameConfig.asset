@@ -15,6 +15,6 @@ MonoBehaviour:
   swipeThreshold: 300
   fadeSwipeRange: 400
   maxIndividualNotifications: 3
-  timeFormat: 2
-  dateFormat: 2
+  timeFormat: 0
+  dateFormat: 0
   lockScreenDebugLogs: 1

@@ -28,6 +28,10 @@ namespace ChatSim.Core
 
         [Header("Game Systems")]
         [SerializeField] private ConversationManager conversationManager;
+
+        
+        [Header("Config")]
+        [SerializeField] private GameConfig gameConfig;
         #endregion
 
         #region Debug Settings
@@ -39,6 +43,7 @@ namespace ChatSim.Core
         public static SaveManager Save { get; private set; }
         public static SceneFlowManager SceneFlow { get; private set; }
         public static ConversationManager Conversation { get; private set; }
+        public static GameConfig Config { get; private set; }
         #endregion
 
         #region State
@@ -125,6 +130,9 @@ namespace ChatSim.Core
 
             if (conversationManager == null)
                 throw new InvalidOperationException("ConversationManager not assigned in Inspector!");
+            
+            if (gameConfig == null)
+                throw new InvalidOperationException("GameConfig not assigned in Inspector!");
         }
 
         private void AssignStaticReferences()
@@ -132,6 +140,7 @@ namespace ChatSim.Core
             Save = saveManager;
             SceneFlow = sceneFlowManager;
             Conversation = conversationManager;
+            Config = gameConfig;
         }
 
         private void InitializeManagers()

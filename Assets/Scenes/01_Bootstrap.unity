@@ -172,6 +172,7 @@ MonoBehaviour:
   saveManager: {fileID: 2068272162}
   sceneFlowManager: {fileID: 1910827535}
   conversationManager: {fileID: 1928526075}
+  gameConfig: {fileID: 11400000, guid: 988fa27a0c6750f44bcfcf86841b4150, type: 2}
   enableDebugLogs: 0
 --- !u!1 &1910827533
 GameObject:

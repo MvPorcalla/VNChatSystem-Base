@@ -23,13 +23,6 @@ namespace ChatSim.UI.Screens
     public class LockScreen : MonoBehaviour
     {
         // ─────────────────────────────────────────────
-        // Config
-        // ─────────────────────────────────────────────
-
-        [Header("Config")]
-        [SerializeField] private GameConfig config;
-
-        // ─────────────────────────────────────────────
         // UI References
         // ─────────────────────────────────────────────
 
@@ -55,12 +48,12 @@ namespace ChatSim.UI.Screens
         // Config Accessors (fallback to defaults if config missing)
         // ─────────────────────────────────────────────
 
-        private float SwipeThreshold => config != null ? config.swipeThreshold : 300f;
-        private float FadeSwipeRange => config != null ? config.fadeSwipeRange : 400f;
-        private int MaxNotifications => config != null ? config.maxIndividualNotifications : 3;
-        private string TimeFormat => config != null ? config.GetTimeFormatString() : "HH:mm";
-        private string DateFormat => config != null ? config.GetDateFormatString() : "dddd, MMMM dd";
-        private bool DebugLogs => config != null ? config.lockScreenDebugLogs : true;
+        private float SwipeThreshold => GameBootstrap.Config != null ? GameBootstrap.Config.swipeThreshold : 300f;
+        private float FadeSwipeRange => GameBootstrap.Config != null ? GameBootstrap.Config.fadeSwipeRange : 400f;
+        private int MaxNotifications => GameBootstrap.Config != null ? GameBootstrap.Config.maxIndividualNotifications : 3;
+        private string TimeFormat => GameBootstrap.Config != null ? GameBootstrap.Config.GetTimeFormatString() : "HH:mm";
+        private string DateFormat => GameBootstrap.Config != null ? GameBootstrap.Config.GetDateFormatString() : "dddd, MMMM dd";
+        private bool DebugLogs => GameBootstrap.Config != null ? GameBootstrap.Config.lockScreenDebugLogs : true;
 
         // ─────────────────────────────────────────────
         // Unity Lifecycle
@@ -68,8 +61,8 @@ namespace ChatSim.UI.Screens
 
         private void Start()
         {
-            if (config == null)
-                Debug.LogWarning("[LockScreen] No config assigned — using defaults");
+            if (GameBootstrap.Config == null)
+                Debug.LogWarning("[LockScreen] No config found — using defaults");
 
             UpdateTimeDate();
 

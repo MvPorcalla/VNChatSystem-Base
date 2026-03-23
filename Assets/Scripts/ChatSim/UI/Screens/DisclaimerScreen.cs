@@ -22,6 +22,7 @@ namespace ChatSim.UI.Screens
     /// Flow: 00_Disclaimer → 01_Bootstrap
     ///
     /// To not include this scene, simply set Bootstrap as the first scene in Build Settings.
+    /// This is not connected to bootstrap in any way, so it can be added or removed at any time without affecting the rest of the game.
     /// </summary>
     public class DisclaimerScreen : MonoBehaviour
     {

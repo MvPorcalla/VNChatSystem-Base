@@ -17,11 +17,16 @@ namespace ChatSim.Core
     /// </summary>
     public class GameBootstrap : MonoBehaviour
     {
-        #region Singleton
-        public static GameBootstrap Instance { get; private set; }
-        #endregion
+        // ════════════════════════════════════════════════════════════════
+        // SINGLETON
+        // ════════════════════════════════════════════════════════════════
 
-        #region Manager References - ASSIGN IN INSPECTOR
+        public static GameBootstrap Instance { get; private set; }
+
+        // ════════════════════════════════════════════════════════════════
+        // INSPECTOR REFERENCES
+        // ════════════════════════════════════════════════════════════════
+
         [Header("Core Managers")]
         [SerializeField] private SaveManager saveManager;
         [SerializeField] private SceneFlowManager sceneFlowManager;
@@ -29,30 +34,42 @@ namespace ChatSim.Core
         [Header("Game Systems")]
         [SerializeField] private ConversationManager conversationManager;
 
-        
         [Header("Config")]
         [SerializeField] private GameConfig gameConfig;
-        #endregion
 
-        #region Public Static Accessors
+        // ════════════════════════════════════════════════════════════════
+        // PUBLIC STATIC ACCESSORS
+        // ════════════════════════════════════════════════════════════════
+
         public static SaveManager Save { get; private set; }
         public static SceneFlowManager SceneFlow { get; private set; }
         public static ConversationManager Conversation { get; private set; }
         public static GameConfig Config { get; private set; }
-        #endregion
 
-        #region State
+        // ════════════════════════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════════════════════════
+
         private bool _isInitialized = false;
         public bool IsInitialized => _isInitialized;
-        
-        // BubbleSpinner integration bridge
-        private BubbleSpinnerBridge bubbleSpinnerBridge;
-        #endregion
 
-        #region Unity Lifecycle
+        private BubbleSpinnerBridge _bubbleSpinnerBridge;
+
+        // ════════════════════════════════════════════════════════════════════════
+        // LOGGING
+        // ════════════════════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "GameBootstrap",
+            () => GameBootstrap.Config?.bootstrapDebugLogs ?? false
+        );
+
+        // ════════════════════════════════════════════════════════════════
+        // UNITY LIFECYCLE
+        // ════════════════════════════════════════════════════════════════
+
         private void Awake()
         {
-            // Singleton pattern
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -62,15 +79,14 @@ namespace ChatSim.Core
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Clear any stale events from previous sessions
             GameEvents.ClearAllEvents();
 
-            Log("GameBootstrap created - will persist across scenes");
+            _log.Info("GameBootstrap created - will persist across scenes");
         }
 
         private IEnumerator Start()
         {
-            Log("=== BOOTSTRAP INITIALIZATION START ===");
+            _log.Info("=== BOOTSTRAP INITIALIZATION START ===");
 
             try
             {
@@ -79,22 +95,21 @@ namespace ChatSim.Core
                 InitializeManagers();
 
                 _isInitialized = true;
-                Log("All systems initialized");
+                _log.Info("All systems initialized");
             }
             catch (Exception e)
             {
-                LogError($"FATAL: Bootstrap initialization failed!\n{e}");
+                _log.Error($"FATAL: Bootstrap initialization failed!\n{e}");
                 QuitApplication();
                 yield break;
             }
 
             string nextScene = DetermineNextScene();
-            Log($"Loading next scene: {nextScene}");
+            _log.Info($"Loading next scene: {nextScene}");
 
-            // Wait for scene to load
             bool sceneLoadComplete = false;
             System.Action<string> onSceneLoaded = null;
-            
+
             onSceneLoaded = (sceneName) =>
             {
                 if (sceneName == nextScene)
@@ -103,17 +118,18 @@ namespace ChatSim.Core
                     GameEvents.OnSceneLoaded -= onSceneLoaded;
                 }
             };
-            
+
             GameEvents.OnSceneLoaded += onSceneLoaded;
             SceneFlow.LoadScene(nextScene);
-            
+
             yield return new WaitUntil(() => sceneLoadComplete);
 
-            Log("=== BOOTSTRAP INITIALIZATION COMPLETE ===");
+            _log.Info("=== BOOTSTRAP INITIALIZATION COMPLETE ===");
         }
-        #endregion
 
-        #region Manager Setup
+        // ════════════════════════════════════════════════════════════════
+        // MANAGER SETUP
+        // ════════════════════════════════════════════════════════════════
 
         private void ValidateManagerReferences()
         {
@@ -125,9 +141,6 @@ namespace ChatSim.Core
 
             if (conversationManager == null)
                 throw new InvalidOperationException("ConversationManager not assigned in Inspector!");
-            
-            if (gameConfig == null)
-                throw new InvalidOperationException("GameConfig not assigned in Inspector!");
         }
 
         private void AssignStaticReferences()
@@ -136,41 +149,41 @@ namespace ChatSim.Core
             SceneFlow = sceneFlowManager;
             Conversation = conversationManager;
             Config = gameConfig;
+
+            if (Config == null)
+                UnityEngine.Debug.LogWarning("[GameBootstrap] GameConfig not assigned — all systems will use hardcoded fallback values.");
         }
 
         private void InitializeManagers()
         {
             Save.Init();
             SceneFlow.Init();
-            bubbleSpinnerBridge?.Cleanup();
-            bubbleSpinnerBridge = new BubbleSpinnerBridge(conversationManager);
-            Conversation.Initialize(bubbleSpinnerBridge);
+            _bubbleSpinnerBridge?.Cleanup();
+            _bubbleSpinnerBridge = new BubbleSpinnerBridge(conversationManager);
+            Conversation.Initialize(_bubbleSpinnerBridge);
             EnsureSaveDataExists();
         }
 
         private void EnsureSaveDataExists()
         {
             SaveData saveData = Save.GetOrCreateSaveData();
-            
+
             if (saveData == null)
-            {
                 throw new InvalidOperationException("FATAL: Failed to create or load save data!");
-            }
         }
 
-        #endregion
-
-        #region Scene Flow Logic
+        // ════════════════════════════════════════════════════════════════
+        // SCENE FLOW
+        // ════════════════════════════════════════════════════════════════
 
         private string DetermineNextScene()
         {
-            // Always start at lock screen
             return SceneNames.LOCKSCREEN;
         }
 
-        #endregion
-
-        #region Utilities
+        // ════════════════════════════════════════════════════════════════
+        // UTILITIES
+        // ════════════════════════════════════════════════════════════════
 
         private void QuitApplication()
         {
@@ -183,47 +196,32 @@ namespace ChatSim.Core
 
         private void OnDestroy()
         {
-            bubbleSpinnerBridge?.Cleanup();
+            _bubbleSpinnerBridge?.Cleanup();
         }
 
-        #endregion
+        // ════════════════════════════════════════════════════════════════
+        // EDITOR TOOLS
+        // ════════════════════════════════════════════════════════════════
 
-        #region Logging Helpers
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (Config == null || !Config.bootstrapDebugLogs) return;
-            UnityEngine.Debug.Log($"[GameBootstrap] {message}");
-        }
-
-        private void LogError(string message)
-        {
-            // Always show errors — no Conditional, fires in all builds
-            UnityEngine.Debug.LogError($"[GameBootstrap] ERROR: {message}");
-        }
-        #endregion
-
-        #region Editor Tools
 #if UNITY_EDITOR
         [ContextMenu("Validate Bootstrap")]
         private void ValidateBootstrap()
         {
-            Log("=== BOOTSTRAP VALIDATION ===");
+            _log.Info("=== BOOTSTRAP VALIDATION ===");
 
             try
             {
                 ValidateManagerReferences();
-                Log("✓ All validations passed");
+                _log.Info("✓ All validations passed");
             }
             catch (Exception e)
             {
-                LogError($"ERROR: Validation failed: {e.Message}");
+                _log.Error($"Validation failed: {e.Message}");
             }
 
-            Log($"Initialized: {_isInitialized}");
-            Log("===========================");
+            _log.Info($"Initialized: {_isInitialized}");
+            _log.Info("===========================");
         }
 #endif
-        #endregion
     }
 }

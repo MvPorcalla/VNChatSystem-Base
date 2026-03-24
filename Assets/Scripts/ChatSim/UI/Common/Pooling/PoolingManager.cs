@@ -24,6 +24,15 @@ namespace ChatSim.UI.Common.Pooling
         private Transform poolRoot;
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "PoolingManager",
+            () => GameBootstrap.Config?.poolingManagerDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
@@ -33,7 +42,7 @@ namespace ChatSim.UI.Common.Pooling
             poolRoot.SetParent(transform);
             poolRoot.gameObject.SetActive(false);
 
-            Log("Initialized");
+            _log.Info("Initialized");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -48,7 +57,7 @@ namespace ChatSim.UI.Common.Pooling
         {
             if (prefab == null)
             {
-                LogError("Cannot get object from null prefab");
+                _log.Error("Cannot get object from null prefab");
                 return null;
             }
 
@@ -94,7 +103,7 @@ namespace ChatSim.UI.Common.Pooling
 
             if (poolRoot == null)
             {
-                LogWarning("Recycle called before Awake — destroying object instead");
+                _log.Warn("Recycle called before Awake — destroying object instead");
                 Destroy(obj);
                 return;
             }
@@ -102,7 +111,7 @@ namespace ChatSim.UI.Common.Pooling
             var pooledObject = obj.GetComponent<PooledObject>();
             if (pooledObject == null || pooledObject.Prefab == null)
             {
-                LogWarning($"Cannot recycle {obj.name} - no PooledObject component");
+                _log.Warn($"Cannot recycle {obj.name} - no PooledObject component");
                 Destroy(obj);
                 return;
             }
@@ -145,7 +154,7 @@ namespace ChatSim.UI.Common.Pooling
                 pools[prefab].Enqueue(obj);
             }
 
-            Log($"Pre-warmed {count} instances of {prefab.name}");
+            _log.Info($"Pre-warmed {count} instances of {prefab.name}");
         }
 
         /// <summary>
@@ -170,7 +179,7 @@ namespace ChatSim.UI.Common.Pooling
             }
 
             pools.Clear();
-            Log($"Cleared all pools - destroyed {totalDestroyed} objects");
+            _log.Info($"Cleared all pools - destroyed {totalDestroyed} objects");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -184,7 +193,7 @@ namespace ChatSim.UI.Common.Pooling
         private void ClearDynamicContent(GameObject obj)
         {
             // Always fires — indicates a real programming mistake
-            LogError($"{obj.name} recycled without ResetForPool() implementation. " +
+            _log.Error($"{obj.name} recycled without ResetForPool() implementation. " +
                     $"Add ResetForPool() to the component or set PreserveContent = true on its PooledObject.");
         }
 
@@ -195,29 +204,6 @@ namespace ChatSim.UI.Common.Pooling
         private void OnDestroy()
         {
             ClearAllPools();
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.poolingManagerDebugLogs) return;
-            UnityEngine.Debug.Log($"[PoolingManager] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.poolingManagerDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[PoolingManager] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[PoolingManager] ERROR: {message}");
         }
     }
 }

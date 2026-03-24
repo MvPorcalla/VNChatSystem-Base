@@ -48,6 +48,15 @@ namespace ChatSim.UI.ChatApp.Controllers
         private List<GameObject> imageBubbles = new List<GameObject>();
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "ChatMessageSpawner",
+            () => GameBootstrap.Config?.chatMessageSpawnerDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
@@ -69,7 +78,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (systemBubblePrefab != null)
                 poolingManager.PreWarm(systemBubblePrefab, 3);
 
-            Log("Pools prewarmed");
+            _log.Info("Pools prewarmed");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -116,7 +125,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (chatContent == null)
             {
-                LogError("chatContent is null!");
+                _log.Error("chatContent is null!");
                 return;
             }
 
@@ -141,7 +150,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             imageBubbles.Clear();
 
-            Log("All messages cleared");
+            _log.Info("All messages cleared");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -154,7 +163,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (prefab == null)
             {
-                LogError($"No prefab for type: {msg.type}, speaker: {msg.speaker}");
+                _log.Error($"No prefab for type: {msg.type}, speaker: {msg.speaker}");
                 return;
             }
 
@@ -171,7 +180,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             else
             {
-                LogError("MessageBubble component missing!");
+                _log.Error("MessageBubble component missing!");
                 Destroy(bubbleObj);
             }
         }
@@ -184,7 +193,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (prefab == null)
             {
-                LogError($"No image prefab for speaker: {msg.speaker}");
+                _log.Error($"No image prefab for speaker: {msg.speaker}");
                 return;
             }
 
@@ -198,7 +207,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             else
             {
-                LogError("ImageMessageBubble component missing!");
+                _log.Error("ImageMessageBubble component missing!");
                 Destroy(bubbleObj);
             }
         }
@@ -241,30 +250,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 bubble.GetComponent<TextMessageBubble>()?.ApplyFontSize(fontSize);
             }
 
-            Log($"Font size applied to {pooledBubbles.Count} bubbles: {fontSize}");
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatMessageSpawnerDebugLogs) return;
-            UnityEngine.Debug.Log($"[ChatMessageSpawner] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatMessageSpawnerDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ChatMessageSpawner] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ChatMessageSpawner] ERROR: {message}");
+            _log.Info($"Font size applied to {pooledBubbles.Count} bubbles: {fontSize}");
         }
 
         // ═══════════════════════════════════════════════════════════

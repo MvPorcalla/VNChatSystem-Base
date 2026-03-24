@@ -55,6 +55,15 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
         #endregion
 
+        #region Logging
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "ContactsAppItem",
+            () => GameBootstrap.Config?.contactsAppDebugLogs ?? false
+        );
+
+        #endregion
+
         #region Initialization
 
         /// <summary>
@@ -85,20 +94,20 @@ namespace ChatSim.UI.HomeScreen.Contacts
             if (nameText != null)
                 nameText.text = asset.characterName;
             else
-                LogWarning($"nameText not assigned on {gameObject.name}");
+                _log.Warn($"nameText not assigned on {gameObject.name}");
         }
 
         private void SetupProfileImage(ConversationAsset asset)
         {
             if (profileImage == null)
             {
-                LogWarning($"profileImage not assigned on {gameObject.name}");
+                _log.Warn($"profileImage not assigned on {gameObject.name}");
                 return;
             }
 
             if (asset.profileImage == null || !asset.profileImage.RuntimeKeyIsValid())
             {
-                LogWarning($"No valid profile image for {asset.characterName}");
+                _log.Warn($"No valid profile image for {asset.characterName}");
                 return;
             }
 
@@ -108,7 +117,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
                 if (sprite != null && profileImage != null)
                 {
                     profileImage.sprite = sprite;
-                    Log($"✓ Using cached profile image: {asset.characterName}");
+                    _log.Info($"✓ Using cached profile image: {asset.characterName}");
                 }
                 return;
             }
@@ -121,7 +130,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (itemButton == null)
             {
-                LogError($"itemButton not assigned on {gameObject.name}");
+                _log.Error($"itemButton not assigned on {gameObject.name}");
                 return;
             }
 
@@ -133,7 +142,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (resetButton == null)
             {
-                LogError($"resetButton not assigned on {gameObject.name}");
+                _log.Error($"resetButton not assigned on {gameObject.name}");
                 return;
             }
 
@@ -154,7 +163,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
             }
             else
             {
-                LogError($"Failed to load profile image for {_conversationAsset?.characterName}");
+                _log.Error($"Failed to load profile image for {_conversationAsset?.characterName}");
             }
         }
 
@@ -169,17 +178,17 @@ namespace ChatSim.UI.HomeScreen.Contacts
             //
             // if (_conversationAsset == null)
             // {
-            //     Debug.LogError("[ContactsAppItem] Cannot open detail: ConversationAsset is null!");
+            //     _log.Error("[ContactsAppItem] Cannot open detail: ConversationAsset is null!");
             //     return;
             // }
             // if (detailPanel == null)
             // {
-            //     Debug.LogError("[ContactsAppItem] detailPanel reference is missing!");
+            //     _log.Error("[ContactsAppItem] detailPanel reference is missing!");
             //     return;
             // }
             // detailPanel.Show(_conversationAsset, this);
 
-            Debug.Log($"[ContactsAppItem] TODO: Open detail panel for {_conversationAsset?.characterName}");
+            _log.Info($"[ContactsAppItem] TODO: Open detail panel for {_conversationAsset?.characterName}");
         }
 
         #endregion
@@ -194,7 +203,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_conversationAsset == null)
             {
-                LogError("Cannot reset: ConversationAsset is null!");
+                _log.Error("Cannot reset: ConversationAsset is null!");
                 return;
             }
 
@@ -220,17 +229,17 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_conversationAsset == null)
             {
-                LogError("ExecuteReset: ConversationAsset is null!");
+                _log.Error("ExecuteReset: ConversationAsset is null!");
                 return;
             }
 
             if (GameBootstrap.Save == null)
             {
-                LogError("ExecuteReset: GameBootstrap.Save is null!");
+                _log.Error("ExecuteReset: GameBootstrap.Save is null!");
                 return;
             }
 
-            Log($"Executing story reset for: {_conversationAsset.characterName}");
+            _log.Info($"Executing story reset for: {_conversationAsset.characterName}");
             GameBootstrap.Save.ResetCharacterStory(_conversationAsset.ConversationId);
 
             GameBootstrap.Conversation?.EvictConversationCache(_conversationAsset.ConversationId);
@@ -244,29 +253,6 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_imageLoadHandle.IsValid())
                 Addressables.Release(_imageLoadHandle);
-        }
-
-        #endregion
-
-        #region Logging
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
-            UnityEngine.Debug.Log($"[ContactsAppItem] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ContactsAppItem] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ContactsAppItem] ERROR: {message}");
         }
 
         #endregion

@@ -37,6 +37,13 @@ namespace ChatSim.UI.ChatApp.Panels
         private AsyncOperationHandle<Sprite> imageLoadHandle;
         
         #endregion
+
+        #region Logging
+        private readonly DebugLogger _log = new DebugLogger(
+            "ContactListItem",
+            () => GameBootstrap.Config?.contactChatListDebugLogs ?? false
+        );
+        #endregion
         
         #region Initialization
         
@@ -55,7 +62,7 @@ namespace ChatSim.UI.ChatApp.Panels
             if (profileIMG != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
                 LoadProfileImage(asset.profileImage);
             else
-                LogWarning($"No valid profile image for {asset.characterName}");
+                _log.Warn($"No valid profile image for {asset.characterName}");
 
             if (badge != null)
                 badge.SetActive(false);
@@ -66,7 +73,7 @@ namespace ChatSim.UI.ChatApp.Panels
                 button.onClick.AddListener(OnButtonClicked);
             }
             else
-                LogError("Button component not assigned!");
+                _log.Error("Button component not assigned!");
 
             if (lastMessageText != null)
                 lastMessageText.text = lastMessage ?? "";
@@ -102,12 +109,12 @@ namespace ChatSim.UI.ChatApp.Panels
                 if (profileIMG != null)
                 {
                     profileIMG.sprite = handle.Result;
-                    Log($"✓ Profile image loaded: {conversationAsset.characterName}");
+                    _log.Info($"✓ Profile image loaded: {conversationAsset.characterName}");
                 }
             }
             else
             {
-                LogError($"✗ Failed to load profile image: {conversationAsset.characterName}");
+                _log.Error($"✗ Failed to load profile image: {conversationAsset.characterName}");
             }
         }
         
@@ -119,17 +126,17 @@ namespace ChatSim.UI.ChatApp.Panels
         {
             if (conversationAsset == null)
             {
-                LogError("No conversation asset assigned!");
+                _log.Error("No conversation asset assigned!");
                 return;
             }
 
             if (chatController == null)
             {
-                LogError("No chat controller assigned!");
+                _log.Error("No chat controller assigned!");
                 return;
             }
 
-            Log($"Opening conversation with {conversationAsset.characterName}");
+            _log.Info($"Opening conversation with {conversationAsset.characterName}");
             chatController.StartConversation(conversationAsset);
         }
         
@@ -163,26 +170,5 @@ namespace ChatSim.UI.ChatApp.Panels
         
         #endregion
 
-        #region Logging
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactChatListDebugLogs) return;
-            UnityEngine.Debug.Log($"[ContactListItem] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactChatListDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ContactListItem] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ContactListItem] ERROR: {message}");
-        }
-
-        #endregion
     }
 }

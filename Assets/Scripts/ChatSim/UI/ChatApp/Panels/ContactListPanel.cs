@@ -29,6 +29,13 @@ namespace ChatSim.UI.ChatApp.Panels
         [SerializeField] private ChatAppController chatController;
         
         #endregion
+
+        #region Logging
+        private readonly DebugLogger _log = new DebugLogger(
+            "ContactListPanel",
+            () => GameBootstrap.Config?.contactChatListDebugLogs ?? false
+        );
+        #endregion
         
         #region Unity Lifecycle
         
@@ -47,7 +54,7 @@ namespace ChatSim.UI.ChatApp.Panels
 
             if (characterDatabase == null)
             {
-                LogError("CharacterDatabase is not assigned!");
+                _log.Error("CharacterDatabase is not assigned!");
                 return;
             }
 
@@ -55,7 +62,7 @@ namespace ChatSim.UI.ChatApp.Panels
 
             if (conversations == null || conversations.Count == 0)
             {
-                LogWarning("No conversations found in database!");
+                _log.Warn("No conversations found in database!");
                 return;
             }
 
@@ -63,14 +70,14 @@ namespace ChatSim.UI.ChatApp.Panels
             {
                 if (conversation == null)
                 {
-                    LogWarning("Null conversation in database, skipping");
+                    _log.Warn("Null conversation in database, skipping");
                     continue;
                 }
 
                 CreateContactButton(conversation);
             }
 
-            Log($"Populated {conversations.Count} contacts from database");
+            _log.Info($"Populated {conversations.Count} contacts from database");
         }
         
         private void CreateContactButton(ConversationAsset conversation)
@@ -85,7 +92,7 @@ namespace ChatSim.UI.ChatApp.Panels
             }
             else
             {
-                LogError("ContactListItem component missing on prefab!");
+                _log.Error("ContactListItem component missing on prefab!");
             }
         }
 
@@ -135,29 +142,6 @@ namespace ChatSim.UI.ChatApp.Panels
             PopulateContactList();
         }
         
-        #endregion
-
-        #region Logging
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactChatListDebugLogs) return;
-            UnityEngine.Debug.Log($"[ContactListPanel] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactChatListDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ContactListPanel] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ContactListPanel] ERROR: {message}");
-        }
-
         #endregion
     }
 }

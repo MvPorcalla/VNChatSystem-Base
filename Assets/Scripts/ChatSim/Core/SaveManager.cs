@@ -22,7 +22,10 @@ namespace ChatSim.Core
     /// </summary>
     public class SaveManager : MonoBehaviour
     {
-        #region File Paths
+        // ════════════════════════════════════════════════════════════════════════
+        // FILE PATHS
+        // ════════════════════════════════════════════════════════════════════════
+
         private const string ROOT_SAVE_FOLDER = "Saves";
         private const string GAME_DATA_FOLDER = "ChatSimData";
         private const string SAVE_FILE = "game_save.json";
@@ -34,14 +37,29 @@ namespace ChatSim.Core
         private string SaveFilePath => Path.Combine(GameDataPath, SAVE_FILE);
         private string BackupFilePath => SaveFilePath + BACKUP_SUFFIX;
         private string TempFilePath => SaveFilePath + TEMP_SUFFIX;
-        #endregion
 
-        #region State
+        // ════════════════════════════════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════════════════════════════════
+
         private bool _isInitialized = false;
         public bool IsInitialized => _isInitialized;
-        #endregion
+
+        // ════════════════════════════════════════════════════════════════════════
+        // LOGGING
+        // ════════════════════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "SaveManager",
+            () => GameBootstrap.Config?.saveManagerDebugLogs ?? false
+        );
 
         #region Initialization
+
+        // ════════════════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ════════════════════════════════════════════════════════════════════════
+
         /// <summary>
         /// Called by GameBootstrap during initialization
         /// </summary>
@@ -53,18 +71,23 @@ namespace ChatSim.Core
                 ValidateFileSystem();
                 
                 _isInitialized = true;
-                Log("✓ SaveManager initialized successfully");
+                _log.Info("✓ SaveManager initialized successfully");
                 LogSavePath();
             }
             catch (Exception e)
             {
-                LogError($"SaveManager initialization failed: {e.Message}");
+                _log.Error($"SaveManager initialization failed: {e.Message}");
                 throw;
             }
         }
         #endregion
 
         #region File System Setup
+
+        // ════════════════════════════════════════════════════════════════════════
+        // FILE SYSTEM SETUP
+        // ════════════════════════════════════════════════════════════════════════
+
         private void CreateFolderStructure()
         {
             if (!Directory.Exists(RootSavePath))
@@ -95,16 +118,20 @@ namespace ChatSim.Core
 
         private void LogSavePath()
         {
-            Log($"Save location: {RootSavePath}");
+            _log.Info($"Save location: {RootSavePath}");
             
             #if UNITY_EDITOR
-            Log("Press F12 to open save folder in explorer");
+            _log.Info("Press F12 to open save folder in explorer");
             #endif
         }
         #endregion
 
         #region Public API - Save/Load
         
+        // ════════════════════════════════════════════════════════════════════════
+        // PUBLIC API - SAVE/LOAD
+        // ════════════════════════════════════════════════════════════════════════
+
         /// <summary>
         /// Check if a save file exists
         /// </summary>
@@ -147,7 +174,7 @@ namespace ChatSim.Core
         {
             if (gameData == null)
             {
-                LogError("Cannot save null game data!");
+                _log.Error("Cannot save null game data!");
                 return false;
             }
 
@@ -186,7 +213,7 @@ namespace ChatSim.Core
                 
                 File.Move(TempFilePath, SaveFilePath);
 
-                Log($"✓ Game saved (version {gameData.saveVersion})");
+                _log.Info($"✓ Game saved (version {gameData.saveVersion})");
                 
                 // Trigger event
                 GameEvents.TriggerGameSaved();
@@ -195,7 +222,7 @@ namespace ChatSim.Core
             }
             catch (Exception e)
             {
-                LogError($"Failed to save game: {e.Message}");
+                _log.Error($"Failed to save game: {e.Message}");
                 
                 // Clean up temp file if it exists
                 if (File.Exists(TempFilePath))
@@ -221,29 +248,29 @@ namespace ChatSim.Core
                 return saveData;
             
             // Primary failed - try backup
-            LogWarning("Primary save corrupted or missing, attempting backup recovery...");
+            _log.Warn("Primary save corrupted or missing, attempting backup recovery...");
             saveData = LoadFromFile(BackupFilePath, "backup save");
             
             if (saveData != null)
             {
-                LogWarning("✓ Recovered from backup!");
+                _log.Warn("✓ Recovered from backup!");
                 
                 // Restore backup as primary save
                 try
                 {
                     File.Copy(BackupFilePath, SaveFilePath, overwrite: true);
-                    Log("  ✓ Backup restored as primary save");
+                    _log.Info("  ✓ Backup restored as primary save");
                 }
                 catch (Exception e)
                 {
-                    LogError($"Failed to restore backup: {e.Message}");
+                    _log.Error($"Failed to restore backup: {e.Message}");
                 }
                 
                 return saveData;
             }
             
             // Both failed
-            Log("Both primary and backup saves are corrupted or missing!");
+            _log.Error("Both primary and backup saves are corrupted or missing!");
             return null;
         }
 
@@ -260,12 +287,12 @@ namespace ChatSim.Core
                 try
                 {
                     File.Delete(SaveFilePath);
-                    Log("✓ Primary save deleted");
+                    _log.Info("✓ Primary save deleted");
                     deleted = true;
                 }
                 catch (Exception e)
                 {
-                    LogError($"Failed to delete primary save: {e.Message}");
+                    _log.Error($"Failed to delete primary save: {e.Message}");
                 }
             }
 
@@ -275,12 +302,12 @@ namespace ChatSim.Core
                 try
                 {
                     File.Delete(BackupFilePath);
-                    Log("✓ Backup save deleted");
+                    _log.Info("✓ Backup save deleted");
                     deleted = true;
                 }
                 catch (Exception e)
                 {
-                    LogError($"Failed to delete backup: {e.Message}");
+                    _log.Error($"Failed to delete backup: {e.Message}");
                 }
             }
 
@@ -290,7 +317,7 @@ namespace ChatSim.Core
             }
             else
             {
-                LogWarning("No save files to delete");
+                _log.Warn("No save files to delete");
             }
 
             return deleted;
@@ -318,7 +345,7 @@ namespace ChatSim.Core
         {
             if (string.IsNullOrEmpty(conversationId))
             {
-                LogError("ResetCharacterStory: conversationId is null or empty!");
+                _log.Error("ResetCharacterStory: conversationId is null or empty!");
                 return false;
             }
 
@@ -326,7 +353,7 @@ namespace ChatSim.Core
 
             if (saveData == null)
             {
-                LogError("ResetCharacterStory: Failed to load save data!");
+                _log.Error("ResetCharacterStory: Failed to load save data!");
                 return false;
             }
 
@@ -335,7 +362,7 @@ namespace ChatSim.Core
 
             if (existing == null)
             {
-                LogWarning($"ResetCharacterStory: No save state found for '{conversationId}'. Nothing to reset.");
+                _log.Warn($"ResetCharacterStory: No save state found for '{conversationId}'. Nothing to reset.");
                 return false;
             }
 
@@ -352,12 +379,12 @@ namespace ChatSim.Core
 
             if (saved)
             {
-                Log($"✓ Story reset for: {existing.characterName} ({conversationId})");
+                _log.Info($"✓ Story reset for: {existing.characterName} ({conversationId})");
                 GameEvents.TriggerCharacterStoryReset(conversationId);
             }
             else
             {
-                LogError($"ResetCharacterStory: Save failed after resetting '{conversationId}'!");
+                _log.Error($"ResetCharacterStory: Save failed after resetting '{conversationId}'!");
             }
 
             return saved;
@@ -374,13 +401,13 @@ namespace ChatSim.Core
 
             if (saveData == null)
             {
-                LogError("ResetAllData: Failed to load save data!");
+                _log.Error("ResetAllData: Failed to load save data!");
                 return false;
             }
 
             if (saveData.conversationStates == null || saveData.conversationStates.Count == 0)
             {
-                LogWarning("ResetAllData: No conversation states to reset.");
+                _log.Warn("ResetAllData: No conversation states to reset.");
                 return false;
             }
 
@@ -404,12 +431,12 @@ namespace ChatSim.Core
 
             if (saved)
             {
-                Log($"✓ All stories reset ({saveData.conversationStates.Count} conversations cleared)");
+                _log.Info($"✓ All stories reset ({saveData.conversationStates.Count} conversations cleared)");
                 GameEvents.TriggerAllStoriesReset();
             }
             else
             {
-                LogError("ResetAllData: Save failed after resetting all stories!");
+                _log.Error("ResetAllData: Save failed after resetting all stories!");
             }
 
             return saved;
@@ -418,6 +445,10 @@ namespace ChatSim.Core
         #endregion
 
         #region Private Helpers
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PRIVATE HELPERS
+        // ════════════════════════════════════════════════════════════════════════
         
         /// <summary>
         /// Load save data from a specific file
@@ -439,11 +470,11 @@ namespace ChatSim.Core
 
                 if (saveWrapper?.gameData == null)
                 {
-                    LogError($"{fileDescription} is corrupted or invalid!");
+                    _log.Error($"{fileDescription} is corrupted or invalid!");
                     return null;
                 }
 
-                Log($"✓ Loaded {fileDescription}");
+                _log.Info($"✓ Loaded {fileDescription}");
                 
                 // Trigger event only when loading primary save
                 if (filePath == SaveFilePath)
@@ -455,7 +486,7 @@ namespace ChatSim.Core
             }
             catch (Exception e)
             {
-                LogError($"Failed to load {fileDescription}: {e.Message}");
+                _log.Error($"Failed to load {fileDescription}: {e.Message}");
                 return null;
             }
         }
@@ -463,6 +494,10 @@ namespace ChatSim.Core
         #endregion
 
         #region Save Data Wrapper
+
+        // ════════════════════════════════════════════════════════════════════════
+        //  SAVE DATA WRAPPER
+        // ════════════════════════════════════════════════════════════════════════
         
         /// <summary>
         /// Wrapper for save data with metadata
@@ -479,6 +514,11 @@ namespace ChatSim.Core
         #endregion
 
         #region Editor Debug Tools
+
+        // ════════════════════════════════════════════════════════════════════════
+        // EDITOR DEBUG TOOLS
+        // ════════════════════════════════════════════════════════════════════════
+
         #if UNITY_EDITOR
 
         private string FormatPlaytime(float seconds)
@@ -524,7 +564,7 @@ namespace ChatSim.Core
             }
 
             Application.OpenURL("file://" + RootSavePath);
-            Log("Opened save folder in explorer");
+            _log.Info("Opened save folder in explorer");
         }
 
         [ContextMenu("Delete Save File")]
@@ -598,28 +638,6 @@ namespace ChatSim.Core
         }
 
         #endif
-        #endregion
-
-        #region Logging
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.saveManagerDebugLogs) return;
-            UnityEngine.Debug.Log($"[SaveManager] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.saveManagerDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[SaveManager] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            // Always show errors — no Conditional, fires in all builds
-            UnityEngine.Debug.LogError($"[SaveManager] ERROR: {message}");
-        }
         #endregion
     }
 }

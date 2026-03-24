@@ -22,9 +22,9 @@ namespace ChatSim.UI.Screens
     /// </summary>
     public class LockScreen : MonoBehaviour
     {
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // UI References
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         [Header("UI References")]
         [SerializeField] private TextMeshProUGUI timeText;
@@ -41,9 +41,9 @@ namespace ChatSim.UI.Screens
         [SerializeField] private float arrowAmplitude = 10f;  // Pixels to move up/down
         [SerializeField] private float arrowSpeed = 2f;       // Speed of movement
 
-        // ─────────────────────────────────────────────
-        // Private State
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
+        // State
+        // ═════════════════════════════════════════════
 
         private Vector2 _touchStartPos;
         private bool _isTouching = false;
@@ -51,26 +51,30 @@ namespace ChatSim.UI.Screens
 
         private Vector2 arrowStartPos;
 
-        // ─────────────────────────────────────────────
-        // Config Accessors (fallback to defaults if config missing)
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
+        // Logging
+        // ═════════════════════════════════════════════
+        private readonly DebugLogger _log = new DebugLogger(
+            "LockScreen",
+            () => GameBootstrap.Config?.lockScreenDebugLogs ?? false
+        );
+
+        // ═════════════════════════════════════════════
+        // Config Fallbacks
+        // ═════════════════════════════════════════════
 
         private float SwipeThreshold => GameBootstrap.Config != null ? GameBootstrap.Config.swipeThreshold : 300f;
         private float FadeSwipeRange => GameBootstrap.Config != null ? GameBootstrap.Config.fadeSwipeRange : 400f;
         private int MaxNotifications => GameBootstrap.Config != null ? GameBootstrap.Config.maxIndividualNotifications : 3;
         private string TimeFormat => GameBootstrap.Config != null ? GameBootstrap.Config.GetTimeFormatString() : "HH:mm";
         private string DateFormat => GameBootstrap.Config != null ? GameBootstrap.Config.GetDateFormatString() : "dddd, MMMM dd";
-        private bool DebugLogs => GameBootstrap.Config != null ? GameBootstrap.Config.lockScreenDebugLogs : true;
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Unity Lifecycle
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void Start()
         {
-            if (GameBootstrap.Config == null)
-                LogWarning("No config found — using defaults");
-
             UpdateTimeDate();
 
             if (contentGroup != null)
@@ -79,7 +83,7 @@ namespace ChatSim.UI.Screens
             PopulateNotifications();
 
             GameEvents.TriggerPhoneLocked();
-            Log("Lock screen ready — swipe up to unlock");
+            _log.Info("Lock screen ready — swipe up to unlock");
         }
 
         private void Update()
@@ -93,9 +97,9 @@ namespace ChatSim.UI.Screens
             HandleSwipeInput();
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Time & Date
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void UpdateTimeDate()
         {
@@ -106,15 +110,15 @@ namespace ChatSim.UI.Screens
                 dateText.text = System.DateTime.Now.ToString(DateFormat);
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Notifications
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void PopulateNotifications()
         {
             if (notificationContainer == null || notificationItemPrefab == null)
             {
-                Log("Notification refs not assigned — skipping");
+                _log.Info("Notification refs not assigned — skipping");
                 return;
             }
 
@@ -132,7 +136,7 @@ namespace ChatSim.UI.Screens
 
             if (GameBootstrap.Save == null)
             {
-                LogWarning("SaveManager not ready — skipping notifications");
+                _log.Warn("SaveManager not ready — skipping notifications");
                 return;
             }
 
@@ -143,11 +147,11 @@ namespace ChatSim.UI.Screens
 
             if (unread.Count == 0)
             {
-                Log("No unread conversations");
+                _log.Info("No unread conversations");
                 return;
             }
 
-            Log($"Unread conversations: {unread.Count}");
+            _log.Info($"Unread conversations: {unread.Count}");
 
             int individualCount = Mathf.Min(unread.Count, MaxNotifications);
             int remainingCount  = unread.Count - individualCount;
@@ -228,13 +232,13 @@ namespace ChatSim.UI.Screens
             Transform found = root.transform.Find(childName);
             if (found != null) return found.GetComponent<TextMeshProUGUI>();
 
-            LogWarning($"Could not find '{childName}' in notification prefab");
+            _log.Warn($"Could not find '{childName}' in notification prefab");
             return null;
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Swipe Input
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void HandleSwipeInput()
         {
@@ -252,7 +256,7 @@ namespace ChatSim.UI.Screens
 
                 if (Input.GetMouseButtonUp(0))
                 {
-                    Log($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
+                    _log.Info($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
 
                     if (delta >= SwipeThreshold)
                         OnUnlockTriggered();
@@ -280,7 +284,7 @@ namespace ChatSim.UI.Screens
 
                     if (touch.phase == TouchPhase.Ended)
                     {
-                        Log($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
+                        _log.Info($"Swipe delta: {delta}px (threshold: {SwipeThreshold}px)");
 
                         if (delta >= SwipeThreshold)
                             OnUnlockTriggered();
@@ -294,9 +298,9 @@ namespace ChatSim.UI.Screens
 #endif
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Fade
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void UpdateFade(float swipeDelta)
         {
@@ -310,12 +314,12 @@ namespace ChatSim.UI.Screens
         {
             if (contentGroup == null) return;
             contentGroup.alpha = 1f;
-            Log("Swipe released — content restored");
+            _log.Info("Swipe released — content restored");
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Swipe Arrow Animation
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void AnimateSwipeArrow()
         {
@@ -325,45 +329,22 @@ namespace ChatSim.UI.Screens
             swipeArrow.anchoredPosition = arrowStartPos + new Vector2(0f, yOffset);
         }
 
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
         // Unlock
-        // ─────────────────────────────────────────────
+        // ═════════════════════════════════════════════
 
         private void OnUnlockTriggered()
         {
             if (_isUnlocking) return;
             _isUnlocking = true;
 
-            Log("Unlocked via swipe");
+            _log.Info("Unlocked via swipe");
             GameEvents.TriggerPhoneUnlocked();
 
             if (GameBootstrap.SceneFlow != null)
                 GameBootstrap.SceneFlow.GoToPhoneScreen();
             else
-                LogError("GameBootstrap.SceneFlow not found!");
-        }
-
-        // ─────────────────────────────────────────────
-        // Logging
-        // ─────────────────────────────────────────────
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (!DebugLogs) return;
-            UnityEngine.Debug.Log($"[LockScreen] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (!DebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[LockScreen] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[LockScreen] ERROR: {message}");
+                _log.Error("GameBootstrap.SceneFlow not found!");
         }
     }
 }

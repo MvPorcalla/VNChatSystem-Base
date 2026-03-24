@@ -26,7 +26,7 @@ namespace ChatSim.UI.Common.Components
         private TextMeshProUGUI textComponent;
         private LayoutElement layoutElement;
         private RectTransform rectTransform;
-        
+
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
         // ═══════════════════════════════════════════════════════════
@@ -36,15 +36,23 @@ namespace ChatSim.UI.Common.Components
         private bool isInitialized = false;
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGER
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "AutoResize",
+            () => GameBootstrap.Config?.imageMessageBubbleDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ PROPERTIES
         // ═══════════════════════════════════════════════════════════
         
         public bool IsInitialized => isInitialized;
 
-        // Config values with fallbacks
-        private float MaxWidth              => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMaxWidth              : 650f;
-        private float MinWidth              => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMinWidth              : 40f;
-        private float WidthChangeThreshold  => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleWidthChangeThreshold  : 0.1f;
+        private float MaxWidth => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMaxWidth : 650f;
+        private float MinWidth => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMinWidth : 40f;
+        private float WidthChangeThreshold => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleWidthChangeThreshold : 0.1f;
 
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
@@ -67,13 +75,13 @@ namespace ChatSim.UI.Common.Components
 
                 if (textComponent == null)
                 {
-                    UnityEngine.Debug.LogError($"[AutoResize] TextMeshProUGUI missing on {gameObject.name}");
+                    _log.Error("TextMeshProUGUI missing on " + gameObject.name);
                     return;
                 }
 
                 if (layoutElement == null)
                 {
-                    UnityEngine.Debug.LogError($"[AutoResize] LayoutElement missing on {gameObject.name}");
+                    _log.Error("LayoutElement missing on " + gameObject.name);
                     return;
                 }
 
@@ -82,7 +90,7 @@ namespace ChatSim.UI.Common.Components
             }
             catch (System.Exception e)
             {
-                UnityEngine.Debug.LogError($"[AutoResize] Initialization failed on {gameObject.name}: {e.Message}");
+                _log.Error("Initialization failed on " + gameObject.name + ": " + e.Message);
                 isInitialized = false;
             }
         }
@@ -103,7 +111,6 @@ namespace ChatSim.UI.Common.Components
 
         void OnDestroy()
         {
-            // Clean up any pending coroutines
             if (layoutRebuildCoroutine != null)
             {
                 StopCoroutine(layoutRebuildCoroutine);
@@ -124,21 +131,16 @@ namespace ChatSim.UI.Common.Components
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Sets text and updates width. Preferred method for external usage.
-        /// </summary>
         public void SetText(string newText)
         {
             if (!isInitialized)
             {
-        #if UNITY_EDITOR
-                UnityEngine.Debug.LogWarning($"[AutoResize] SetText called before init on {gameObject.name}");
-        #endif
+                _log.Warn("SetText called before init on " + gameObject.name);
                 InitializeComponents();
 
                 if (!isInitialized)
                 {
-                    UnityEngine.Debug.LogError($"[AutoResize] Failed to initialize on {gameObject.name}");
+                    _log.Error("Failed to initialize on " + gameObject.name);
                     return;
                 }
             }
@@ -150,17 +152,11 @@ namespace ChatSim.UI.Common.Components
             }
         }
 
-        /// <summary>
-        /// Force immediate width recalculation and layout rebuild.
-        /// Use when pulling from pool or after manual text changes.
-        /// </summary>
         public void RefreshWidth()
         {
             if (!isInitialized)
             {
-        #if UNITY_EDITOR
-                UnityEngine.Debug.LogWarning($"[AutoResize] RefreshWidth called before init on {gameObject.name}");
-        #endif
+                _log.Warn("RefreshWidth called before init on " + gameObject.name);
                 return;
             }
 
@@ -198,10 +194,6 @@ namespace ChatSim.UI.Common.Components
             return Mathf.Clamp(textSize.x, MinWidth, MaxWidth);
         }
 
-        /// <summary>
-        /// Calculates and applies width if changed.
-        /// Returns true if width was updated.
-        /// </summary>
         private bool CalculateAndApplyWidth()
         {
             if (!isInitialized || textComponent == null || layoutElement == null)
@@ -220,7 +212,7 @@ namespace ChatSim.UI.Common.Components
             }
             catch (System.Exception e)
             {
-                UnityEngine.Debug.LogError($"[AutoResize] Width calculation failed on {gameObject.name}: {e.Message}");
+                _log.Error("Width calculation failed on " + gameObject.name + ": " + e.Message);
             }
 
             return false;
@@ -230,48 +222,32 @@ namespace ChatSim.UI.Common.Components
         // ░ UPDATE METHODS
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Updates width with deferred layout rebuild (end of frame).
-        /// Use for runtime text changes.
-        /// </summary>
         private void UpdateWidth()
         {
             if (!CalculateAndApplyWidth())
-                return; // No change needed
+                return;
 
             if (gameObject.activeInHierarchy)
             {
-                // Cancel any pending rebuild
                 if (layoutRebuildCoroutine != null)
-                {
                     StopCoroutine(layoutRebuildCoroutine);
-                }
 
                 layoutRebuildCoroutine = StartCoroutine(RebuildLayoutEndOfFrame());
             }
             else
             {
-                // Object inactive - rebuild immediately
                 if (rectTransform != null)
-                {
                     LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-                }
             }
         }
 
-        /// <summary>
-        /// Updates width with immediate layout rebuild.
-        /// Use for pooled objects or initialization.
-        /// </summary>
         private void UpdateWidthImmediate()
         {
             if (!CalculateAndApplyWidth())
-                return; // No change needed
+                return;
 
             if (rectTransform != null)
-            {
                 LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-            }
         }
 
         private IEnumerator RebuildLayoutEndOfFrame()
@@ -285,7 +261,7 @@ namespace ChatSim.UI.Common.Components
             }
             catch (System.Exception e)
             {
-                UnityEngine.Debug.LogError($"[AutoResize] Layout rebuild failed on {gameObject.name}: {e.Message}");
+                _log.Error("Layout rebuild failed on " + gameObject.name + ": " + e.Message);
             }
             finally
             {

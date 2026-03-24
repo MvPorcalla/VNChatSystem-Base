@@ -39,6 +39,15 @@ namespace ChatSim.UI.HomeScreen
         [SerializeField] private List<AppButton> apps = new List<AppButton>();
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "HomeScreenController",
+            () => GameBootstrap.Config?.homeScreenDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ STATE
         // ═══════════════════════════════════════════════════════════
 
@@ -94,11 +103,10 @@ namespace ChatSim.UI.HomeScreen
 
                 if (app.button == null)
                 {
-                    LogWarning($"Button not assigned for app: {app.appName}");
+                    _log.Warn($"Button not assigned for app: {app.appName}");
                     continue;
                 }
 
-                // Capture variables for closure
                 string scene = app.targetScene;
                 GameObject panel = app.targetPanel;
                 string name = app.appName;
@@ -118,7 +126,7 @@ namespace ChatSim.UI.HomeScreen
                 });
             }
 
-            Log($"Initialized {apps.Count} app buttons");
+            _log.Info($"Initialized {apps.Count} app buttons");
         }
 
         private void ShowHomeScreen()
@@ -130,7 +138,7 @@ namespace ChatSim.UI.HomeScreen
             }
             else
             {
-                LogWarning("homeScreenPanel not assigned!");
+                _log.Warn("homeScreenPanel not assigned!");
             }
         }
 
@@ -153,7 +161,7 @@ namespace ChatSim.UI.HomeScreen
             panel.SetActive(true);
             currentPanel = panel;
 
-            Log($"Opened panel: {panel.name}");
+            _log.Info($"Opened panel: {panel.name}");
         }
 
         /// <summary>
@@ -173,7 +181,7 @@ namespace ChatSim.UI.HomeScreen
                 currentPanel = homeScreenPanel;
             }
 
-            Log("Returned to home screen");
+            _log.Info("Returned to home screen");
         }
 
         /// <summary>
@@ -195,7 +203,7 @@ namespace ChatSim.UI.HomeScreen
             currentPanel = panelHistory.Pop();
             currentPanel.SetActive(true);
 
-            Log($"Back to panel: {currentPanel.name}");
+            _log.Info($"Back to panel: {currentPanel.name}");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -210,29 +218,6 @@ namespace ChatSim.UI.HomeScreen
                 if (panel != null)
                     panel.SetActive(false);
             }
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
-            UnityEngine.Debug.Log($"[HomeScreenController] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[HomeScreenController] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[HomeScreenController] ERROR: {message}");
         }
     }
 }

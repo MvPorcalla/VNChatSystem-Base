@@ -16,7 +16,7 @@ namespace ChatSim.UI.HomeScreen
     public class HomeScreenNavButtons : MonoBehaviour
     {
         // ═══════════════════════════════════════════════════════════
-        // ░ INSPECTOR REFERENCES - NAVIGATION BUTTONS
+        // ░ INSPECTOR REFERENCES
         // ═══════════════════════════════════════════════════════════
 
         [Header("Navigation Buttons")]
@@ -24,21 +24,21 @@ namespace ChatSim.UI.HomeScreen
         [SerializeField] private Button backButton;
         [SerializeField] private Button quitButton;
 
-        // ═══════════════════════════════════════════════════════════
-        // ░ INSPECTOR REFERENCES - QUIT CONFIRMATION
-        // ═══════════════════════════════════════════════════════════
-
         [Header("Quit Confirmation")]
         [SerializeField] private GameObject quitConfirmationPanel;
         [SerializeField] private Button yesQuitButton;
         [SerializeField] private Button noQuitButton;
 
-        // ═══════════════════════════════════════════════════════════
-        // ░ INSPECTOR REFERENCES - HOME SCREEN
-        // ═══════════════════════════════════════════════════════════
-
         [Header("Home Screen")]
         [SerializeField] private HomeScreenController homeScreenController;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+        private readonly DebugLogger _log = new DebugLogger(
+            "HomeScreenNavButtons",
+            () => GameBootstrap.Config?.homeScreenDebugLogs ?? false
+        );
 
         // ═══════════════════════════════════════════════════════════
         // ░ UNITY LIFECYCLE
@@ -58,19 +58,19 @@ namespace ChatSim.UI.HomeScreen
         private void ValidateReferences()
         {
             if (homeButton == null)
-                LogWarning("homeButton not assigned!");
+                _log.Warn("homeButton not assigned!");
 
             if (backButton == null)
-                LogWarning("backButton not assigned!");
+                _log.Warn("backButton not assigned!");
 
             if (quitButton == null)
-                LogWarning("quitButton not assigned!");
+                _log.Warn("quitButton not assigned!");
 
             if (quitConfirmationPanel == null)
-                LogWarning("quitConfirmationPanel not assigned!");
+                _log.Warn("quitConfirmationPanel not assigned!");
 
             if (homeScreenController == null)
-                LogError("homeScreenController not assigned!");
+                _log.Error("homeScreenController not assigned!");
         }
 
         private void SetupEventListeners()
@@ -97,7 +97,7 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnHomePressed()
         {
-            Log("Home pressed");
+            _log.Info("Home pressed");
             homeScreenController?.GoHome();
         }
 
@@ -107,7 +107,7 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnBackPressed()
         {
-            Log("Back pressed");
+            _log.Info("Back pressed");
             homeScreenController?.GoBack();
         }
 
@@ -116,36 +116,13 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnConfirmQuit()
         {
-            Log("Quitting game...");
+            _log.Info("Quitting game...");
 
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
             #else
             Application.Quit();
             #endif
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
-            UnityEngine.Debug.Log($"[HomeScreenNavButtons] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[HomeScreenNavButtons] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[HomeScreenNavButtons] ERROR: {message}");
         }
     }
 }

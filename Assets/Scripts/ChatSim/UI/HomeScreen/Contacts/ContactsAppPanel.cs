@@ -44,6 +44,15 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
         #endregion
 
+        #region Logging
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "ContactsAppPanel",
+            () => GameBootstrap.Config?.contactsAppDebugLogs ?? false
+        );
+
+        #endregion
+
         #region Unity Lifecycle
 
         private void Start()
@@ -63,16 +72,16 @@ namespace ChatSim.UI.HomeScreen.Contacts
         private void ValidateReferences()
         {
             if (characterDatabase == null)
-                LogError("CharacterDatabase is not assigned!");
+                _log.Error("CharacterDatabase is not assigned!");
 
             if (contactContainer == null)
-                LogError("contactContainer is not assigned!");
+                _log.Error("contactContainer is not assigned!");
 
             if (contactsAppItemPrefab == null)
-                LogError("contactsAppItemPrefab is not assigned!");
+                _log.Error("contactsAppItemPrefab is not assigned!");
 
             if (useConfirmationDialog && resetConfirmationDialog == null)
-                LogWarning("useConfirmationDialog is ON but resetConfirmationDialog is not assigned — resets will act directly.");
+                _log.Warn("useConfirmationDialog is ON but resetConfirmationDialog is not assigned — resets will act directly.");
         }
 
         #endregion
@@ -90,7 +99,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
             if (characters == null || characters.Count == 0)
             {
-                LogWarning("No characters found in CharacterDatabase.");
+                _log.Warn("No characters found in CharacterDatabase.");
                 return;
             }
 
@@ -98,14 +107,14 @@ namespace ChatSim.UI.HomeScreen.Contacts
             {
                 if (character == null)
                 {
-                    LogWarning("Null entry in CharacterDatabase, skipping.");
+                    _log.Warn("Null entry in CharacterDatabase, skipping.");
                     continue;
                 }
 
                 SpawnContactItem(character);
             }
 
-            Log($"Populated {characters.Count} contacts. Dialog: {useConfirmationDialog}");
+            _log.Info($"Populated {characters.Count} contacts. Dialog: {useConfirmationDialog}");
         }
 
         private void SpawnContactItem(ConversationAsset character)
@@ -125,7 +134,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
             }
             else
             {
-                LogError("ContactsAppItem component missing on prefab!");
+                _log.Error("ContactsAppItem component missing on prefab!");
             }
         }
 
@@ -144,29 +153,6 @@ namespace ChatSim.UI.HomeScreen.Contacts
         public void RefreshContacts()
         {
             PopulateContacts();
-        }
-
-        #endregion
-
-        #region Logging
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
-            UnityEngine.Debug.Log($"[ContactsAppPanel] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ContactsAppPanel] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ContactsAppPanel] ERROR: {message}");
         }
 
         #endregion

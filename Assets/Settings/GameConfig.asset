@@ -17,18 +17,27 @@ MonoBehaviour:
   maxIndividualNotifications: 3
   timeFormat: 0
   dateFormat: 0
+  galleryMinZoom: 1
+  galleryMaxZoom: 3
+  galleryZoomSpeed: 0.001
+  galleryDoubleTapZoom: 2
+  galleryDoubleTapTime: 0.3
+  galleryFadeDuration: 0.3
   bottomThreshold: 0.01
   messageDelay: 1.2
   typingIndicatorDuration: 1.5
   playerMessageDelay: 0.3
   finalDelayBeforeChoices: 0.2
   fastModeSpeed: 0.1
+  bubbleMaxWidth: 650
+  bubbleMinWidth: 40
+  bubbleWidthChangeThreshold: 0.1
   minZoom: 1
   maxZoom: 3
   zoomSpeed: 0.001
   cgViewerFadeDuration: 0.3
-  bootstrapDebugLogs: 0
-  saveManagerDebugLogs: 0
+  bootstrapDebugLogs: 1
+  saveManagerDebugLogs: 1
   lockScreenDebugLogs: 0
   chatAppDebugLogs: 0
   chatAutoScrollerDebugLogs: 0
@@ -36,6 +45,10 @@ MonoBehaviour:
   chatMessageSpawnerDebugLogs: 0
   chatTimingControllerDebugLogs: 0
   imageMessageBubbleDebugLogs: 0
-  contactListItemDebugLogs: 0
-  contactListPanelDebugLogs: 0
+  contactChatListDebugLogs: 0
   chatAppNavButtonsDebugLogs: 0
+  poolingManagerDebugLogs: 0
+  contactsAppDebugLogs: 0
+  galleryAppDebugLogs: 0
+  settingsPanelDebugLogs: 0
+  homeScreenDebugLogs: 0

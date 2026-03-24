@@ -35,6 +35,15 @@ namespace ChatSim.UI.ChatApp.Components
         private MessageData messageData;
         private Sprite loadedSprite;
         private Button clickButton;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "ImageMessageBubble",
+            () => GameBootstrap.Config?.imageMessageBubbleDebugLogs ?? false
+        );
         
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
@@ -71,11 +80,11 @@ namespace ChatSim.UI.ChatApp.Components
         {
             if (string.IsNullOrEmpty(addressableKey))
             {
-                LogError("No image path specified");
+                _log.Error("No image path specified");
                 return;
             }
 
-            Log($"Loading: {addressableKey}");
+            _log.Info($"Loading: {addressableKey}");
 
             AddressablesImageLoader.LoadSpriteAsync(
                 addressableKey,
@@ -88,7 +97,7 @@ namespace ChatSim.UI.ChatApp.Components
         {
             if (sprite == null)
             {
-                LogError("Loaded sprite is null");
+                _log.Error("Loaded sprite is null");
                 return;
             }
 
@@ -100,12 +109,12 @@ namespace ChatSim.UI.ChatApp.Components
                 cgImage.enabled = true;
             }
 
-            Log($"✓ Image loaded: {messageData.imagePath}");
+            _log.Info($"✓ Image loaded: {messageData.imagePath}");
         }
         
         private void OnImageLoadFailed(string error)
         {
-            LogError($"✗ Load failed: {messageData.imagePath}\n{error}");
+            _log.Error($"✗ Load failed: {messageData.imagePath}\n{error}");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -116,17 +125,17 @@ namespace ChatSim.UI.ChatApp.Components
         {
             if (loadedSprite == null)
             {
-                LogWarning("Cannot show fullscreen - sprite not loaded");
+                _log.Warn("Cannot show fullscreen - sprite not loaded");
                 return;
             }
 
             if (fullscreenViewer == null)
             {
-                LogError("FullscreenCGViewer not found!");
+                _log.Error("FullscreenCGViewer not found!");
                 return;
             }
 
-            Log($"Opening fullscreen: {messageData.imagePath}");
+            _log.Info($"Opening fullscreen: {messageData.imagePath}");
             fullscreenViewer.ShowFullscreen(loadedSprite, messageData.imagePath);
         }
         
@@ -140,29 +149,6 @@ namespace ChatSim.UI.ChatApp.Components
             {
                 clickButton.onClick.RemoveListener(OnImageClicked);
             }
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.imageMessageBubbleDebugLogs) return;
-            UnityEngine.Debug.Log($"[ImageMessageBubble] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.imageMessageBubbleDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ImageMessageBubble] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[ImageMessageBubble] ERROR: {message}");
         }
     }
 }

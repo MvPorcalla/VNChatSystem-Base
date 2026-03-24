@@ -17,6 +17,8 @@ namespace ChatSim.UI.HomeScreen.Contacts
     /// Shows "N/A" for missing fields automatically.
     ///
     /// Attach to: ContactsAppDetailPanel GameObject (child of ContactsAppPanel, starts inactive)
+    /// 
+    /// Connect the logs to GameConfig toggles for easy debugging:
     ///
     /// Hierarchy:
     ///   ContactsAppDetailPanel              ← ATTACH THIS SCRIPT (starts inactive)

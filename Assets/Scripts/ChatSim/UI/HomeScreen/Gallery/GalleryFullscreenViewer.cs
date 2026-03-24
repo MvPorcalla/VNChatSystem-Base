@@ -1,4 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════
+/// ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/ChatSim/UI/HomeScreen/Gallery/Components/GalleryFullscreenViewer.cs
 // ════════════════════════════════════════════════════════════════════════
 
@@ -12,7 +12,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 {
     /// <summary>
     /// Displays CG images in fullscreen mode from the gallery.
-    /// Features: Pinch-to-zoom, pan, tap-to-close, swipe navigation (optional)
+    /// Attach to: GalleryFullscreenViewer GameObject (child of GalleryAppPanel)
     /// </summary>
     public class GalleryFullscreenViewer : MonoBehaviour
     {
@@ -29,7 +29,16 @@ namespace ChatSim.UI.HomeScreen.Gallery
         
         [Header("Pan Settings")]
         [SerializeField] private bool enablePanLimits = true;
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "GalleryFullscreenViewer",
+            () => GameBootstrap.Config?.galleryAppDebugLogs ?? false
+        );
+
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
         // ═══════════════════════════════════════════════════════════
@@ -38,13 +47,11 @@ namespace ChatSim.UI.HomeScreen.Gallery
         private Vector2 panOffset = Vector2.zero;
         private RectTransform imageRect;
         private RectTransform panelRect;
-        
-        // Touch/Input tracking
+
         private Vector2 lastTouchPosition;
         private bool isDragging = false;
         private float lastTapTime = 0f;
-        
-        // Animation
+
         private Coroutine fadeCoroutine;
         private Coroutine zoomCoroutine;
 
@@ -58,59 +65,46 @@ namespace ChatSim.UI.HomeScreen.Gallery
         private float DoubleTapZoom  => GameBootstrap.Config != null ? GameBootstrap.Config.galleryDoubleTapZoom  : 2f;
         private float DoubleTapTime  => GameBootstrap.Config != null ? GameBootstrap.Config.galleryDoubleTapTime  : 0.3f;
         private float FadeDuration   => GameBootstrap.Config != null ? GameBootstrap.Config.galleryFadeDuration   : 0.3f;
-        
+
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
-        
+
         private void Awake()
         {
             if (cgImage != null)
             {
                 imageRect = cgImage.rectTransform;
-                cgImage.preserveAspect = true; // ← add this
+                cgImage.preserveAspect = true;
             }
 
             if (viewerPanel != null)
-            {
                 panelRect = viewerPanel.GetComponent<RectTransform>();
-            }
 
             if (closeButton != null)
-            {
                 closeButton.onClick.AddListener(Hide);
-            }
 
             if (viewerPanel != null)
-            {
                 viewerPanel.SetActive(false);
-            }
         }
-        
+
         // ═══════════════════════════════════════════════════════════
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
-        
-        /// <summary>
-        /// Show a CG in fullscreen mode
-        /// </summary>
+
         public void Show(Sprite sprite, string cgName = "")
         {
             if (sprite == null)
             {
-                LogError("Cannot show null sprite!");
+                _log.Error("Cannot show null sprite!");
                 return;
             }
-            
-            Log($"Showing: {cgName}");
-            
-            // Set sprite
+
+            _log.Info($"Showing: {cgName}");
+
             if (cgImage != null)
-            {
                 cgImage.sprite = sprite;
-            }
-            
-            // Set name
+
             if (cgNameText != null)
             {
                 if (!string.IsNullOrEmpty(cgName))
@@ -119,40 +113,27 @@ namespace ChatSim.UI.HomeScreen.Gallery
                     cgNameText.gameObject.SetActive(true);
                 }
                 else
-                {
                     cgNameText.gameObject.SetActive(false);
-                }
             }
-            
-            // Reset transform
+
             ResetTransform();
-            
-            // Show panel
+
             if (viewerPanel != null)
-            {
                 viewerPanel.SetActive(true);
-            }
-            
-            // Fade in
+
             if (fadeCoroutine != null)
-            {
                 StopCoroutine(fadeCoroutine);
-            }
+
             fadeCoroutine = StartCoroutine(FadeIn());
         }
-        
-        /// <summary>
-        /// Hide the fullscreen viewer
-        /// </summary>
+
         public void Hide()
         {
-            Log("Hiding");
-            
-            // Fade out
+            _log.Info("Hiding");
+
             if (fadeCoroutine != null)
-            {
                 StopCoroutine(fadeCoroutine);
-            }
+
             fadeCoroutine = StartCoroutine(FadeOut());
         }
         
@@ -499,28 +480,5 @@ namespace ChatSim.UI.HomeScreen.Gallery
             Hide();
         }
         #endif
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
-            UnityEngine.Debug.Log($"[GalleryFullscreenViewer] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[GalleryFullscreenViewer] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[GalleryFullscreenViewer] ERROR: {message}");
-        }
     }
 }

@@ -43,6 +43,15 @@ namespace ChatSim.UI.ChatApp.Controllers
         public event Action OnScrollReachedBottom;
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly DebugLogger _log = new DebugLogger(
+            "ChatAutoScroller",
+            () => GameBootstrap.Config?.chatAutoScrollerDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ PROPERTIES
         // ═══════════════════════════════════════════════════════════
 
@@ -64,7 +73,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (contentTransform == null)
             {
-                LogWarning("contentTransform is null - reinitializing");
+                _log.Warn("contentTransform is null - reinitializing");
                 isInitialized = false;
                 return;
             }
@@ -84,7 +93,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (!wasAtBottom && currentlyAtBottom)
             {
-                Log("User scrolled to bottom");
+                _log.Info("User scrolled to bottom");
                 OnScrollReachedBottom?.Invoke();
             }
 
@@ -116,7 +125,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 chatScrollRect = GetComponentInChildren<ScrollRect>(true);
                 if (chatScrollRect == null)
                 {
-                    LogError("No ScrollRect found!");
+                    _log.Error("No ScrollRect found!");
                     return false;
                 }
             }
@@ -124,7 +133,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             contentTransform = chatScrollRect.content;
             if (contentTransform == null)
             {
-                LogError("ScrollRect has no Content!");
+                _log.Error("ScrollRect has no Content!");
                 return false;
             }
 
@@ -133,7 +142,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             wasAtBottom = true;
             isInitialized = true;
 
-            Log($"Initialized. Content: {contentTransform.name}");
+            _log.Info($"Initialized. Content: {contentTransform.name}");
             return true;
         }
 
@@ -156,7 +165,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (contentTransform == null)
             {
-                LogWarning("Cannot scroll - contentTransform is null");
+                _log.Warn("Cannot scroll - contentTransform is null");
                 return;
             }
 
@@ -169,7 +178,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (!isInitialized && !TryInitialize())
             {
-                LogWarning("Cannot force scroll - initialization failed");
+                _log.Warn("Cannot force scroll - initialization failed");
                 return;
             }
 
@@ -179,13 +188,13 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             ScrollToBottom();
 
-            Log("Forced scroll to bottom and reset tracking");
+            _log.Info("Forced scroll to bottom and reset tracking");
         }
 
         public void SetAutoScrollEnabled(bool enabled)
         {
             autoScrollEnabled = enabled;
-            Log($"Auto-scroll {(enabled ? "enabled" : "disabled")}");
+            _log.Info($"Auto-scroll {(enabled ? "enabled" : "disabled")}");
         }
 
         public void RefreshReferences()
@@ -195,32 +204,8 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (TryInitialize())
             {
                 ForceScrollToBottom();
-                Log("References refreshed");
+                _log.Info("References refreshed");
             }
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAutoScrollerDebugLogs) return;
-            UnityEngine.Debug.Log($"[ChatAutoScroller] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAutoScrollerDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[ChatAutoScroller] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            // Always show errors — no Conditional, fires in all builds
-            UnityEngine.Debug.LogError($"[ChatAutoScroller] ERROR: {message}");
         }
     }
 }

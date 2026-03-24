@@ -19,7 +19,6 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ INSPECTOR REFERENCES — GAMEPLAY
         // ═══════════════════════════════════════════════════════════
-
         [Header("Gameplay — Message Speed")]
         [SerializeField] private Button messageSpeedButton;
         [SerializeField] private TextMeshProUGUI messageSpeedLabel;
@@ -35,7 +34,6 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ INSPECTOR REFERENCES — DATA
         // ═══════════════════════════════════════════════════════════
-
         [Header("Data")]
         [SerializeField] private Button resetAllButton;
         [SerializeField] private ResetConfirmationDialog resetAllDialog;
@@ -43,14 +41,12 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ INSPECTOR REFERENCES — ABOUT
         // ═══════════════════════════════════════════════════════════
-
         [Header("About")]
         [SerializeField] private TextMeshProUGUI versionText;
 
         // ═══════════════════════════════════════════════════════════
         // ░ CONSTANTS
         // ═══════════════════════════════════════════════════════════
-
         private const float TEXT_SIZE_SMALL  = 36f;
         private const float TEXT_SIZE_MEDIUM = 42f;
         private const float TEXT_SIZE_LARGE  = 48f;
@@ -58,59 +54,43 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
         // ═══════════════════════════════════════════════════════════
-
         private float currentTextSize;
         private bool isFastMode = false;
 
         // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+        private readonly DebugLogger _log = new DebugLogger(
+            "SettingsPanel",
+            () => GameBootstrap.Config?.settingsPanelDebugLogs ?? false
+        );
+
+        // ═══════════════════════════════════════════════════════════
         // ░ UNITY LIFECYCLE
         // ═══════════════════════════════════════════════════════════
-
-        private void Awake()
-        {
-            SetupButtons();
-        }
-
-        private void OnEnable()
-        {
-            LoadAndApplySettings();
-        }
+        private void Awake() => SetupButtons();
+        private void OnEnable() => LoadAndApplySettings();
 
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
-
         private void SetupButtons()
         {
-            // Message speed button
-            if (messageSpeedButton != null)
-                messageSpeedButton.onClick.AddListener(OnMessageSpeedButtonClicked);
-            else
-                LogWarning("messageSpeedButton not assigned!");
-
-            // Text size buttons
+            messageSpeedButton?.onClick.AddListener(OnMessageSpeedButtonClicked);
             smallTextButton?.onClick.AddListener(() => OnTextSizeSelected(TEXT_SIZE_SMALL));
             mediumTextButton?.onClick.AddListener(() => OnTextSizeSelected(TEXT_SIZE_MEDIUM));
             largeTextButton?.onClick.AddListener(() => OnTextSizeSelected(TEXT_SIZE_LARGE));
+            resetAllButton?.onClick.AddListener(OnResetAllClicked);
 
-            // Reset all button
-            if (resetAllButton != null)
-                resetAllButton.onClick.AddListener(OnResetAllClicked);
-            else
-                LogWarning("resetAllButton not assigned!");
-
-            // Version text
             if (versionText != null)
                 versionText.text = $"Version {Application.version}";
         }
 
         private void LoadAndApplySettings()
         {
-            // Load and apply message speed
             isFastMode = PlayerPrefs.GetInt(PlayerPrefKeys.FastMode, PlayerPrefKeys.DefaultFastMode) == 1;
             UpdateMessageSpeedVisuals();
 
-            // Load and apply text size — default to Large
             currentTextSize = PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, TEXT_SIZE_LARGE);
             UpdateTextSizeButtonStates(currentTextSize);
         }
@@ -118,21 +98,13 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ GAMEPLAY — MESSAGE SPEED
         // ═══════════════════════════════════════════════════════════
-
         private void OnMessageSpeedButtonClicked()
         {
             isFastMode = !isFastMode;
-
-            Log($"Message speed: {(isFastMode ? "Fast" : "Normal")}");
-
-            // Save preference
+            _log.Info($"Message speed: {(isFastMode ? "Fast" : "Normal")}");
             PlayerPrefs.SetInt(PlayerPrefKeys.FastMode, isFastMode ? 1 : 0);
             PlayerPrefs.Save();
-
-            // Update visuals
             UpdateMessageSpeedVisuals();
-
-            // Notify other systems
             GameEvents.TriggerMessageSpeedChanged(isFastMode);
         }
 
@@ -148,23 +120,15 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ GAMEPLAY — TEXT SIZE
         // ═══════════════════════════════════════════════════════════
-
         private void OnTextSizeSelected(float fontSize)
         {
             if (Mathf.Approximately(fontSize, currentTextSize)) return;
 
             currentTextSize = fontSize;
-
-            Log($"Text size: {fontSize}");
-
-            // Save preference
+            _log.Info($"Text size: {fontSize}");
             PlayerPrefs.SetFloat(PlayerPrefKeys.TextSize, fontSize);
             PlayerPrefs.Save();
-
-            // Update button visual states
             UpdateTextSizeButtonStates(fontSize);
-
-            // Notify other systems
             GameEvents.TriggerTextSizeChanged(fontSize);
         }
 
@@ -189,10 +153,9 @@ namespace ChatSim.UI.HomeScreen.Settings
         // ═══════════════════════════════════════════════════════════
         // ░ DATA — RESET ALL
         // ═══════════════════════════════════════════════════════════
-
         private void OnResetAllClicked()
         {
-            Log("Reset all clicked");
+            _log.Info("Reset all clicked");
 
             if (resetAllDialog != null)
             {
@@ -204,55 +167,29 @@ namespace ChatSim.UI.HomeScreen.Settings
             }
             else
             {
-                LogWarning("resetAllDialog not assigned — resetting directly");
+                _log.Warn("resetAllDialog not assigned — resetting directly");
                 OnResetAllConfirmed();
             }
         }
 
         private void OnResetAllConfirmed()
         {
-            Log("Reset all confirmed");
+            _log.Info("Reset all confirmed");
 
             if (GameBootstrap.Save == null)
             {
-                LogError("GameBootstrap.Save is null!");
+                _log.Error("GameBootstrap.Save is null!");
                 return;
             }
 
             if (GameBootstrap.Conversation == null)
             {
-                LogError("GameBootstrap.Conversation is null!");
+                _log.Error("GameBootstrap.Conversation is null!");
                 return;
             }
 
-            // Wipe disk
             GameBootstrap.Save.ResetAllData();
-
-            // Evict all in-memory session caches so next conversation load starts fresh
             GameBootstrap.Conversation.EvictAllConversationCaches();
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ░ LOGGING
-        // ═══════════════════════════════════════════════════════════
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void Log(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.settingsPanelDebugLogs) return;
-            UnityEngine.Debug.Log($"[SettingsPanel] {message}");
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogWarning(string message)
-        {
-            if (GameBootstrap.Config == null || !GameBootstrap.Config.settingsPanelDebugLogs) return;
-            UnityEngine.Debug.LogWarning($"[SettingsPanel] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            UnityEngine.Debug.LogError($"[SettingsPanel] ERROR: {message}");
         }
     }
 }

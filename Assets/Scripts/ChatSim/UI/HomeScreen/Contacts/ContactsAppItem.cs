@@ -29,13 +29,6 @@ namespace ChatSim.UI.HomeScreen.Contacts
     /// ResetConfirmationDialog is an optional UI middleman.
     ///
     /// Attach to: ContactsAppItem prefab root
-    ///
-    /// Hierarchy:
-    ///   ContactsAppItem              ← Button component (itemButton) + this script
-    ///   ├── ProfileImage             ← Image component
-    ///   ├── NameText                 ← TextMeshProUGUI
-    ///   └── ResetButton              ← Button component (resetButton)
-    ///       └── Text                 ← TextMeshProUGUI "Reset Story"
     /// </summary>
     public class ContactsAppItem : MonoBehaviour
     {
@@ -92,36 +85,34 @@ namespace ChatSim.UI.HomeScreen.Contacts
             if (nameText != null)
                 nameText.text = asset.characterName;
             else
-                Debug.LogWarning($"[ContactsAppItem] nameText not assigned on {gameObject.name}");
+                LogWarning($"nameText not assigned on {gameObject.name}");
         }
 
         private void SetupProfileImage(ConversationAsset asset)
         {
             if (profileImage == null)
             {
-                Debug.LogWarning($"[ContactsAppItem] profileImage not assigned on {gameObject.name}");
+                LogWarning($"profileImage not assigned on {gameObject.name}");
                 return;
             }
 
             if (asset.profileImage == null || !asset.profileImage.RuntimeKeyIsValid())
             {
-                Debug.LogWarning($"[ContactsAppItem] No valid profile image for {asset.characterName}");
+                LogWarning($"No valid profile image for {asset.characterName}");
                 return;
             }
 
-            // If already loaded by a previous item, reuse the sprite directly
             if (asset.profileImage.OperationHandle.IsValid() && asset.profileImage.OperationHandle.IsDone)
             {
                 var sprite = asset.profileImage.OperationHandle.Convert<Sprite>().Result;
                 if (sprite != null && profileImage != null)
                 {
                     profileImage.sprite = sprite;
-                    Debug.Log($"[ContactsAppItem] ✓ Using cached profile image: {asset.characterName}");
+                    Log($"✓ Using cached profile image: {asset.characterName}");
                 }
                 return;
             }
 
-            // Fresh load
             _imageLoadHandle = asset.profileImage.LoadAssetAsync<Sprite>();
             _imageLoadHandle.Completed += OnProfileImageLoaded;
         }
@@ -130,7 +121,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (itemButton == null)
             {
-                Debug.LogError($"[ContactsAppItem] itemButton not assigned on {gameObject.name}");
+                LogError($"itemButton not assigned on {gameObject.name}");
                 return;
             }
 
@@ -142,11 +133,10 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (resetButton == null)
             {
-                Debug.LogError($"[ContactsAppItem] resetButton not assigned on {gameObject.name}");
+                LogError($"resetButton not assigned on {gameObject.name}");
                 return;
             }
 
-            // RemoveAllListeners clears any stale Inspector onClick wiring
             resetButton.onClick.RemoveAllListeners();
             resetButton.onClick.AddListener(RequestReset);
         }
@@ -164,7 +154,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
             }
             else
             {
-                Debug.LogError($"[ContactsAppItem] Failed to load profile image for {_conversationAsset?.characterName}");
+                LogError($"Failed to load profile image for {_conversationAsset?.characterName}");
             }
         }
 
@@ -204,7 +194,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_conversationAsset == null)
             {
-                Debug.LogError("[ContactsAppItem] Cannot reset: ConversationAsset is null!");
+                LogError("Cannot reset: ConversationAsset is null!");
                 return;
             }
 
@@ -230,20 +220,19 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_conversationAsset == null)
             {
-                Debug.LogError("[ContactsAppItem] ExecuteReset: ConversationAsset is null!");
+                LogError("ExecuteReset: ConversationAsset is null!");
                 return;
             }
 
             if (GameBootstrap.Save == null)
             {
-                Debug.LogError("[ContactsAppItem] ExecuteReset: GameBootstrap.Save is null!");
+                LogError("ExecuteReset: GameBootstrap.Save is null!");
                 return;
             }
 
-            Debug.Log($"[ContactsAppItem] Executing story reset for: {_conversationAsset.characterName}");
+            Log($"Executing story reset for: {_conversationAsset.characterName}");
             GameBootstrap.Save.ResetCharacterStory(_conversationAsset.ConversationId);
 
-            // Evict in-memory cache so next open loads fresh from disk
             GameBootstrap.Conversation?.EvictConversationCache(_conversationAsset.ConversationId);
         }
 
@@ -255,6 +244,29 @@ namespace ChatSim.UI.HomeScreen.Contacts
         {
             if (_imageLoadHandle.IsValid())
                 Addressables.Release(_imageLoadHandle);
+        }
+
+        #endregion
+
+        #region Logging
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[ContactsAppItem] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ContactsAppItem] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ContactsAppItem] ERROR: {message}");
         }
 
         #endregion

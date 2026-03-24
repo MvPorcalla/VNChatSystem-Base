@@ -134,21 +134,20 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void ValidateReferences()
         {
-            // Chat-specific validation
             if (chatBackButton == null)
-                Debug.LogError("[ChatAppController] chatBackButton not assigned!");
-            
+                UnityEngine.Debug.LogError("[ChatAppController] chatBackButton not assigned!");
+
             if (messageDisplay == null)
-                Debug.LogError("[ChatAppController] messageDisplay not assigned!");
-            
+                UnityEngine.Debug.LogError("[ChatAppController] messageDisplay not assigned!");
+
             if (choiceDisplay == null)
-                Debug.LogError("[ChatAppController] choiceDisplay not assigned!");
-                
+                UnityEngine.Debug.LogError("[ChatAppController] choiceDisplay not assigned!");
+
             if (timingController == null)
-                Debug.LogError("[ChatAppController] timingController not assigned!");
-            
+                UnityEngine.Debug.LogError("[ChatAppController] timingController not assigned!");
+
             if (autoScroll == null)
-                Debug.LogWarning("[ChatAppController] autoScroll not assigned - auto-scroll disabled");
+                UnityEngine.Debug.LogWarning("[ChatAppController] autoScroll not assigned - auto-scroll disabled");
         }
         
         /// <summary>
@@ -158,15 +157,12 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (contactListPanel == null || chatAppPanel == null)
             {
-                Debug.LogError("[ChatAppController] Panel references are missing!");
+                UnityEngine.Debug.LogError("[ChatAppController] Panel references are missing!");
                 return;
             }
-            
-            // Start with contact list visible
+
             contactListPanel.SetActive(true);
             chatAppPanel.SetActive(false);
-            
-            Debug.Log("[ChatAppController] Initialized: ContactList=ACTIVE, ChatApp=INACTIVE");
         }
         
         private void SetupEventListeners()
@@ -224,20 +220,20 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (conversationAsset == null)
             {
-                Debug.LogError("[ChatAppController] Cannot start null conversation!");
+                UnityEngine.Debug.LogError("[ChatAppController] Cannot start null conversation!");
                 return;
             }
-            
+
             StartCoroutine(StartConversationSequence(conversationAsset));
         }
 
         private IEnumerator StartConversationSequence(ConversationAsset conversationAsset)
         {
-            Debug.Log($"[ChatAppController] Starting conversation: {conversationAsset.characterName}");
+            Log($"Starting conversation: {conversationAsset.characterName}");
             
             if (currentExecutor != null)
             {
-                Debug.LogWarning("[ChatAppController] StartConversation called while executor active — cleaning up previous");
+                UnityEngine.Debug.LogWarning("[ChatAppController] StartConversation called while executor active — cleaning up previous");
                 PerformConversationCleanup();
             }
 
@@ -261,7 +257,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (currentExecutor == null)
             {
-                Debug.LogError("[ChatAppController] Failed to start conversation!");
+                UnityEngine.Debug.LogError("[ChatAppController] Failed to start conversation!");
                 yield break;
             }
 
@@ -305,15 +301,14 @@ namespace ChatSim.UI.ChatApp.Controllers
             {
                 chatProfileName.text = asset.characterName;
             }
-            
-            // Load profile image from Addressables
+
             if (chatProfileIMG != null && asset.profileImage != null && asset.profileImage.RuntimeKeyIsValid())
             {
                 LoadChatProfileImage(asset.profileImage);
             }
             else
             {
-                Debug.LogWarning($"[ChatAppController] No valid profile image for {asset.characterName}");
+                UnityEngine.Debug.LogWarning($"[ChatAppController] No valid profile image for {asset.characterName}");
             }
         }
 
@@ -333,7 +328,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 if (sprite != null && chatProfileIMG != null)
                 {
                     chatProfileIMG.sprite = sprite;
-                    Debug.Log($"[ChatAppController] ✓ Using cached profile image: {currentConversation?.characterName}");
+                    Log($"✓ Using cached profile image: {currentConversation?.characterName}");
                 }
                 return;
             }
@@ -350,12 +345,12 @@ namespace ChatSim.UI.ChatApp.Controllers
                 if (chatProfileIMG != null)
                 {
                     chatProfileIMG.sprite = handle.Result;
-                    Debug.Log($"[ChatAppController] ✓ Chat profile image loaded: {currentConversation?.characterName}");
+                    Log($"✓ Chat profile image loaded: {currentConversation?.characterName}");
                 }
             }
             else
             {
-                Debug.LogError($"[ChatAppController] ✗ Failed to load chat profile image: {currentConversation?.characterName}");
+                UnityEngine.Debug.LogError($"[ChatAppController] ✗ Failed to load chat profile image: {currentConversation?.characterName}");
             }
         }
 
@@ -378,16 +373,12 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             contactListPanel.SetActive(false);
             chatAppPanel.SetActive(true);
-            
-            Debug.Log("[ChatAppController] Switched to chat panel");
         }
         
         private void SwitchToContactList()
         {
             chatAppPanel.SetActive(false);
             contactListPanel.SetActive(true);
-            
-            Debug.Log("[ChatAppController] Switched to contact list");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -402,7 +393,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             
             if (state?.messageHistory != null && state.messageHistory.Count > 0)
             {
-                Debug.Log($"[ChatAppController] Loading {state.messageHistory.Count} historical messages");
+                Log($"Loading {state.messageHistory.Count} historical messages");
                 
                 // Display all historical messages instantly (no animation)
                 foreach (var msg in state.messageHistory)
@@ -429,7 +420,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             currentExecutor.OnConversationEnd += HandleConversationEnd;
             currentExecutor.OnChapterChange += HandleChapterChange;
             
-            Debug.Log("[ChatAppController] Subscribed to executor events");
+            Log("Subscribed to executor events");
         }
         
         private void UnsubscribeFromExecutorEvents()
@@ -442,7 +433,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             currentExecutor.OnConversationEnd -= HandleConversationEnd;
             currentExecutor.OnChapterChange -= HandleChapterChange;
             
-            Debug.Log("[ChatAppController] Unsubscribed from executor events");
+            Log("Unsubscribed from executor events");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -451,7 +442,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void HandleMessagesReady(List<MessageData> messages)
         {
-            Debug.Log($"[ChatAppController] Handling {messages.Count} new messages");
+            Log($"Handling {messages.Count} new messages");
             
             if (messages.Count == 0)
             {
@@ -465,14 +456,14 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void HandleChoicesReady(List<ChoiceData> choices)
         {
-            Debug.Log($"[ChatAppController] Showing {choices.Count} choices");
+            Log($"Showing {choices.Count} choices");
             
             choiceDisplay.DisplayChoices(choices, OnChoiceSelected);
         }
         
         private void HandlePauseReached()
         {
-            Debug.Log("[ChatAppController] Pause reached - showing continue button");
+            Log("Pause reached - showing continue button");
             
             choiceDisplay.ShowContinueButton(OnContinueButtonClicked);
         }
@@ -482,26 +473,26 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void HandleConversationEnd()
         {
-            Debug.Log("[ChatAppController] Conversation ended");
+            Log("Conversation ended");
 
             GameBootstrap.Conversation.SaveCurrentConversation();
             choiceDisplay.ClearChoices();
 
             if (currentExecutor.HasMoreChapters)
             {
-                Debug.Log("[ChatAppController] More chapters available - showing continue to next chapter button");
+                Log("More chapters available - showing continue to next chapter button");
                 choiceDisplay.ShowEndButton("Continue to Next Chapter", OnContinueToNextChapterClicked);
             }
             else
             {
-                Debug.Log("[ChatAppController] No more chapters - showing return button");
+                Log("No more chapters - showing return button");
                 choiceDisplay.ShowEndButton("Return to Contacts", OnReturnToContactsClicked);
             }
         }
         
         private void HandleChapterChange(string chapterName)
         {
-            Debug.Log($"[ChatAppController] Chapter changed: {chapterName}");
+            Log($"Chapter changed: {chapterName}");
             
             // Optional: Show chapter transition UI
             // messageDisplay.DisplaySystemMessage($"--- {chapterName} ---");
@@ -516,11 +507,11 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void OnContinueToNextChapterClicked()
         {
-            Debug.Log("[ChatAppController] Continue to next chapter clicked");
+            Log("Continue to next chapter clicked");
 
             if (currentExecutor == null)
             {
-                Debug.LogError("[ChatAppController] Cannot advance chapter - no active executor");
+                UnityEngine.Debug.LogError("[ChatAppController] Cannot advance chapter - no active executor");
                 return;
             }
 
@@ -533,7 +524,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void OnReturnToContactsClicked()
         {
-            Debug.Log("[ChatAppController] Return to contacts clicked");
+            Log("Return to contacts clicked");
             
             // Clear choices
             choiceDisplay.ClearChoices();
@@ -552,7 +543,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void OnMessagesDisplayComplete()
         {
-            Debug.Log("[ChatAppController] Messages display complete");
+            Log("Messages display complete");
             currentExecutor?.OnMessagesDisplayComplete();
         }
         
@@ -575,7 +566,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void OnChoiceSelected(ChoiceData choice)
         {
-            Debug.Log($"[ChatAppController] Choice selected: {choice.choiceText}");
+            Log($"Choice selected: {choice.choiceText}");
             
             // Clear choices
             choiceDisplay.ClearChoices();
@@ -586,7 +577,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void OnContinueButtonClicked()
         {
-            Debug.Log("[ChatAppController] Continue button clicked");
+            Log("Continue button clicked");
             
             // Clear continue button
             choiceDisplay.ClearChoices();
@@ -604,7 +595,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void OnChatBackButtonClicked()
         {
-            Debug.Log("[ChatAppController] Chat back button clicked → Contact List");
+            Log("Chat back button clicked → Contact List");
             
             // Cleanup conversation
             PerformConversationCleanup();
@@ -622,7 +613,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         private void PerformConversationCleanup()
         {
-            Debug.Log("[ChatAppController] Performing conversation cleanup");
+            Log("Performing conversation cleanup");
             
             // STEP 1: Check if we're interrupting an active message sequence
             bool wasInterrupted = timingController != null && timingController.IsDisplayingMessages;
@@ -659,7 +650,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             ClearChatDisplay();
             HideNewMessageIndicator();
             
-            Debug.Log("[ChatAppController] Cleanup complete");
+            Log("Cleanup complete");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -684,7 +675,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             // Update icon
             UpdateModeIcon();
             
-            Debug.Log($"[ChatAppController] Fast mode: {isFastMode}");
+            Log($"Fast mode: {isFastMode}");
         }
 
         private void UpdateModeIcon()
@@ -726,7 +717,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void OnNewMessageIndicatorClicked()
         {
-            Debug.Log("[ChatAppController] New message indicator clicked");
+            Log("New message indicator clicked");
             
             // Scroll to bottom
             if (autoScroll != null)
@@ -739,7 +730,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         private void OnScrollReachedBottom()
         {
-            Debug.Log("[ChatAppController] Scroll reached bottom");
             HideNewMessageIndicator();
         }
         
@@ -767,6 +757,17 @@ namespace ChatSim.UI.ChatApp.Controllers
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
             ForceScrollToBottom();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatAppController] {message}");
         }
     }
 }

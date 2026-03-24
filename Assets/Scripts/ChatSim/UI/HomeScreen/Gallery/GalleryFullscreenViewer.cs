@@ -1,12 +1,12 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/ChatSim/UI/HomeScreen/Gallery/Components/GalleryFullscreenViewer.cs
-// Fullscreen CG Viewer for Gallery - Pinch zoom, pan, tap-to-close
 // ════════════════════════════════════════════════════════════════════════
 
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using ChatSim.Core;
 
 namespace ChatSim.UI.HomeScreen.Gallery
 {
@@ -27,18 +27,8 @@ namespace ChatSim.UI.HomeScreen.Gallery
         [SerializeField] private TextMeshProUGUI cgNameText;
         [SerializeField] private CanvasGroup canvasGroup;
         
-        [Header("Zoom Settings")]
-        [SerializeField] private float minZoom = 1f;
-        [SerializeField] private float maxZoom = 3f;
-        [SerializeField] private float zoomSpeed = 0.001f;
-        [SerializeField] private float doubleTapZoom = 2f;
-        [SerializeField] private float doubleTapTime = 0.3f;
-        
         [Header("Pan Settings")]
         [SerializeField] private bool enablePanLimits = true;
-        
-        [Header("Animation")]
-        [SerializeField] private float fadeDuration = 0.3f;
         
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
@@ -57,6 +47,17 @@ namespace ChatSim.UI.HomeScreen.Gallery
         // Animation
         private Coroutine fadeCoroutine;
         private Coroutine zoomCoroutine;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ CONFIG VALUES FALLBACKS
+        // ═══════════════════════════════════════════════════════════
+
+        private float MinZoom        => GameBootstrap.Config != null ? GameBootstrap.Config.galleryMinZoom        : 1f;
+        private float MaxZoom        => GameBootstrap.Config != null ? GameBootstrap.Config.galleryMaxZoom        : 3f;
+        private float ZoomSpeed      => GameBootstrap.Config != null ? GameBootstrap.Config.galleryZoomSpeed      : 0.001f;
+        private float DoubleTapZoom  => GameBootstrap.Config != null ? GameBootstrap.Config.galleryDoubleTapZoom  : 2f;
+        private float DoubleTapTime  => GameBootstrap.Config != null ? GameBootstrap.Config.galleryDoubleTapTime  : 0.3f;
+        private float FadeDuration   => GameBootstrap.Config != null ? GameBootstrap.Config.galleryFadeDuration   : 0.3f;
         
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
@@ -97,11 +98,11 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (sprite == null)
             {
-                Debug.LogError("[GalleryFullscreenViewer] Cannot show null sprite!");
+                LogError("Cannot show null sprite!");
                 return;
             }
             
-            Debug.Log($"[GalleryFullscreenViewer] Showing: {cgName}");
+            Log($"Showing: {cgName}");
             
             // Set sprite
             if (cgImage != null)
@@ -145,7 +146,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         /// </summary>
         public void Hide()
         {
-            Debug.Log("[GalleryFullscreenViewer] Hiding");
+            Log("Hiding");
             
             // Fade out
             if (fadeCoroutine != null)
@@ -169,10 +170,10 @@ namespace ChatSim.UI.HomeScreen.Gallery
             float elapsed = 0f;
             canvasGroup.alpha = 0f;
             
-            while (elapsed < fadeDuration)
+            while (elapsed < FadeDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                float t = Mathf.Clamp01(elapsed / FadeDuration);
                 canvasGroup.alpha = t;
                 yield return null;
             }
@@ -192,10 +193,10 @@ namespace ChatSim.UI.HomeScreen.Gallery
             float elapsed = 0f;
             canvasGroup.alpha = 1f;
             
-            while (elapsed < fadeDuration)
+            while (elapsed < FadeDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                float t = Mathf.Clamp01(elapsed / FadeDuration);
                 canvasGroup.alpha = 1f - t;
                 yield return null;
             }
@@ -243,7 +244,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             {
                 // Check for double-tap
                 float timeSinceLastTap = Time.time - lastTapTime;
-                if (timeSinceLastTap < doubleTapTime)
+                if (timeSinceLastTap < DoubleTapTime)
                 {
                     HandleDoubleTap(touch.position);
                     lastTapTime = 0f; // Reset to prevent triple-tap
@@ -279,7 +280,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             {
                 // Zoom in to double-tap zoom level at tap position
                 Vector2 zoomCenter = GetImageLocalPosition(tapPosition);
-                AnimateZoomTo(doubleTapZoom, zoomCenter);
+                AnimateZoomTo(DoubleTapZoom, zoomCenter);
             }
         }
         
@@ -299,7 +300,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             float currentMagnitude = (touch0.position - touch1.position).magnitude;
 
             float difference = currentMagnitude - prevMagnitude;
-            float zoomDelta = difference * zoomSpeed; // removed Time.deltaTime
+            float zoomDelta = difference * ZoomSpeed;
 
             Vector2 pinchCenter = (touch0.position + touch1.position) / 2f;
             Vector2 imageLocalCenter = GetImageLocalPosition(pinchCenter);
@@ -329,7 +330,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         private void SetZoom(float newZoom, Vector2 zoomCenter)
         {
             float oldZoom = currentZoom;
-            currentZoom = Mathf.Clamp(newZoom, minZoom, maxZoom);
+            currentZoom = Mathf.Clamp(newZoom, MinZoom, MaxZoom);
             
             // Adjust pan offset to keep zoom centered
             float zoomRatio = currentZoom / oldZoom;
@@ -498,5 +499,28 @@ namespace ChatSim.UI.HomeScreen.Gallery
             Hide();
         }
         #endif
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[GalleryFullscreenViewer] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[GalleryFullscreenViewer] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[GalleryFullscreenViewer] ERROR: {message}");
+        }
     }
 }

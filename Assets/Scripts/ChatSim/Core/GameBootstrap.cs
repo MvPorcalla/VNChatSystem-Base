@@ -34,11 +34,6 @@ namespace ChatSim.Core
         [SerializeField] private GameConfig gameConfig;
         #endregion
 
-        #region Debug Settings
-        [Header("Debug Settings")]
-        [SerializeField] private bool enableDebugLogs = true;
-        #endregion
-
         #region Public Static Accessors
         public static SaveManager Save { get; private set; }
         public static SceneFlowManager SceneFlow { get; private set; }
@@ -194,22 +189,17 @@ namespace ChatSim.Core
         #endregion
 
         #region Logging Helpers
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         private void Log(string message)
         {
-            if (!enableDebugLogs) return;
-            Debug.Log($"[GameBootstrap] {message}");
-        }
-
-        private void LogWarning(string message)
-        {
-            if (!enableDebugLogs) return;
-            Debug.LogWarning($"[GameBootstrap] WARNING: {message}");
+            if (Config == null || !Config.bootstrapDebugLogs) return;
+            UnityEngine.Debug.Log($"[GameBootstrap] {message}");
         }
 
         private void LogError(string message)
         {
-            // Always show errors
-            Debug.LogError($"[GameBootstrap] ERROR: {message}");
+            // Always show errors — no Conditional, fires in all builds
+            UnityEngine.Debug.LogError($"[GameBootstrap] ERROR: {message}");
         }
         #endregion
 

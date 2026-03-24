@@ -3093,10 +3093,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 484326325}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -100}
-  m_SizeDelta: {x: 1080, y: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1578891956
 MonoBehaviour:
@@ -3138,12 +3138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bcc901ece08e0441a308b3857c95367, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  messageDelay: 1.2
-  typingIndicatorDuration: 1.5
-  playerMessageDelay: 0.3
-  finalDelayBeforeChoices: 0.2
   isFastMode: 0
-  fastModeSpeed: 0.1
   messageDisplay: {fileID: 1122238834}
   typingIndicatorPrefab: {fileID: 5785353465299643845, guid: 1c116137488f0974595a36cffd8ed42f, type: 3}
   poolingManager: {fileID: 1578891959}
@@ -3161,7 +3156,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chatScrollRect: {fileID: 1122238831}
   autoScrollEnabled: 1
-  bottomThreshold: 0.01
 --- !u!114 &1578891959
 MonoBehaviour:
   m_ObjectHideFlags: 0

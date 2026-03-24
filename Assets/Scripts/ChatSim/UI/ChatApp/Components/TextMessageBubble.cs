@@ -36,8 +36,10 @@ namespace ChatSim.UI.ChatApp.Components
             {
                 autoResize = messageText.GetComponent<AutoResizeText>();
 
+        #if UNITY_EDITOR
                 if (autoResize == null)
-                    Debug.LogWarning($"[TextMessageBubble] AutoResizeText not found on {gameObject.name}");
+                    UnityEngine.Debug.LogWarning($"[TextMessageBubble] AutoResizeText not found on {gameObject.name}");
+        #endif
             }
         }
         

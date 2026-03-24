@@ -58,19 +58,19 @@ namespace ChatSim.UI.HomeScreen
         private void ValidateReferences()
         {
             if (homeButton == null)
-                Debug.LogWarning("[ChatAppNavButtons] homeButton not assigned!");
+                LogWarning("homeButton not assigned!");
 
             if (backButton == null)
-                Debug.LogWarning("[ChatAppNavButtons] backButton not assigned!");
+                LogWarning("backButton not assigned!");
 
             if (quitButton == null)
-                Debug.LogWarning("[ChatAppNavButtons] quitButton not assigned!");
+                LogWarning("quitButton not assigned!");
 
             if (quitConfirmationPanel == null)
-                Debug.LogWarning("[ChatAppNavButtons] quitConfirmationPanel not assigned!");
+                LogWarning("quitConfirmationPanel not assigned!");
 
             if (chatAppController == null)
-                Debug.LogError("[ChatAppNavButtons] chatAppController not assigned!");
+                LogError("chatAppController not assigned!");
         }
 
         private void SetupEventListeners()
@@ -98,7 +98,7 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnHomePressed()
         {
-            Debug.Log("[ChatAppNavButtons] Home pressed");
+            Log("Home pressed");
 
             if (chatAppController != null && chatAppController.IsChatActive)
                 chatAppController.ExitForSceneTransition();
@@ -113,16 +113,16 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnBackPressed()
         {
-            Debug.Log("[ChatAppNavButtons] Back pressed");
+            Log("Back pressed");
 
             if (chatAppController != null && chatAppController.IsChatActive)
             {
-                Debug.Log("[ChatAppNavButtons] Back: ChatApp → ContactList");
+                Log("Back: ChatApp → ContactList");
                 chatAppController.ExitToContactList();
             }
             else
             {
-                Debug.Log("[ChatAppNavButtons] Back: ContactList → PhoneScreen");
+                Log("Back: ContactList → PhoneScreen");
                 GameBootstrap.SceneFlow.GoToPhoneScreen();
             }
         }
@@ -132,13 +132,36 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnConfirmQuit()
         {
-            Debug.Log("[ChatAppNavButtons] Quitting game...");
+            Log("Quitting game...");
 
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
             #else
             Application.Quit();
             #endif
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAppNavButtonsDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatAppNavButtons] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAppNavButtonsDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ChatAppNavButtons] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ChatAppNavButtons] ERROR: {message}");
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using ChatSim.Core;
 
 namespace ChatSim.UI.HomeScreen
 {
@@ -57,19 +58,19 @@ namespace ChatSim.UI.HomeScreen
         private void ValidateReferences()
         {
             if (homeButton == null)
-                Debug.LogWarning("[HomeScreenNavButtons] homeButton not assigned!");
+                LogWarning("homeButton not assigned!");
 
             if (backButton == null)
-                Debug.LogWarning("[HomeScreenNavButtons] backButton not assigned!");
+                LogWarning("backButton not assigned!");
 
             if (quitButton == null)
-                Debug.LogWarning("[HomeScreenNavButtons] quitButton not assigned!");
+                LogWarning("quitButton not assigned!");
 
             if (quitConfirmationPanel == null)
-                Debug.LogWarning("[HomeScreenNavButtons] quitConfirmationPanel not assigned!");
+                LogWarning("quitConfirmationPanel not assigned!");
 
             if (homeScreenController == null)
-                Debug.LogError("[HomeScreenNavButtons] homeScreenController not assigned!");
+                LogError("homeScreenController not assigned!");
         }
 
         private void SetupEventListeners()
@@ -96,7 +97,7 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnHomePressed()
         {
-            Debug.Log("[HomeScreenNavButtons] Home pressed");
+            Log("Home pressed");
             homeScreenController?.GoHome();
         }
 
@@ -106,7 +107,7 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnBackPressed()
         {
-            Debug.Log("[HomeScreenNavButtons] Back pressed");
+            Log("Back pressed");
             homeScreenController?.GoBack();
         }
 
@@ -115,13 +116,36 @@ namespace ChatSim.UI.HomeScreen
         /// </summary>
         private void OnConfirmQuit()
         {
-            Debug.Log("[HomeScreenNavButtons] Quitting game...");
+            Log("Quitting game...");
 
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
             #else
             Application.Quit();
             #endif
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
+            UnityEngine.Debug.Log($"[HomeScreenNavButtons] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[HomeScreenNavButtons] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[HomeScreenNavButtons] ERROR: {message}");
         }
     }
 }

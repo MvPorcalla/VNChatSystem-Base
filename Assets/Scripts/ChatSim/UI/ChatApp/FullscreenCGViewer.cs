@@ -7,6 +7,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using ChatSim.Core;
 
 namespace ChatSim.UI.ChatApp
 {
@@ -26,14 +27,6 @@ namespace ChatSim.UI.ChatApp
         [SerializeField] private Image cgImage;
         [SerializeField] private Button closeButton;
         [SerializeField] private TextMeshProUGUI cgNameText;
-        
-        [Header("Zoom Settings")]
-        [SerializeField] private float minZoom = 1f;
-        [SerializeField] private float maxZoom = 3f;
-        [SerializeField] private float zoomSpeed = 0.001f;
-        
-        [Header("Animation")]
-        [SerializeField] private float fadeDuration = 0.3f;
         [SerializeField] private CanvasGroup canvasGroup;
         
         // ═══════════════════════════════════════════════════════════
@@ -45,6 +38,15 @@ namespace ChatSim.UI.ChatApp
         private bool isDragging = false;
         private RectTransform imageRect;
         private Coroutine fadeCoroutine;
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ CONFIG ACCESSORS
+        // ═══════════════════════════════════════════════════════════
+
+        private float MinZoom          => GameBootstrap.Config != null ? GameBootstrap.Config.minZoom              : 1f;
+        private float MaxZoom          => GameBootstrap.Config != null ? GameBootstrap.Config.maxZoom              : 3f;
+        private float ZoomSpeed        => GameBootstrap.Config != null ? GameBootstrap.Config.zoomSpeed            : 0.001f;
+        private float FadeDuration     => GameBootstrap.Config != null ? GameBootstrap.Config.cgViewerFadeDuration : 0.3f;
         
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
@@ -85,8 +87,6 @@ namespace ChatSim.UI.ChatApp
                 return;
             }
             
-            Debug.Log($"[FullscreenCGViewer] Showing: {cgName}");
-            
             // Set sprite
             if (cgImage != null)
             {
@@ -118,7 +118,7 @@ namespace ChatSim.UI.ChatApp
             {
                 StopCoroutine(fadeCoroutine);
             }
-            fadeCoroutine = StartCoroutine(FadeCanvasGroup(0f, 1f, fadeDuration));
+            fadeCoroutine = StartCoroutine(FadeCanvasGroup(0f, 1f, FadeDuration));
         }
         
         /// <summary>
@@ -126,7 +126,6 @@ namespace ChatSim.UI.ChatApp
         /// </summary>
         public void Hide()
         {
-            Debug.Log("[FullscreenCGViewer] Hiding");
             
             // Fade out
             if (fadeCoroutine != null)
@@ -160,12 +159,10 @@ namespace ChatSim.UI.ChatApp
         
         private IEnumerator FadeCanvasGroupAndHide()
         {
-            yield return FadeCanvasGroup(1f, 0f, fadeDuration);
-            
+            yield return FadeCanvasGroup(1f, 0f, FadeDuration);
+
             if (viewerPanel != null)
-            {
                 viewerPanel.SetActive(false);
-            }
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -204,7 +201,7 @@ namespace ChatSim.UI.ChatApp
             float prevMagnitude = (touch0PrevPos - touch1PrevPos).magnitude;
             float currentMagnitude = (touch0.position - touch1.position).magnitude;
             float difference = currentMagnitude - prevMagnitude;
-            float zoomDelta = difference * zoomSpeed;
+            float zoomDelta = difference * ZoomSpeed;
 
             SetZoom(currentZoom + zoomDelta);
         }
@@ -244,10 +241,10 @@ namespace ChatSim.UI.ChatApp
         
         private void SetZoom(float newZoom)
         {
-            currentZoom = Mathf.Clamp(newZoom, minZoom, maxZoom);
+            currentZoom = Mathf.Clamp(newZoom, MinZoom, MaxZoom);
             imageRect.localScale = Vector3.one * currentZoom;
 
-            if (Mathf.Approximately(currentZoom, minZoom))
+            if (Mathf.Approximately(currentZoom, MinZoom))
                 imageRect.anchoredPosition = Vector2.zero;
         }
         

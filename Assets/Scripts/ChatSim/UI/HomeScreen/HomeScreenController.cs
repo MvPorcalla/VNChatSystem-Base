@@ -94,7 +94,7 @@ namespace ChatSim.UI.HomeScreen
 
                 if (app.button == null)
                 {
-                    Debug.LogWarning($"[HomeScreenController] Button not assigned for app: {app.appName}");
+                    LogWarning($"Button not assigned for app: {app.appName}");
                     continue;
                 }
 
@@ -118,7 +118,7 @@ namespace ChatSim.UI.HomeScreen
                 });
             }
 
-            Debug.Log($"[HomeScreenController] Initialized {apps.Count} app buttons");
+            Log($"Initialized {apps.Count} app buttons");
         }
 
         private void ShowHomeScreen()
@@ -130,7 +130,7 @@ namespace ChatSim.UI.HomeScreen
             }
             else
             {
-                Debug.LogWarning("[HomeScreenController] homeScreenPanel not assigned!");
+                LogWarning("homeScreenPanel not assigned!");
             }
         }
 
@@ -153,7 +153,7 @@ namespace ChatSim.UI.HomeScreen
             panel.SetActive(true);
             currentPanel = panel;
 
-            Debug.Log($"[HomeScreenController] Opened panel: {panel.name}");
+            Log($"Opened panel: {panel.name}");
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace ChatSim.UI.HomeScreen
                 currentPanel = homeScreenPanel;
             }
 
-            Debug.Log("[HomeScreenController] Returned to home screen");
+            Log("Returned to home screen");
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace ChatSim.UI.HomeScreen
             currentPanel = panelHistory.Pop();
             currentPanel.SetActive(true);
 
-            Debug.Log($"[HomeScreenController] Back to panel: {currentPanel.name}");
+            Log($"Back to panel: {currentPanel.name}");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -210,6 +210,29 @@ namespace ChatSim.UI.HomeScreen
                 if (panel != null)
                     panel.SetActive(false);
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
+            UnityEngine.Debug.Log($"[HomeScreenController] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.homeScreenDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[HomeScreenController] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[HomeScreenController] ERROR: {message}");
         }
     }
 }

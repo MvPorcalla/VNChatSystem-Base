@@ -22,16 +22,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ INSPECTOR SETTINGS
         // ═══════════════════════════════════════════════════════════
         
-        [Header("Timing Settings")]
-        [SerializeField] private float messageDelay = 1.2f;
-        [SerializeField] private float typingIndicatorDuration = 1.5f;
-        [SerializeField] private float playerMessageDelay = 0.3f;
-        [SerializeField] private float finalDelayBeforeChoices = 0.2f;
-
-        [Header("Fast Mode")]
-        [SerializeField] private bool isFastMode = false;
-        [SerializeField] private float fastModeSpeed = 0.1f;
-
         [Header("References")]
         [SerializeField] private ChatMessageSpawner messageDisplay;
         
@@ -41,6 +31,10 @@ namespace ChatSim.UI.ChatApp.Controllers
         
         [Header("Pooling")]
         [SerializeField] private PoolingManager poolingManager;
+
+        [Header("Fast Mode")]
+        [Tooltip("When enabled, all delays are replaced with the fast mode speed for instant display")]
+        [SerializeField] private bool isFastMode = false;
         
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
@@ -62,6 +56,13 @@ namespace ChatSim.UI.ChatApp.Controllers
 
         public bool IsDisplayingMessages => isDisplayingMessages;
 
+        // Config accessors — fallback to hardcoded defaults if config is missing
+        private float MessageDelay          => GameBootstrap.Config != null ? GameBootstrap.Config.messageDelay             : 1.2f;
+        private float TypingIndicatorDuration => GameBootstrap.Config != null ? GameBootstrap.Config.typingIndicatorDuration : 1.5f;
+        private float PlayerMessageDelay    => GameBootstrap.Config != null ? GameBootstrap.Config.playerMessageDelay       : 0.3f;
+        private float FinalDelayBeforeChoices => GameBootstrap.Config != null ? GameBootstrap.Config.finalDelayBeforeChoices : 0.2f;
+        private float FastModeSpeed         => GameBootstrap.Config != null ? GameBootstrap.Config.fastModeSpeed            : 0.1f;
+
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
@@ -69,21 +70,18 @@ namespace ChatSim.UI.ChatApp.Controllers
         private void Awake()
         {
             chatController = GetComponent<ChatAppController>();
-            
+
             if (chatController == null)
-            {
-                Debug.LogError("[ChatTimingController] ChatAppController not found on same GameObject!");
-            }
-            
-            // Get or create pooling manager
+                LogError("ChatAppController not found on same GameObject!");
+
             if (poolingManager == null)
             {
                 poolingManager = GetComponent<PoolingManager>();
-                
+
                 if (poolingManager == null)
                 {
                     poolingManager = gameObject.AddComponent<PoolingManager>();
-                    Debug.Log("[ChatTimingController] Created PoolingManager component");
+                    Log("Created PoolingManager component");
                 }
             }
 
@@ -93,14 +91,10 @@ namespace ChatSim.UI.ChatApp.Controllers
         private void ValidateReferences()
         {
             if (messageDisplay == null)
-            {
-                Debug.LogError("[ChatTimingController] messageDisplay not assigned!");
-            }
+                LogError("messageDisplay not assigned!");
 
             if (typingIndicatorPrefab == null)
-            {
-                Debug.LogWarning("[ChatTimingController] typingIndicatorPrefab not assigned - typing indicators disabled");
-            }
+                LogWarning("typingIndicatorPrefab not assigned - typing indicators disabled");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -114,26 +108,22 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (messages == null || messages.Count == 0)
             {
-                Debug.LogWarning("[ChatTimingController] Empty message list");
+                LogWarning("Empty message list");
                 onComplete?.Invoke();
                 return;
             }
 
-            Debug.Log($"[ChatTimingController] Queueing {messages.Count} messages (Fast Mode: {isFastMode})");
+            Log($"Queueing {messages.Count} messages (Fast Mode: {isFastMode})");
 
             StopCurrentSequenceIfRunning();
             ResetSequenceState();
 
             pendingCallback = onComplete;
 
-            // Enqueue all messages
             messageQueue.Clear();
             foreach (var message in messages)
-            {
                 messageQueue.Enqueue(message);
-            }
 
-            // Start display sequence
             currentMessageSequence = StartCoroutine(DisplayMessagesSequence());
         }
 
@@ -142,20 +132,20 @@ namespace ChatSim.UI.ChatApp.Controllers
         /// </summary>
         public void StopCurrentSequence()
         {
-            Debug.Log("[ChatTimingController] Stopping current sequence");
+            Log("Stopping current sequence");
 
             isSequenceCancelled = true;
 
             var callbackToCancel = pendingCallback;
             pendingCallback = null;
 
-            StopCurrentSequenceIfRunning(); // ← single method, same behaviour
+            StopCurrentSequenceIfRunning();
             CleanupTypingIndicator();
             ClearMessageQueue();
 
             isDisplayingMessages = false;
 
-            Debug.Log($"[ChatTimingController] Sequence stopped. Callback {(callbackToCancel != null ? "cancelled" : "was null")}");
+            Log($"Sequence stopped. Callback {(callbackToCancel != null ? "cancelled" : "was null")}");
         }
 
         /// <summary>
@@ -164,7 +154,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         public void SetFastMode(bool enabled)
         {
             isFastMode = enabled;
-            Debug.Log($"[ChatTimingController] Fast mode: {(enabled ? "ENABLED" : "DISABLED")}");
+            Log($"Fast mode: {(enabled ? "ENABLED" : "DISABLED")}");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -174,13 +164,13 @@ namespace ChatSim.UI.ChatApp.Controllers
         private IEnumerator DisplayMessagesSequence()
         {
             isDisplayingMessages = true;
-            Debug.Log("[ChatTimingController] Starting message display sequence");
+            Log("Starting message display sequence");
 
             while (messageQueue.Count > 0)
             {
                 if (isSequenceCancelled)
                 {
-                    Debug.Log("[ChatTimingController] Sequence aborted (cancelled)");
+                    Log("Sequence aborted (cancelled)");
                     break;
                 }
 
@@ -189,7 +179,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 if (ShouldShowTypingIndicator(message))
                 {
                     yield return StartCoroutine(ShowTypingIndicatorSequence());
-                    
+
                     if (isSequenceCancelled)
                         break;
                 }
@@ -197,38 +187,30 @@ namespace ChatSim.UI.ChatApp.Controllers
                 messageDisplay.DisplayMessage(message, instant: isFastMode);
 
                 if (chatController != null)
-                {
                     chatController.OnNewMessageDisplayed(message);
-                }
 
-                // Wait between messages
                 if (messageQueue.Count > 0)
-                {
                     yield return new WaitForSeconds(GetMessageDelay(message));
-                }
             }
 
             if (!isSequenceCancelled)
             {
-                // Final delay before showing choices
-                if (!isFastMode && finalDelayBeforeChoices > 0)
-                {
-                    yield return new WaitForSeconds(finalDelayBeforeChoices);
-                }
+                if (!isFastMode && FinalDelayBeforeChoices > 0)
+                    yield return new WaitForSeconds(FinalDelayBeforeChoices);
 
                 isDisplayingMessages = false;
-                Debug.Log("[ChatTimingController] Message sequence complete");
+                Log("Message sequence complete");
                 InvokeCallbackSafely();
             }
             else
             {
                 isDisplayingMessages = false;
-                Debug.Log("[ChatTimingController] Message sequence cancelled - callback suppressed");
+                Log("Message sequence cancelled - callback suppressed");
             }
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ░ YPING INDICATOR (PREFAB POOLING SYSTEM)
+        // ░ TYPING INDICATOR (PREFAB POOLING SYSTEM)
         // ═══════════════════════════════════════════════════════════
 
         private bool ShouldShowTypingIndicator(MessageData message)
@@ -247,27 +229,20 @@ namespace ChatSim.UI.ChatApp.Controllers
         private IEnumerator ShowTypingIndicatorSequence()
         {
             if (typingIndicatorPrefab == null || poolingManager == null)
-            {
                 yield break;
-            }
-            
-            Debug.Log("[ChatTimingController] Showing typing indicator");
+
+            Log("Showing typing indicator");
 
             Transform chatContent = messageDisplay.GetChatContent();
             activeTypingIndicator = poolingManager.Get(typingIndicatorPrefab, chatContent, activateOnGet: true);
-            
+
             if (activeTypingIndicator != null)
-            {
                 activeTypingIndicator.transform.SetAsLastSibling();
-            }
 
             yield return new WaitForSeconds(GetTypingIndicatorDuration());
 
-            // Cleanup indicator
             if (!isSequenceCancelled)
-            {
                 CleanupTypingIndicator();
-            }
         }
 
         /// <summary>
@@ -281,12 +256,12 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (poolingManager != null)
             {
                 poolingManager.Recycle(activeTypingIndicator);
-                Debug.Log("[ChatTimingController] Typing indicator recycled");
+                Log("Typing indicator recycled");
             }
             else
             {
                 Destroy(activeTypingIndicator);
-                Debug.LogWarning("[ChatTimingController] No pooling manager - destroyed typing indicator");
+                LogWarning("No pooling manager - destroyed typing indicator");
             }
 
             activeTypingIndicator = null;
@@ -298,18 +273,18 @@ namespace ChatSim.UI.ChatApp.Controllers
 
         private float GetTypingIndicatorDuration()
         {
-            return isFastMode ? fastModeSpeed : typingIndicatorDuration;
+            return isFastMode ? FastModeSpeed : TypingIndicatorDuration;
         }
 
         private float GetMessageDelay(MessageData message)
         {
             if (isFastMode)
-                return fastModeSpeed;
+                return FastModeSpeed;
 
             if (message.IsPlayerMessage)
-                return playerMessageDelay;
+                return PlayerMessageDelay;
 
-            return messageDelay;
+            return MessageDelay;
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -322,7 +297,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             {
                 StopCoroutine(currentMessageSequence);
                 currentMessageSequence = null;
-                Debug.Log("[ChatTimingController] Stopped previous sequence");
+                Log("Stopped previous sequence");
             }
         }
 
@@ -339,9 +314,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 messageQueue.Clear();
 
                 if (queuedCount > 0)
-                {
-                    Debug.Log($"[ChatTimingController] Cleared {queuedCount} queued messages");
-                }
+                    Log($"Cleared {queuedCount} queued messages");
             }
         }
 
@@ -349,14 +322,14 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (pendingCallback != null && !isSequenceCancelled)
             {
-                Debug.Log("[ChatTimingController] Invoking completion callback");
+                Log("Invoking completion callback");
                 var callback = pendingCallback;
                 pendingCallback = null;
                 callback.Invoke();
             }
             else if (isSequenceCancelled)
             {
-                Debug.Log("[ChatTimingController] Callback suppressed (cancelled)");
+                Log("Callback suppressed (cancelled)");
                 pendingCallback = null;
             }
         }
@@ -370,6 +343,29 @@ namespace ChatSim.UI.ChatApp.Controllers
             isSequenceCancelled = true;
             pendingCallback = null;
             CleanupTypingIndicator();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatTimingControllerDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatTimingController] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatTimingControllerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ChatTimingController] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ChatTimingController] ERROR: {message}");
         }
     }
 }

@@ -76,7 +76,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
             if (characterDatabase == null)
             {
-                Debug.LogError("[GalleryController] CharacterDatabase not assigned!");
+                LogError("CharacterDatabase not assigned!");
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
             if (currentSaveData == null)
             {
-                Debug.LogError("[GalleryController] Failed to load save data!");
+                LogError("Failed to load save data!");
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
             if (allCharacters == null || allCharacters.Count == 0)
             {
-                Debug.LogWarning("[GalleryController] CharacterDatabase is empty!");
+                LogWarning("CharacterDatabase is empty!");
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
                 if (convAsset.cgAddressableKeys == null || convAsset.cgAddressableKeys.Count == 0)
                 {
-                    Debug.LogWarning($"[GalleryController] {convAsset.characterName} has no CGs defined");
+                    LogWarning($"{convAsset.characterName} has no CGs defined");
                     continue;
                 }
 
@@ -118,7 +118,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
                 if (!showEmptySections && unlockedCGs.Count == 0)
                 {
-                    Debug.Log($"[GalleryController] Skipping {convAsset.characterName} (0 CGs unlocked)");
+                    Log($"Skipping {convAsset.characterName} (0 CGs unlocked)");
                     continue;
                 }
 
@@ -130,7 +130,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
             UpdateProgressDisplay(totalUnlocked, totalCGs);
 
-            Debug.Log($"[GalleryController] Gallery refreshed: {totalUnlocked}/{totalCGs} CGs unlocked from {allCharacters.Count} characters");
+            Log($"Gallery refreshed: {totalUnlocked}/{totalCGs} CGs unlocked from {allCharacters.Count} characters");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -141,7 +141,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (characterSectionPrefab == null || contentContainer == null)
             {
-                Debug.LogError("[GalleryController] Missing characterSectionPrefab or contentContainer!");
+                LogError("Missing characterSectionPrefab or contentContainer!");
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
 
             if (section.transform.childCount < 2)
             {
-                Debug.LogError($"[GalleryController] CGContainer prefab must have at least 2 children (CharacterName, CGGrid). Found: {section.transform.childCount}");
+                LogError($"CGContainer prefab must have at least 2 children (CharacterName, CGGrid). Found: {section.transform.childCount}");
                 return;
             }
 
@@ -163,7 +163,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             }
             else
             {
-                Debug.LogError("[GalleryController] CGContainer child 0 missing TextMeshProUGUI component!");
+                LogError("CGContainer child 0 missing TextMeshProUGUI component!");
             }
 
             Transform gridContainer = section.transform.GetChild(1);
@@ -187,7 +187,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (thumbnailPrefab == null)
             {
-                Debug.LogError("[GalleryController] Missing thumbnailPrefab!");
+                LogError("Missing thumbnailPrefab!");
                 return;
             }
             
@@ -202,7 +202,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             }
             else
             {
-                Debug.LogError("[GalleryController] Thumbnail prefab missing GalleryThumbnailItem component!");
+                LogError("Thumbnail prefab missing GalleryThumbnailItem component!");
             }
         }
         
@@ -214,7 +214,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (fullscreenViewer == null)
             {
-                Debug.LogWarning("[GalleryController] FullscreenCGViewer not assigned!");
+                LogWarning("FullscreenCGViewer not assigned!");
                 return;
             }
             
@@ -222,7 +222,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
             
             fullscreenViewer.Show(sprite, cgName);
             
-            Debug.Log($"[GalleryController] Opened fullscreen: {cgKey}");
+            Log($"Opened fullscreen: {cgKey}");
         }
         
         // ═══════════════════════════════════════════════════════════
@@ -394,5 +394,28 @@ namespace ChatSim.UI.HomeScreen.Gallery
             }
         }
         #endif
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[GalleryController] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[GalleryController] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[GalleryController] ERROR: {message}");
+        }
     }
 }

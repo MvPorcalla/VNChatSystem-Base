@@ -36,6 +36,11 @@ namespace ChatSim.UI.Screens
         [SerializeField] private GameObject notificationItemPrefab;
         [SerializeField] private GameObject moreIndicator;
 
+        [Header("Swipe Arrow")]
+        [SerializeField] private RectTransform swipeArrow;    // Drag your arrow image here
+        [SerializeField] private float arrowAmplitude = 10f;  // Pixels to move up/down
+        [SerializeField] private float arrowSpeed = 2f;       // Speed of movement
+
         // ─────────────────────────────────────────────
         // Private State
         // ─────────────────────────────────────────────
@@ -43,6 +48,8 @@ namespace ChatSim.UI.Screens
         private Vector2 _touchStartPos;
         private bool _isTouching = false;
         private bool _isUnlocking = false;
+
+        private Vector2 arrowStartPos;
 
         // ─────────────────────────────────────────────
         // Config Accessors (fallback to defaults if config missing)
@@ -62,7 +69,7 @@ namespace ChatSim.UI.Screens
         private void Start()
         {
             if (GameBootstrap.Config == null)
-                Debug.LogWarning("[LockScreen] No config found — using defaults");
+                LogWarning("No config found — using defaults");
 
             UpdateTimeDate();
 
@@ -78,6 +85,8 @@ namespace ChatSim.UI.Screens
         private void Update()
         {
             UpdateTimeDate();
+            
+            AnimateSwipeArrow();
 
             if (_isUnlocking) return;
 
@@ -305,6 +314,18 @@ namespace ChatSim.UI.Screens
         }
 
         // ─────────────────────────────────────────────
+        // Swipe Arrow Animation
+        // ─────────────────────────────────────────────
+
+        private void AnimateSwipeArrow()
+        {
+            if (swipeArrow == null) return;
+
+            float yOffset = Mathf.Sin(Time.time * arrowSpeed) * arrowAmplitude;
+            swipeArrow.anchoredPosition = arrowStartPos + new Vector2(0f, yOffset);
+        }
+
+        // ─────────────────────────────────────────────
         // Unlock
         // ─────────────────────────────────────────────
 
@@ -319,21 +340,30 @@ namespace ChatSim.UI.Screens
             if (GameBootstrap.SceneFlow != null)
                 GameBootstrap.SceneFlow.GoToPhoneScreen();
             else
-                Debug.LogError("[LockScreen] GameBootstrap.SceneFlow not found!");
+                LogError("GameBootstrap.SceneFlow not found!");
         }
 
         // ─────────────────────────────────────────────
         // Logging
         // ─────────────────────────────────────────────
 
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         private void Log(string message)
         {
-            if (DebugLogs) Debug.Log($"[LockScreen] {message}");
+            if (!DebugLogs) return;
+            UnityEngine.Debug.Log($"[LockScreen] {message}");
         }
 
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         private void LogWarning(string message)
         {
-            if (DebugLogs) Debug.LogWarning($"[LockScreen] {message}");
+            if (!DebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[LockScreen] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[LockScreen] ERROR: {message}");
         }
     }
 }

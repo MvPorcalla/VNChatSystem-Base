@@ -86,7 +86,7 @@ namespace ChatSim.UI.HomeScreen.Settings
             if (messageSpeedButton != null)
                 messageSpeedButton.onClick.AddListener(OnMessageSpeedButtonClicked);
             else
-                Debug.LogWarning("[SettingsPanel] messageSpeedButton not assigned!");
+                LogWarning("messageSpeedButton not assigned!");
 
             // Text size buttons
             smallTextButton?.onClick.AddListener(() => OnTextSizeSelected(TEXT_SIZE_SMALL));
@@ -97,7 +97,7 @@ namespace ChatSim.UI.HomeScreen.Settings
             if (resetAllButton != null)
                 resetAllButton.onClick.AddListener(OnResetAllClicked);
             else
-                Debug.LogWarning("[SettingsPanel] resetAllButton not assigned!");
+                LogWarning("resetAllButton not assigned!");
 
             // Version text
             if (versionText != null)
@@ -123,7 +123,7 @@ namespace ChatSim.UI.HomeScreen.Settings
         {
             isFastMode = !isFastMode;
 
-            Debug.Log($"[SettingsPanel] Message speed: {(isFastMode ? "Fast" : "Normal")}");
+            Log($"Message speed: {(isFastMode ? "Fast" : "Normal")}");
 
             // Save preference
             PlayerPrefs.SetInt(PlayerPrefKeys.FastMode, isFastMode ? 1 : 0);
@@ -155,7 +155,7 @@ namespace ChatSim.UI.HomeScreen.Settings
 
             currentTextSize = fontSize;
 
-            Debug.Log($"[SettingsPanel] Text size: {fontSize}");
+            Log($"Text size: {fontSize}");
 
             // Save preference
             PlayerPrefs.SetFloat(PlayerPrefKeys.TextSize, fontSize);
@@ -192,7 +192,7 @@ namespace ChatSim.UI.HomeScreen.Settings
 
         private void OnResetAllClicked()
         {
-            Debug.Log("[SettingsPanel] Reset all clicked");
+            Log("Reset all clicked");
 
             if (resetAllDialog != null)
             {
@@ -204,24 +204,24 @@ namespace ChatSim.UI.HomeScreen.Settings
             }
             else
             {
-                Debug.LogWarning("[SettingsPanel] resetAllDialog not assigned — resetting directly");
+                LogWarning("resetAllDialog not assigned — resetting directly");
                 OnResetAllConfirmed();
             }
         }
 
         private void OnResetAllConfirmed()
         {
-            Debug.Log("[SettingsPanel] Reset all confirmed");
+            Log("Reset all confirmed");
 
             if (GameBootstrap.Save == null)
             {
-                Debug.LogError("[SettingsPanel] GameBootstrap.Save is null!");
+                LogError("GameBootstrap.Save is null!");
                 return;
             }
 
             if (GameBootstrap.Conversation == null)
             {
-                Debug.LogError("[SettingsPanel] GameBootstrap.Conversation is null!");
+                LogError("GameBootstrap.Conversation is null!");
                 return;
             }
 
@@ -230,6 +230,29 @@ namespace ChatSim.UI.HomeScreen.Settings
 
             // Evict all in-memory session caches so next conversation load starts fresh
             GameBootstrap.Conversation.EvictAllConversationCaches();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.settingsPanelDebugLogs) return;
+            UnityEngine.Debug.Log($"[SettingsPanel] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.settingsPanelDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[SettingsPanel] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[SettingsPanel] ERROR: {message}");
         }
     }
 }

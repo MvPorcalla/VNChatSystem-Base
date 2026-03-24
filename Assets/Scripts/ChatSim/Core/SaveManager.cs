@@ -22,14 +22,6 @@ namespace ChatSim.Core
     /// </summary>
     public class SaveManager : MonoBehaviour
     {
-        #region Settings
-        [Header("Debug Settings")]
-        [SerializeField] private bool enableDebugLogs = true;
-        
-        [Header("Save Settings")]
-        [SerializeField] private bool prettyPrintJson = true;
-        #endregion
-
         #region File Paths
         private const string ROOT_SAVE_FOLDER = "Saves";
         private const string GAME_DATA_FOLDER = "ChatSimData";
@@ -171,8 +163,11 @@ namespace ChatSim.Core
                 };
 
                 // Serialize to JSON using Newtonsoft.Json
-                string json = JsonConvert.SerializeObject(saveWrapper, 
-                    prettyPrintJson ? Formatting.Indented : Formatting.None);
+                #if UNITY_EDITOR
+                    string json = JsonConvert.SerializeObject(saveWrapper, Formatting.Indented);
+                #else
+                    string json = JsonConvert.SerializeObject(saveWrapper, Formatting.None);
+                #endif
 
                 // ATOMIC SAVE PROCESS:
                 // 1. Write to temp file first
@@ -497,7 +492,7 @@ namespace ChatSim.Core
             else
                 return $"{time.Seconds}s";
         }
-        
+
         private void Update()
         {
             // F12: Open save folder
@@ -541,14 +536,14 @@ namespace ChatSim.Core
         [ContextMenu("Print Save Info")]
         private void PrintSaveInfo()
         {
-            Debug.Log("=== SAVE MANAGER INFO ===");
-            Debug.Log($"Initialized: {_isInitialized}");
-            Debug.Log($"Root Path: {RootSavePath}");
-            Debug.Log($"Game Data Path: {GameDataPath}");
-            Debug.Log($"Save File: {SaveFilePath}");
-            Debug.Log($"Backup File: {BackupFilePath}");
-            Debug.Log($"Primary Save Exists: {File.Exists(SaveFilePath)}");
-            Debug.Log($"Backup Exists: {File.Exists(BackupFilePath)}");
+            UnityEngine.Debug.Log("=== SAVE MANAGER INFO ===");
+            UnityEngine.Debug.Log($"Initialized: {_isInitialized}");
+            UnityEngine.Debug.Log($"Root Path: {RootSavePath}");
+            UnityEngine.Debug.Log($"Game Data Path: {GameDataPath}");
+            UnityEngine.Debug.Log($"Save File: {SaveFilePath}");
+            UnityEngine.Debug.Log($"Backup File: {BackupFilePath}");
+            UnityEngine.Debug.Log($"Primary Save Exists: {File.Exists(SaveFilePath)}");
+            UnityEngine.Debug.Log($"Backup Exists: {File.Exists(BackupFilePath)}");
             
             if (File.Exists(SaveFilePath))
             {
@@ -556,17 +551,17 @@ namespace ChatSim.Core
                 {
                     string json = File.ReadAllText(SaveFilePath);
                     SaveDataWrapper wrapper = JsonConvert.DeserializeObject<SaveDataWrapper>(json);
-                    Debug.Log($"Save version: {wrapper.saveVersion}");
-                    Debug.Log($"Saved: {wrapper.saveTimestamp}");
-                    Debug.Log($"Playtime: {FormatPlaytime(wrapper.playtimeSeconds)}");
+                    UnityEngine.Debug.Log($"Save version: {wrapper.saveVersion}");
+                    UnityEngine.Debug.Log($"Saved: {wrapper.saveTimestamp}");
+                    UnityEngine.Debug.Log($"Playtime: {FormatPlaytime(wrapper.playtimeSeconds)}");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Failed to read save: {e.Message}");
+                    UnityEngine.Debug.LogError($"Failed to read save: {e.Message}");
                 }
             }
             
-            Debug.Log("========================");
+            UnityEngine.Debug.Log("========================");
         }
 
         [ContextMenu("Create Test Save")]
@@ -574,7 +569,7 @@ namespace ChatSim.Core
         {
             SaveData testData = CreateNewSave();
             SaveGame(testData, 3600f); // 1 hour playtime
-            Debug.Log("✓ Test save created");
+            UnityEngine.Debug.Log("✓ Test save created");
         }
 
         [ContextMenu("Test Backup Recovery")]
@@ -582,25 +577,23 @@ namespace ChatSim.Core
         {
             if (!File.Exists(BackupFilePath))
             {
-                Debug.LogError("No backup file exists to test recovery!");
+                UnityEngine.Debug.LogError("No backup file exists to test recovery!");
                 return;
             }
 
-            // Temporarily corrupt primary save
             string corruptData = "CORRUPTED_DATA_TEST";
             File.WriteAllText(SaveFilePath, corruptData);
-            Debug.Log("✓ Corrupted primary save for testing");
+            UnityEngine.Debug.Log("✓ Corrupted primary save for testing");
 
-            // Try to load - should recover from backup
             SaveData recovered = LoadGame();
             
             if (recovered != null)
             {
-                Debug.Log("✓ Backup recovery successful!");
+                UnityEngine.Debug.Log("✓ Backup recovery successful!");
             }
             else
             {
-                Debug.LogError("ERROR: Backup recovery failed!");
+                UnityEngine.Debug.LogError("ERROR: Backup recovery failed!");
             }
         }
 
@@ -608,20 +601,24 @@ namespace ChatSim.Core
         #endregion
 
         #region Logging
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         private void Log(string message)
         {
-            if (enableDebugLogs)
-                Debug.Log($"[SaveManager] {message}");
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.saveManagerDebugLogs) return;
+            UnityEngine.Debug.Log($"[SaveManager] {message}");
         }
 
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         private void LogWarning(string message)
         {
-            Debug.LogWarning($"[SaveManager] WARNING: {message}");
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.saveManagerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[SaveManager] WARNING: {message}");
         }
 
         private void LogError(string message)
         {
-            Debug.LogError($"[SaveManager] ERROR: {message}");
+            // Always show errors — no Conditional, fires in all builds
+            UnityEngine.Debug.LogError($"[SaveManager] ERROR: {message}");
         }
         #endregion
     }

@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using BubbleSpinner.Data;
+using ChatSim.Core;
 using ChatSim.UI.Overlay.Dialogs;
 
 namespace ChatSim.UI.HomeScreen.Contacts
@@ -13,23 +14,13 @@ namespace ChatSim.UI.HomeScreen.Contacts
     /// <summary>
     /// Contacts App panel in 03_PhoneScreen > PhoneRoot > Screens.
     /// Spawns ContactsAppItem buttons from CharacterDatabase.
-    ///
+    /// 
     /// TODO: Wire up ContactsAppDetailPanel once it is ready:
     ///       - Add: [SerializeField] private ContactsAppDetailPanel detailPanel;
     ///       - Pass it into item.Initialize() alongside the other params
     ///
     /// Toggle useConfirmationDialog to enable/disable the "Are you sure?" popup.
-    ///
     /// Attach to: ContactsPanel GameObject
-    ///
-    /// Hierarchy:
-    ///   ContactsPanel                    ← ATTACH THIS SCRIPT
-    ///   ├── Header
-    ///   │   └── TitleText ("Contacts")
-    ///   ├── ScrollView
-    ///   │   └── Viewport
-    ///   │       └── Content             ← assign to contactContainer
-    ///   └── ResetConfirmationDialog     ← ATTACH ResetConfirmationDialog.cs
     /// </summary>
     public class ContactsAppPanel : MonoBehaviour
     {
@@ -72,16 +63,16 @@ namespace ChatSim.UI.HomeScreen.Contacts
         private void ValidateReferences()
         {
             if (characterDatabase == null)
-                Debug.LogError("[ContactsAppPanel] CharacterDatabase is not assigned!");
+                LogError("CharacterDatabase is not assigned!");
 
             if (contactContainer == null)
-                Debug.LogError("[ContactsAppPanel] contactContainer is not assigned!");
+                LogError("contactContainer is not assigned!");
 
             if (contactsAppItemPrefab == null)
-                Debug.LogError("[ContactsAppPanel] contactsAppItemPrefab is not assigned!");
+                LogError("contactsAppItemPrefab is not assigned!");
 
             if (useConfirmationDialog && resetConfirmationDialog == null)
-                Debug.LogWarning("[ContactsAppPanel] useConfirmationDialog is ON but resetConfirmationDialog is not assigned — resets will act directly.");
+                LogWarning("useConfirmationDialog is ON but resetConfirmationDialog is not assigned — resets will act directly.");
         }
 
         #endregion
@@ -99,7 +90,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
 
             if (characters == null || characters.Count == 0)
             {
-                Debug.LogWarning("[ContactsAppPanel] No characters found in CharacterDatabase.");
+                LogWarning("No characters found in CharacterDatabase.");
                 return;
             }
 
@@ -107,14 +98,14 @@ namespace ChatSim.UI.HomeScreen.Contacts
             {
                 if (character == null)
                 {
-                    Debug.LogWarning("[ContactsAppPanel] Null entry in CharacterDatabase, skipping.");
+                    LogWarning("Null entry in CharacterDatabase, skipping.");
                     continue;
                 }
 
                 SpawnContactItem(character);
             }
 
-            Debug.Log($"[ContactsAppPanel] Populated {characters.Count} contacts. Dialog: {useConfirmationDialog}");
+            Log($"Populated {characters.Count} contacts. Dialog: {useConfirmationDialog}");
         }
 
         private void SpawnContactItem(ConversationAsset character)
@@ -134,7 +125,7 @@ namespace ChatSim.UI.HomeScreen.Contacts
             }
             else
             {
-                Debug.LogError("[ContactsAppPanel] ContactsAppItem component missing on prefab!");
+                LogError("ContactsAppItem component missing on prefab!");
             }
         }
 
@@ -153,6 +144,29 @@ namespace ChatSim.UI.HomeScreen.Contacts
         public void RefreshContacts()
         {
             PopulateContacts();
+        }
+
+        #endregion
+
+        #region Logging
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[ContactsAppPanel] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.contactsAppDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ContactsAppPanel] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ContactsAppPanel] ERROR: {message}");
         }
 
         #endregion

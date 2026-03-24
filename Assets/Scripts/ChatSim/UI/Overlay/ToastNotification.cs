@@ -13,16 +13,7 @@ namespace ChatSim.UI.Overlay
     /// <summary>
     /// Reusable toast notification — slides in from top, holds, fades out.
     /// Subscribes to GameEvents for automatic reset confirmations.
-    ///
     /// Attach to: ToastNotification GameObject (child of Overlays in 03_PhoneScreen)
-    ///
-    /// Hierarchy:
-    ///   ToastNotification               ← ATTACH THIS SCRIPT — ACTIVE in scene
-    ///   └── ToastPanel                  ← INACTIVE (script manages visibility)
-    ///       ├── Header
-    ///       │   ├── Icon                (Image)
-    ///       │   └── Title               (TMP)
-    ///       └── MessageText             (TMP)
     /// </summary>
     public class ToastNotification : MonoBehaviour
     {

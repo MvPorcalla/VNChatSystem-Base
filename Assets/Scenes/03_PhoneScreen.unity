@@ -434,13 +434,7 @@ MonoBehaviour:
   closeButton: {fileID: 1243449333}
   cgNameText: {fileID: 1970676855}
   canvasGroup: {fileID: 1385847382}
-  minZoom: 1
-  maxZoom: 3
-  zoomSpeed: 0.001
-  doubleTapZoom: 2
-  doubleTapTime: 0.3
   enablePanLimits: 1
-  fadeDuration: 0.3
 --- !u!1 &203876889
 GameObject:
   m_ObjectHideFlags: 0

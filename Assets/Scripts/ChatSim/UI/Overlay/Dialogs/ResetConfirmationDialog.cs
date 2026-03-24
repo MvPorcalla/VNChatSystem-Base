@@ -12,18 +12,7 @@ namespace ChatSim.UI.Overlay.Dialogs
     /// <summary>
     /// Reusable confirmation dialog for story resets.
     /// Used by both ContactsAppItem (single character) and SettingsPanel (reset all).
-    ///
     /// Attach to: ResetConfirmationDialog GameObject (child of DialogOverlay)
-    ///
-    /// Hierarchy:
-    ///   DialogOverlay                       ← ACTIVE in scene
-    ///   └── ResetConfirmationDialog         ← ATTACH THIS SCRIPT — ACTIVE in scene
-    ///       └── ConfirmationDialog          ← INACTIVE in scene
-    ///           └── ContentPanel
-    ///               ├── TitleText
-    ///               ├── MessageText
-    ///               ├── YesButton
-    ///               └── NoButton
     /// </summary>
     public class ResetConfirmationDialog : MonoBehaviour
     {
@@ -99,7 +88,9 @@ namespace ChatSim.UI.Overlay.Dialogs
             if (confirmationDialog != null)
                 confirmationDialog.SetActive(true);
 
+            #if UNITY_EDITOR
             Debug.Log($"[ResetConfirmationDialog] Showing: {title}");
+            #endif
         }
 
         /// <summary>
@@ -126,7 +117,6 @@ namespace ChatSim.UI.Overlay.Dialogs
 
         private void OnNoClicked()
         {
-            Debug.Log("[ResetConfirmationDialog] Cancelled.");
             Hide();
         }
 

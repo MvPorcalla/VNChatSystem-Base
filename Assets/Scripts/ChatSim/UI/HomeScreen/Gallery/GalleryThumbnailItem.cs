@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using ChatSim.Core;
 
 namespace ChatSim.UI.HomeScreen.Gallery
 {
@@ -93,14 +94,14 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (string.IsNullOrEmpty(cgKey))
             {
-                Debug.LogError("[GalleryThumbnailItem] Cannot load: cgKey is null/empty!");
+                LogError("Cannot load: cgKey is null/empty!");
                 yield break;
             }
 
             // Guard against double load — if handle is already valid, skip
             if (loadHandle.IsValid())
             {
-                Debug.LogWarning($"[GalleryThumbnailItem] Load already in progress for: {cgKey}");
+                LogWarning($"Load already in progress for: {cgKey}");
                 yield break;
             }
 
@@ -118,11 +119,11 @@ namespace ChatSim.UI.HomeScreen.Gallery
                     thumbnailImage.color = Color.white;
                 }
 
-                Debug.Log($"[GalleryThumbnailItem] Loaded: {cgKey}");
+                Log($"Loaded: {cgKey}");
             }
             else
             {
-                Debug.LogError($"[GalleryThumbnailItem] Failed to load: {cgKey}");
+                LogError($"Failed to load: {cgKey}");
 
                 if (thumbnailImage != null)
                 {
@@ -139,7 +140,7 @@ namespace ChatSim.UI.HomeScreen.Gallery
         {
             if (!isUnlocked || loadedSprite == null)
             {
-                Debug.LogWarning("[GalleryThumbnailItem] Cannot open: CG not unlocked or not loaded");
+                LogWarning("Cannot open: CG not unlocked or not loaded");
                 return;
             }
             
@@ -163,6 +164,29 @@ namespace ChatSim.UI.HomeScreen.Gallery
             {
                 button.onClick.RemoveAllListeners();
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.Log($"[GalleryThumbnailItem] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.galleryAppDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[GalleryThumbnailItem] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[GalleryThumbnailItem] ERROR: {message}");
         }
     }
 }

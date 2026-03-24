@@ -1,11 +1,11 @@
 // ════════════════════════════════════════════════════════════════════════
 // Assets/Scripts/UI/ChatApp/Core/ChatAutoScroller.cs
-// FIXED - Added null checks to prevent MissingReferenceException
 // ════════════════════════════════════════════════════════════════════════
 
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using ChatSim.Core;
 
 namespace ChatSim.UI.ChatApp.Controllers
 {
@@ -22,9 +22,9 @@ namespace ChatSim.UI.ChatApp.Controllers
         [Header("References")]
         [SerializeField] private ScrollRect chatScrollRect;
         
-        [Header("Settings")]
+        [Header("Auto-Scroll Settings")]
+        [Tooltip("Enable or disable auto-scrolling behavior. When disabled, the scroll position will not automatically adjust when new messages are added.")]
         [SerializeField] private bool autoScrollEnabled = true;
-        [SerializeField] private float bottomThreshold = 0.01f; // Consider "at bottom" if within 1%
         
         // ═══════════════════════════════════════════════════════════
         // ░ STATE
@@ -40,9 +40,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ EVENTS
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Event fired when user scrolls to bottom
-        /// </summary>
         public event Action OnScrollReachedBottom;
 
         // ═══════════════════════════════════════════════════════════
@@ -51,6 +48,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
         public float CurrentScrollPosition => chatScrollRect?.verticalNormalizedPosition ?? -1f;
         public bool IsInitialized => isInitialized;
+        private float BottomThreshold => GameBootstrap.Config != null ? GameBootstrap.Config.bottomThreshold : 0.01f;
 
         // ═══════════════════════════════════════════════════════════
         // ░ UNITY LIFECYCLE
@@ -64,20 +62,17 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (!chatScrollRect.gameObject.activeInHierarchy || !autoScrollEnabled)
                 return;
 
-            // CRITICAL: Null check - content may have been destroyed
             if (contentTransform == null)
             {
-                Debug.LogWarning("[ChatAutoScroller] contentTransform is null - reinitializing");
+                LogWarning("contentTransform is null - reinitializing");
                 isInitialized = false;
                 return;
             }
 
-            // Check current state
             bool currentlyAtBottom = IsAtBottom();
             float currentHeight = contentTransform.rect.height;
             int currentChildCount = contentTransform.childCount;
 
-            // Check for Content changes
             bool heightChanged = !Mathf.Approximately(currentHeight, lastContentHeight);
             bool childCountChanged = currentChildCount != lastChildCount;
 
@@ -89,7 +84,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (!wasAtBottom && currentlyAtBottom)
             {
-                Debug.Log("[ChatAutoScroller] User scrolled to bottom");
+                Log("User scrolled to bottom");
                 OnScrollReachedBottom?.Invoke();
             }
 
@@ -114,9 +109,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Try to initialize references and state. Returns true if successful.
-        /// </summary>
         private bool TryInitialize()
         {
             if (chatScrollRect == null)
@@ -124,7 +116,7 @@ namespace ChatSim.UI.ChatApp.Controllers
                 chatScrollRect = GetComponentInChildren<ScrollRect>(true);
                 if (chatScrollRect == null)
                 {
-                    Debug.LogError("[ChatAutoScroller] No ScrollRect found!");
+                    LogError("No ScrollRect found!");
                     return false;
                 }
             }
@@ -132,7 +124,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             contentTransform = chatScrollRect.content;
             if (contentTransform == null)
             {
-                Debug.LogError("[ChatAutoScroller] ScrollRect has no Content!");
+                LogError("ScrollRect has no Content!");
                 return false;
             }
 
@@ -140,8 +132,8 @@ namespace ChatSim.UI.ChatApp.Controllers
             lastChildCount = contentTransform.childCount;
             wasAtBottom = true;
             isInitialized = true;
-            
-            Debug.Log($"[ChatAutoScroller] Initialized. Content: {contentTransform.name}");
+
+            Log($"Initialized. Content: {contentTransform.name}");
             return true;
         }
 
@@ -149,86 +141,86 @@ namespace ChatSim.UI.ChatApp.Controllers
         // ░ PUBLIC API
         // ═══════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Check if user is currently at the bottom of the chat (within threshold)
-        /// </summary>
         public bool IsAtBottom()
         {
-            if (!isInitialized || chatScrollRect == null) 
+            if (!isInitialized || chatScrollRect == null)
                 return false;
-            
-            return chatScrollRect.verticalNormalizedPosition <= bottomThreshold;
+
+            return chatScrollRect.verticalNormalizedPosition <= BottomThreshold;
         }
 
-        /// <summary>
-        /// Immediately scroll to bottom with layout rebuild
-        /// </summary>
         public void ScrollToBottom()
         {
-            if (!isInitialized || chatScrollRect == null) 
+            if (!isInitialized || chatScrollRect == null)
                 return;
-            
-            // Null check before accessing contentTransform
+
             if (contentTransform == null)
             {
-                Debug.LogWarning("[ChatAutoScroller] Cannot scroll - contentTransform is null");
+                LogWarning("Cannot scroll - contentTransform is null");
                 return;
             }
-            
-            // Force layout update first
+
             Canvas.ForceUpdateCanvases();
-            
-            // Then scroll
             chatScrollRect.verticalNormalizedPosition = 0f;
-            
-            // Force rebuild to ensure correct positioning
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform);
         }
 
-        /// <summary>
-        /// Force scroll to bottom and reset tracking (for loading new chat).
-        /// Explicitly resets wasAtBottom so auto-scroll resumes from a known state.
-        /// </summary>
         public void ForceScrollToBottom()
         {
-            // Only reinitialize if not already set up — avoids implicit state reset via TryInitialize
             if (!isInitialized && !TryInitialize())
             {
-                Debug.LogWarning("[ChatAutoScroller] Cannot force scroll - initialization failed");
+                LogWarning("Cannot force scroll - initialization failed");
                 return;
             }
 
-            // Explicitly reset tracking state — this is intentional for a forced scroll
             wasAtBottom = true;
             lastContentHeight = contentTransform.rect.height;
             lastChildCount = contentTransform.childCount;
 
             ScrollToBottom();
 
-            Debug.Log("[ChatAutoScroller] Forced scroll to bottom and reset tracking");
+            Log("Forced scroll to bottom and reset tracking");
         }
 
-        /// <summary>
-        /// Enable/disable auto-scrolling behavior
-        /// </summary>
         public void SetAutoScrollEnabled(bool enabled)
         {
             autoScrollEnabled = enabled;
-            Debug.Log($"[ChatAutoScroller] Auto-scroll {(enabled ? "enabled" : "disabled")}");
+            Log($"Auto-scroll {(enabled ? "enabled" : "disabled")}");
         }
 
-        /// <summary>
-        /// Manually refresh references (call when ChatAppPanel becomes active)
-        /// </summary>
         public void RefreshReferences()
         {
             isInitialized = false;
-            
+
             if (TryInitialize())
             {
                 ForceScrollToBottom();
-                Debug.Log("[ChatAutoScroller] References refreshed");
+                Log("References refreshed");
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAutoScrollerDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatAutoScroller] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatAutoScrollerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ChatAutoScroller] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            // Always show errors — no Conditional, fires in all builds
+            UnityEngine.Debug.LogError($"[ChatAutoScroller] ERROR: {message}");
         }
     }
 }

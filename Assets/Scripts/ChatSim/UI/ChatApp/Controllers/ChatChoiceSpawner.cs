@@ -66,7 +66,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (continueButtonPrefab != null)
                 poolingManager.PreWarm(continueButtonPrefab, 1);
 
-            Debug.Log("[ChatChoiceSpawner] Pools prewarmed");
+            Log("Pools prewarmed");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -101,12 +101,11 @@ namespace ChatSim.UI.ChatApp.Controllers
             SpawnUtilityButton(buttonText, callback);
             gameObject.SetActive(true);
             rebuildLayoutCoroutine = StartCoroutine(RebuildLayoutDelayed());
-            Debug.Log($"[ChatChoiceSpawner] Showing end button: {buttonText}");
+            Log($"Showing end button: {buttonText}");
         }
 
         public void ClearChoices()
         {
-            // Cancel pending layout rebuild before clearing
             if (rebuildLayoutCoroutine != null)
             {
                 StopCoroutine(rebuildLayoutCoroutine);
@@ -115,7 +114,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (choiceContainer == null)
             {
-                Debug.LogError("[ChatChoiceSpawner] choiceContainer is null!");
+                LogError("choiceContainer is null!");
                 return;
             }
 
@@ -144,7 +143,7 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (choiceButtonPrefab == null)
             {
-                Debug.LogError("[ChatChoiceSpawner] choiceButtonPrefab is null!");
+                LogError("choiceButtonPrefab is null!");
                 return;
             }
 
@@ -160,7 +159,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             else
             {
-                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing!");
+                LogError("ChoiceButton component missing!");
                 Destroy(btnObj);
             }
         }
@@ -173,7 +172,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (prefab == null)
             {
-                Debug.LogError("[ChatChoiceSpawner] No button prefab assigned!");
+                LogError("No button prefab assigned!");
                 return;
             }
 
@@ -189,7 +188,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             else
             {
-                Debug.LogError("[ChatChoiceSpawner] ChoiceButton component missing!");
+                LogError("ChoiceButton component missing!");
                 Destroy(btnObj);
             }
         }
@@ -211,6 +210,29 @@ namespace ChatSim.UI.ChatApp.Controllers
                 LayoutRebuilder.ForceRebuildLayoutImmediate(choiceContainer);
 
             rebuildLayoutCoroutine = null;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatChoiceSpawnerDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatChoiceSpawner] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatChoiceSpawnerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ChatChoiceSpawner] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ChatChoiceSpawner] ERROR: {message}");
         }
     }
 }

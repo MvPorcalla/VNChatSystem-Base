@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using ChatSim.Core;
 
 namespace ChatSim.UI.Common.Pooling
 {
@@ -32,7 +33,7 @@ namespace ChatSim.UI.Common.Pooling
             poolRoot.SetParent(transform);
             poolRoot.gameObject.SetActive(false);
 
-            Debug.Log("[PoolingManager] Initialized");
+            Log("Initialized");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -47,7 +48,7 @@ namespace ChatSim.UI.Common.Pooling
         {
             if (prefab == null)
             {
-                Debug.LogError("[PoolingManager] Cannot get object from null prefab");
+                LogError("Cannot get object from null prefab");
                 return null;
             }
 
@@ -73,7 +74,6 @@ namespace ChatSim.UI.Common.Pooling
                 pooledObject.PreserveContent = true;
             }
 
-            // Reset transform
             obj.transform.localPosition = Vector3.zero;
             obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
@@ -94,7 +94,7 @@ namespace ChatSim.UI.Common.Pooling
 
             if (poolRoot == null)
             {
-                Debug.LogWarning("[PoolingManager] Recycle called before Awake — destroying object instead");
+                LogWarning("Recycle called before Awake — destroying object instead");
                 Destroy(obj);
                 return;
             }
@@ -102,20 +102,16 @@ namespace ChatSim.UI.Common.Pooling
             var pooledObject = obj.GetComponent<PooledObject>();
             if (pooledObject == null || pooledObject.Prefab == null)
             {
-                Debug.LogWarning($"[PoolingManager] Cannot recycle {obj.name} - no PooledObject component");
+                LogWarning($"Cannot recycle {obj.name} - no PooledObject component");
                 Destroy(obj);
                 return;
             }
 
             GameObject prefab = pooledObject.Prefab;
 
-            // ClearDynamicContent is a fallback for objects with no ResetForPool() implementation.
-            // Spawners (ChatMessageSpawner, ChatChoiceSpawner) call ResetForPool() before Recycle —
-            // those objects should have PreserveContent = true to skip this fallback.
             if (!pooledObject.PreserveContent)
                 ClearDynamicContent(obj);
 
-            // Deactivate and reparent to pool root
             obj.SetActive(false);
             obj.transform.SetParent(poolRoot, false);
 
@@ -149,7 +145,7 @@ namespace ChatSim.UI.Common.Pooling
                 pools[prefab].Enqueue(obj);
             }
 
-            Debug.Log($"[PoolingManager] Pre-warmed {count} instances of {prefab.name}");
+            Log($"Pre-warmed {count} instances of {prefab.name}");
         }
 
         /// <summary>
@@ -174,7 +170,7 @@ namespace ChatSim.UI.Common.Pooling
             }
 
             pools.Clear();
-            Debug.Log($"[PoolingManager] Cleared all pools - destroyed {totalDestroyed} objects");
+            Log($"Cleared all pools - destroyed {totalDestroyed} objects");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -187,8 +183,9 @@ namespace ChatSim.UI.Common.Pooling
         /// </summary>
         private void ClearDynamicContent(GameObject obj)
         {
-            Debug.LogError($"[PoolingManager] {obj.name} recycled without ResetForPool() implementation. " +
-                        $"Add ResetForPool() to the component or set PreserveContent = true on its PooledObject.");
+            // Always fires — indicates a real programming mistake
+            LogError($"{obj.name} recycled without ResetForPool() implementation. " +
+                    $"Add ResetForPool() to the component or set PreserveContent = true on its PooledObject.");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -198,6 +195,29 @@ namespace ChatSim.UI.Common.Pooling
         private void OnDestroy()
         {
             ClearAllPools();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.poolingManagerDebugLogs) return;
+            UnityEngine.Debug.Log($"[PoolingManager] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.poolingManagerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[PoolingManager] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[PoolingManager] ERROR: {message}");
         }
     }
 }

@@ -60,7 +60,6 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (poolingManager == null) return;
 
-            // Only prewarm text/system bubbles — image bubbles are not pooled
             if (npcTextBubblePrefab != null)
                 poolingManager.PreWarm(npcTextBubblePrefab, prewarmCount);
 
@@ -70,7 +69,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (systemBubblePrefab != null)
                 poolingManager.PreWarm(systemBubblePrefab, 3);
 
-            Debug.Log("[ChatMessageSpawner] Pools prewarmed");
+            Log("Pools prewarmed");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -117,11 +116,10 @@ namespace ChatSim.UI.ChatApp.Controllers
         {
             if (chatContent == null)
             {
-                Debug.LogError("[ChatMessageSpawner] chatContent is null!");
+                LogError("chatContent is null!");
                 return;
             }
 
-            // Recycle pooled text/system bubbles
             foreach (var bubble in pooledBubbles)
             {
                 if (bubble == null) continue;
@@ -136,7 +134,6 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             pooledBubbles.Clear();
 
-            // Destroy image bubbles (not pooled)
             foreach (var bubble in imageBubbles)
             {
                 if (bubble != null)
@@ -144,7 +141,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             imageBubbles.Clear();
 
-            Debug.Log("[ChatMessageSpawner] All messages cleared");
+            Log("All messages cleared");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -157,7 +154,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (prefab == null)
             {
-                Debug.LogError($"[ChatMessageSpawner] No prefab for type: {msg.type}, speaker: {msg.speaker}");
+                LogError($"No prefab for type: {msg.type}, speaker: {msg.speaker}");
                 return;
             }
 
@@ -169,12 +166,12 @@ namespace ChatSim.UI.ChatApp.Controllers
             if (bubble != null)
             {
                 bubble.Initialize(msg, instant);
-                bubble.ApplyFontSize(PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, PlayerPrefKeys.DefaultTextSize)); // ← add this
+                bubble.ApplyFontSize(PlayerPrefs.GetFloat(PlayerPrefKeys.TextSize, PlayerPrefKeys.DefaultTextSize));
                 pooledBubbles.Add(bubbleObj);
             }
             else
             {
-                Debug.LogError("[ChatMessageSpawner] MessageBubble component missing!");
+                LogError("MessageBubble component missing!");
                 Destroy(bubbleObj);
             }
         }
@@ -187,7 +184,7 @@ namespace ChatSim.UI.ChatApp.Controllers
 
             if (prefab == null)
             {
-                Debug.LogError($"[ChatMessageSpawner] No image prefab for speaker: {msg.speaker}");
+                LogError($"No image prefab for speaker: {msg.speaker}");
                 return;
             }
 
@@ -201,7 +198,7 @@ namespace ChatSim.UI.ChatApp.Controllers
             }
             else
             {
-                Debug.LogError("[ChatMessageSpawner] ImageMessageBubble component missing!");
+                LogError("ImageMessageBubble component missing!");
                 Destroy(bubbleObj);
             }
         }
@@ -244,7 +241,30 @@ namespace ChatSim.UI.ChatApp.Controllers
                 bubble.GetComponent<TextMessageBubble>()?.ApplyFontSize(fontSize);
             }
 
-            Debug.Log($"[ChatMessageSpawner] Font size applied to {pooledBubbles.Count} bubbles: {fontSize}");
+            Log($"Font size applied to {pooledBubbles.Count} bubbles: {fontSize}");
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ░ LOGGING
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void Log(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatMessageSpawnerDebugLogs) return;
+            UnityEngine.Debug.Log($"[ChatMessageSpawner] {message}");
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogWarning(string message)
+        {
+            if (GameBootstrap.Config == null || !GameBootstrap.Config.chatMessageSpawnerDebugLogs) return;
+            UnityEngine.Debug.LogWarning($"[ChatMessageSpawner] WARNING: {message}");
+        }
+
+        private void LogError(string message)
+        {
+            UnityEngine.Debug.LogError($"[ChatMessageSpawner] ERROR: {message}");
         }
 
         // ═══════════════════════════════════════════════════════════

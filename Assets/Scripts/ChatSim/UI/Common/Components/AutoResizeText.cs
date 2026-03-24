@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using ChatSim.Core;
 
 namespace ChatSim.UI.Common.Components
 {
@@ -18,15 +19,6 @@ namespace ChatSim.UI.Common.Components
     [RequireComponent(typeof(LayoutElement))]
     public class AutoResizeText : MonoBehaviour
     {
-        // ═══════════════════════════════════════════════════════════
-        // ░ SETTINGS
-        // ═══════════════════════════════════════════════════════════
-        
-        [Header("Width Settings")]
-        [SerializeField] private float maxWidth = 650f;
-        [SerializeField] private float minWidth = 40f;
-        [SerializeField] private float widthChangeThreshold = 0.1f;
-
         // ═══════════════════════════════════════════════════════════
         // ░ COMPONENTS
         // ═══════════════════════════════════════════════════════════
@@ -49,6 +41,11 @@ namespace ChatSim.UI.Common.Components
         
         public bool IsInitialized => isInitialized;
 
+        // Config values with fallbacks
+        private float MaxWidth              => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMaxWidth              : 650f;
+        private float MinWidth              => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleMinWidth              : 40f;
+        private float WidthChangeThreshold  => GameBootstrap.Config != null ? GameBootstrap.Config.bubbleWidthChangeThreshold  : 0.1f;
+
         // ═══════════════════════════════════════════════════════════
         // ░ INITIALIZATION
         // ═══════════════════════════════════════════════════════════
@@ -70,23 +67,22 @@ namespace ChatSim.UI.Common.Components
 
                 if (textComponent == null)
                 {
-                    Debug.LogError($"[AutoResize] TextMeshProUGUI missing on {gameObject.name}");
+                    UnityEngine.Debug.LogError($"[AutoResize] TextMeshProUGUI missing on {gameObject.name}");
                     return;
                 }
 
                 if (layoutElement == null)
                 {
-                    Debug.LogError($"[AutoResize] LayoutElement missing on {gameObject.name}");
+                    UnityEngine.Debug.LogError($"[AutoResize] LayoutElement missing on {gameObject.name}");
                     return;
                 }
 
                 textComponent.enableWordWrapping = true;
-
                 isInitialized = true;
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[AutoResize] Initialization failed on {gameObject.name}: {e.Message}");
+                UnityEngine.Debug.LogError($"[AutoResize] Initialization failed on {gameObject.name}: {e.Message}");
                 isInitialized = false;
             }
         }
@@ -119,7 +115,7 @@ namespace ChatSim.UI.Common.Components
         {
             if (layoutElement != null)
             {
-                layoutElement.minWidth = minWidth;
+                layoutElement.minWidth = MinWidth;
                 layoutElement.flexibleWidth = 0;
             }
         }
@@ -135,12 +131,14 @@ namespace ChatSim.UI.Common.Components
         {
             if (!isInitialized)
             {
-                Debug.LogWarning($"[AutoResize] SetText called before init on {gameObject.name}");
+        #if UNITY_EDITOR
+                UnityEngine.Debug.LogWarning($"[AutoResize] SetText called before init on {gameObject.name}");
+        #endif
                 InitializeComponents();
 
                 if (!isInitialized)
                 {
-                    Debug.LogError($"[AutoResize] Failed to initialize on {gameObject.name}");
+                    UnityEngine.Debug.LogError($"[AutoResize] Failed to initialize on {gameObject.name}");
                     return;
                 }
             }
@@ -148,7 +146,7 @@ namespace ChatSim.UI.Common.Components
             if (textComponent != null && textComponent.text != newText)
             {
                 textComponent.text = newText;
-                UpdateWidth(); // Automatic width update
+                UpdateWidth();
             }
         }
 
@@ -160,18 +158,16 @@ namespace ChatSim.UI.Common.Components
         {
             if (!isInitialized)
             {
-                Debug.LogWarning($"[AutoResize] RefreshWidth called before init on {gameObject.name}");
+        #if UNITY_EDITOR
+                UnityEngine.Debug.LogWarning($"[AutoResize] RefreshWidth called before init on {gameObject.name}");
+        #endif
                 return;
             }
 
             if (gameObject.activeInHierarchy)
-            {
                 UpdateWidth();
-            }
             else
-            {
                 UpdateWidthImmediate();
-            }
         }
 
         [ContextMenu("Force Reinitialize")]
@@ -195,12 +191,11 @@ namespace ChatSim.UI.Common.Components
 
         private float CalculatePreferredWidth()
         {
-            // Early exit for empty text
             if (string.IsNullOrEmpty(textComponent.text))
-                return minWidth;
+                return MinWidth;
 
-            Vector2 textSize = textComponent.GetPreferredValues(textComponent.text, maxWidth, 0);
-            return Mathf.Clamp(textSize.x, minWidth, maxWidth);
+            Vector2 textSize = textComponent.GetPreferredValues(textComponent.text, MaxWidth, 0);
+            return Mathf.Clamp(textSize.x, MinWidth, MaxWidth);
         }
 
         /// <summary>
@@ -216,8 +211,7 @@ namespace ChatSim.UI.Common.Components
             {
                 float preferredWidth = CalculatePreferredWidth();
 
-                // Only update if change is significant
-                if (Mathf.Abs(preferredWidth - lastCalculatedWidth) > widthChangeThreshold)
+                if (Mathf.Abs(preferredWidth - lastCalculatedWidth) > WidthChangeThreshold)
                 {
                     layoutElement.preferredWidth = preferredWidth;
                     lastCalculatedWidth = preferredWidth;
@@ -226,7 +220,7 @@ namespace ChatSim.UI.Common.Components
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[AutoResize] Width calculation failed on {gameObject.name}: {e.Message}");
+                UnityEngine.Debug.LogError($"[AutoResize] Width calculation failed on {gameObject.name}: {e.Message}");
             }
 
             return false;
@@ -287,13 +281,11 @@ namespace ChatSim.UI.Common.Components
             try
             {
                 if (rectTransform != null)
-                {
                     LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-                }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[AutoResize] Layout rebuild failed on {gameObject.name}: {e.Message}");
+                UnityEngine.Debug.LogError($"[AutoResize] Layout rebuild failed on {gameObject.name}: {e.Message}");
             }
             finally
             {

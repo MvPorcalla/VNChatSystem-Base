@@ -29,6 +29,7 @@ Assets/Scripts/
     │   └── SceneNames.cs                 # String constants for all scene names
     │
     ├── Data/
+    │   ├── GameConfig.cs
     │   └── SaveData.cs                   # Serializable save data model — conversation states, CG unlocks
     │
     └── UI/

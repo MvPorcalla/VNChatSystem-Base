@@ -103,13 +103,13 @@ namespace BubbleSpinner.Core
         {
             if (state == null || currentNodes == null)
             {
-                BSDebug.LogError("[DialogueExecutor] Cannot continue: not initialized");
+                BSDebug.Error("[DialogueExecutor] Cannot continue: not initialized");
                 return;
             }
 
             if (!currentNodes.ContainsKey(state.currentNodeName))
             {
-                BSDebug.LogError($"[DialogueExecutor] Node '{state.currentNodeName}' not found");
+                BSDebug.Error($"[DialogueExecutor] Node '{state.currentNodeName}' not found");
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace BubbleSpinner.Core
             {
                 var playerMessage = currentNode.messages[pausePoint.playerMessageIndex];
 
-                BSDebug.Log($"[DialogueExecutor] Player-turn pause — emitting player message: '{playerMessage.content}'");
+                BSDebug.Info($"[DialogueExecutor] Player-turn pause — emitting player message: '{playerMessage.content}'");
 
                 // Emit the paired player message, then resume NPC processing.
                 state.messageHistory.Add(playerMessage);
@@ -208,7 +208,7 @@ namespace BubbleSpinner.Core
         {
             if (state == null) return;
 
-            BSDebug.Log("[DialogueExecutor] Conversation interrupted - setting ResumeTarget.Interrupted");
+            BSDebug.Info("[DialogueExecutor] Conversation interrupted - setting ResumeTarget.Interrupted");
             state.isInPauseState = true;
             state.resumeTarget = ResumeTarget.Interrupted;
         }
@@ -219,7 +219,7 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void OnChoiceSelected(ChoiceData choice)
         {
-            BSDebug.Log($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {choice.targetNode}");
+            BSDebug.Info($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {choice.targetNode}");
 
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.None;
@@ -249,7 +249,7 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void AdvanceToNextChapter()
         {
-            BSDebug.Log("[DialogueExecutor] AdvanceToNextChapter called");
+            BSDebug.Info("[DialogueExecutor] AdvanceToNextChapter called");
             state.resumeTarget = ResumeTarget.None;
             LoadNextChapter("Start");
         }
@@ -262,7 +262,7 @@ namespace BubbleSpinner.Core
         {
             if (currentNode == null || state == null)
             {
-                BSDebug.LogError("[DialogueExecutor] Cannot process: invalid state");
+                BSDebug.Error("[DialogueExecutor] Cannot process: invalid state");
                 return;
             }
 
@@ -378,7 +378,7 @@ namespace BubbleSpinner.Core
 
         private void JumpToNode(string nodeName)
         {
-            BSDebug.Log($"[DialogueExecutor] Jumping to node: {nodeName}");
+            BSDebug.Info($"[DialogueExecutor] Jumping to node: {nodeName}");
 
             if (currentNodes.ContainsKey(nodeName))
             {
@@ -389,7 +389,7 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                BSDebug.Log($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
+                BSDebug.Info($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
                 LoadNextChapter(nodeName);
             }
         }
@@ -398,7 +398,7 @@ namespace BubbleSpinner.Core
         {
             if (state.currentChapterIndex >= conversationAsset.chapters.Count - 1)
             {
-                BSDebug.Log("[DialogueExecutor] Already at last chapter - ending conversation");
+                BSDebug.Info("[DialogueExecutor] Already at last chapter - ending conversation");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
@@ -409,19 +409,19 @@ namespace BubbleSpinner.Core
             var nextChapter = conversationAsset.chapters[state.currentChapterIndex];
             if (nextChapter == null)
             {
-                BSDebug.LogError($"[DialogueExecutor] Chapter {state.currentChapterIndex} is NULL!");
+                BSDebug.Error($"[DialogueExecutor] Chapter {state.currentChapterIndex} is NULL!");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
             }
 
-            BSDebug.Log($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
+            BSDebug.Info($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
 
             currentNodes = BubbleSpinnerParser.Parse(nextChapter, conversationAsset.characterName);
 
             if (currentNodes == null || currentNodes.Count == 0)
             {
-                BSDebug.LogError($"[DialogueExecutor] Failed to parse chapter {state.currentChapterIndex}");
+                BSDebug.Error($"[DialogueExecutor] Failed to parse chapter {state.currentChapterIndex}");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
@@ -440,7 +440,7 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                BSDebug.LogError($"[DialogueExecutor] Node '{targetNode}' not found in chapter {state.currentChapterIndex}");
+                BSDebug.Error($"[DialogueExecutor] Node '{targetNode}' not found in chapter {state.currentChapterIndex}");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
             }
@@ -503,12 +503,12 @@ namespace BubbleSpinner.Core
 
             if (state.unlockedCGs.Contains(message.imagePath))
             {
-                BSDebug.Log($"[DialogueExecutor] CG already unlocked: {message.imagePath}");
+                BSDebug.Info($"[DialogueExecutor] CG already unlocked: {message.imagePath}");
                 return;
             }
 
             state.unlockedCGs.Add(message.imagePath);
-            BSDebug.Log($"[DialogueExecutor] CG UNLOCKED: {message.imagePath}");
+            BSDebug.Info($"[DialogueExecutor] CG UNLOCKED: {message.imagePath}");
 
             callbacks?.OnCGUnlocked(message.imagePath);
         }
@@ -522,7 +522,7 @@ namespace BubbleSpinner.Core
             if (state.currentChapterIndex < 0 ||
                 state.currentChapterIndex >= conversationAsset.chapters.Count)
             {
-                BSDebug.LogWarning($"[DialogueExecutor] Invalid chapter index {state.currentChapterIndex}, resetting to 0");
+                BSDebug.Warn($"[DialogueExecutor] Invalid chapter index {state.currentChapterIndex}, resetting to 0");
                 state.currentChapterIndex = 0;
                 state.currentMessageIndex = 0;
                 state.readMessageIds.Clear();
@@ -541,7 +541,7 @@ namespace BubbleSpinner.Core
             if (currentNodes == null || currentNodes.Count == 0)
                 throw new InvalidOperationException($"Failed to parse chapter {state.currentChapterIndex}");
 
-            BSDebug.Log($"[DialogueExecutor] Loaded chapter {state.currentChapterIndex} with {currentNodes.Count} nodes");
+            BSDebug.Info($"[DialogueExecutor] Loaded chapter {state.currentChapterIndex} with {currentNodes.Count} nodes");
         }
 
         private void ValidateState()
@@ -550,7 +550,7 @@ namespace BubbleSpinner.Core
                 !currentNodes.ContainsKey(state.currentNodeName))
             {
                 var firstNode = GetFirstNodeName();
-                BSDebug.LogWarning($"[DialogueExecutor] Invalid node '{state.currentNodeName}', resetting to '{firstNode}'");
+                BSDebug.Warn($"[DialogueExecutor] Invalid node '{state.currentNodeName}', resetting to '{firstNode}'");
                 state.currentNodeName = firstNode;
                 state.currentMessageIndex = 0;
                 state.resumeTarget = ResumeTarget.None;
@@ -561,7 +561,7 @@ namespace BubbleSpinner.Core
                 var node = currentNodes[state.currentNodeName];
                 if (state.currentMessageIndex < 0 || state.currentMessageIndex > node.messages.Count)
                 {
-                    BSDebug.LogWarning($"[DialogueExecutor] Invalid message index {state.currentMessageIndex}, resetting to 0");
+                    BSDebug.Warn($"[DialogueExecutor] Invalid message index {state.currentMessageIndex}, resetting to 0");
                     state.currentMessageIndex = 0;
                     state.resumeTarget = ResumeTarget.None;
                 }

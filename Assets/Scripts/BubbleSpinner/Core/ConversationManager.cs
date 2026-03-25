@@ -90,18 +90,18 @@ namespace BubbleSpinner.Core
         {
             if (callbacks == null)
             {
-                BSDebug.LogError("[ConversationManager] Not initialized! Call Initialize() first.");
+                BSDebug.Error("[ConversationManager] Not initialized! Call Initialize() first.");
                 return null;
             }
 
             if (asset == null)
             {
-                BSDebug.LogError("[ConversationManager] Cannot start null conversation");
+                BSDebug.Error("[ConversationManager] Cannot start null conversation");
                 return null;
             }
 
             string convId = asset.ConversationId;
-            BSDebug.Log($"[ConversationManager] Starting conversation: {asset.characterName} (ID: {convId})");
+            BSDebug.Info($"[ConversationManager] Starting conversation: {asset.characterName} (ID: {convId})");
 
             if (!activeSessions.ContainsKey(convId))
             {
@@ -118,7 +118,7 @@ namespace BubbleSpinner.Core
                     state = state
                 };
 
-                BSDebug.Log($"[ConversationManager] Created new session for {convId}");
+                BSDebug.Info($"[ConversationManager] Created new session for {convId}");
 
                 // Save after executor initialized state properly
                 ForceSaveGame();
@@ -137,7 +137,7 @@ namespace BubbleSpinner.Core
         {
             if (string.IsNullOrEmpty(currentConversationId) || CurrentExecutor == null)
             {
-                BSDebug.LogWarning("[ConversationManager] No active conversation to save");
+                BSDebug.Warn("[ConversationManager] No active conversation to save");
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace BubbleSpinner.Core
         {
             if (string.IsNullOrEmpty(currentConversationId) || CurrentExecutor == null)
             {
-                BSDebug.LogWarning("[ConversationManager] No active conversation to force save");
+                BSDebug.Warn("[ConversationManager] No active conversation to force save");
                 return;
             }
 
@@ -166,11 +166,11 @@ namespace BubbleSpinner.Core
         {
             if (CurrentExecutor == null)
             {
-                BSDebug.LogWarning("[ConversationManager] No active conversation to end");
+                BSDebug.Warn("[ConversationManager] No active conversation to end");
                 return;
             }
 
-            BSDebug.Log($"[ConversationManager] Ending conversation: {currentConversationId}");
+            BSDebug.Info($"[ConversationManager] Ending conversation: {currentConversationId}");
 
             ForceSaveCurrentConversation();
 
@@ -199,7 +199,7 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void ResetConversation(string conversationId)
         {
-            BSDebug.Log($"[ConversationManager] Resetting conversation: {conversationId}");
+            BSDebug.Info($"[ConversationManager] Resetting conversation: {conversationId}");
 
             if (activeSessions.TryGetValue(conversationId, out var session))
             {
@@ -214,7 +214,7 @@ namespace BubbleSpinner.Core
 
             callbacks?.DeleteConversationState(conversationId);
 
-            BSDebug.Log($"[ConversationManager] Conversation reset complete: {conversationId}");
+            BSDebug.Info($"[ConversationManager] Conversation reset complete: {conversationId}");
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void EvictConversationCache(string conversationId)
         {
-            BSDebug.Log($"[ConversationManager] Evicting cache for: {conversationId}");
+            BSDebug.Info($"[ConversationManager] Evicting cache for: {conversationId}");
 
             if (activeSessions.TryGetValue(conversationId, out var session))
             {
@@ -237,7 +237,7 @@ namespace BubbleSpinner.Core
                 currentConversationId = null;
             }
 
-            BSDebug.Log($"[ConversationManager] ✓ Cache evicted for: {conversationId}");
+            BSDebug.Info($"[ConversationManager] ✓ Cache evicted for: {conversationId}");
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void EvictAllConversationCaches()
         {
-            BSDebug.Log($"[ConversationManager] Evicting all session caches ({activeSessions.Count} sessions)");
+            BSDebug.Info($"[ConversationManager] Evicting all session caches ({activeSessions.Count} sessions)");
 
             foreach (var session in activeSessions.Values)
             {
@@ -257,7 +257,7 @@ namespace BubbleSpinner.Core
             activeSessions.Clear();
             currentConversationId = null;
 
-            BSDebug.Log("[ConversationManager] ✓ All session caches evicted");
+            BSDebug.Info("[ConversationManager] ✓ All session caches evicted");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -352,7 +352,7 @@ namespace BubbleSpinner.Core
 
         private void OnExecutorChapterChange(string chapterName)
         {
-            BSDebug.Log($"[ConversationManager] Chapter changed: {chapterName}");
+            BSDebug.Info($"[ConversationManager] Chapter changed: {chapterName}");
             ForceSaveCurrentConversation();
         }
 
@@ -371,7 +371,7 @@ namespace BubbleSpinner.Core
 
             if (existingState != null)
             {
-                BSDebug.Log($"[ConversationManager] Loaded existing state: {conversationId} " +
+                BSDebug.Info($"[ConversationManager] Loaded existing state: {conversationId} " +
                          $"(Chapter: {existingState.currentChapterIndex}, Node: '{existingState.currentNodeName}')");
                 return existingState;
             }
@@ -419,12 +419,12 @@ namespace BubbleSpinner.Core
                 lastSaveTime = Time.realtimeSinceStartup;
                 hasPendingSave = false;
 
-                BSDebug.Log($"[ConversationManager] ✓ Saved: {currentConversationId} " +
+                BSDebug.Info($"[ConversationManager] ✓ Saved: {currentConversationId} " +
                          $"(Node: '{session.state.currentNodeName}', Chapter: {session.state.currentChapterIndex})");
             }
             else
             {
-                BSDebug.LogError($"[ConversationManager] ✗ Save failed for: {currentConversationId}");
+                BSDebug.Error($"[ConversationManager] ✗ Save failed for: {currentConversationId}");
             }
         }
 
@@ -452,7 +452,7 @@ namespace BubbleSpinner.Core
         {
             if (pauseStatus && CurrentExecutor != null && !string.IsNullOrEmpty(currentConversationId))
             {
-                BSDebug.Log("[ConversationManager] App paused - force saving conversation");
+                BSDebug.Info("[ConversationManager] App paused - force saving conversation");
                 ForceSaveCurrentConversation();
             }
         }
@@ -461,7 +461,7 @@ namespace BubbleSpinner.Core
         {
             if (CurrentExecutor != null && !string.IsNullOrEmpty(currentConversationId))
             {
-                BSDebug.Log("[ConversationManager] App quitting - force saving conversation");
+                BSDebug.Info("[ConversationManager] App quitting - force saving conversation");
                 ForceSaveCurrentConversation();
             }
         }

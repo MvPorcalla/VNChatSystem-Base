@@ -54,11 +54,11 @@ namespace BubbleSpinner.Core
 
             if (bubbleFile == null)
             {
-                BSDebug.LogError("[BubbleSpinner] Null .bub file provided");
+                BSDebug.Error("[BubbleSpinner] Null .bub file provided");
                 return nodes;
             }
 
-            BSDebug.Log($"[BubbleSpinner] Parsing: {bubbleFile.name}");
+            BSDebug.Info($"[BubbleSpinner] Parsing: {bubbleFile.name}");
 
             string[] lines = bubbleFile.text.Split('\n');
             var context = new ParserContext { fileName = bubbleFile.name };
@@ -83,7 +83,7 @@ namespace BubbleSpinner.Core
                             if (!string.IsNullOrEmpty(contactName) &&
                                 !contactName.Equals(expectedCharacterName, StringComparison.OrdinalIgnoreCase))
                             {
-                                BSDebug.LogWarning($"[BubbleSpinner] [{context.fileName}] contact: mismatch! " +
+                                BSDebug.Warn($"[BubbleSpinner] [{context.fileName}] contact: mismatch! " +
                                     $"File says '{contactName}' but asset expects '{expectedCharacterName}'");
                             }
                         }
@@ -97,7 +97,7 @@ namespace BubbleSpinner.Core
 
                     if (context.currentNode == null)
                     {
-                        BSDebug.LogWarning($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Content outside node: {line}");
+                        BSDebug.Warn($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Content outside node: {line}");
                         context.lastParsedWasTitle = false;
                         continue;
                     }
@@ -110,12 +110,12 @@ namespace BubbleSpinner.Core
                     if (TryParseMediaCommand(line, context)) continue;
                     if (TryParseDialogueLine(line, context)) continue;
 
-                    BSDebug.LogWarning($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Unrecognized: {line}");
+                    BSDebug.Warn($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Unrecognized: {line}");
                     context.lastParsedWasTitle = false;
                 }
                 catch (Exception ex)
                 {
-                    BSDebug.LogError($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Parse error: {line}\n{ex.Message}");
+                    BSDebug.Error($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] Parse error: {line}\n{ex.Message}");
                 }
             }
 
@@ -123,7 +123,7 @@ namespace BubbleSpinner.Core
             ValidateDialogueGraph(nodes, bubbleFile.name);
             AssignNodeMessageIds(nodes);
 
-            BSDebug.Log($"[BubbleSpinner] Parsed {nodes.Count} nodes from {bubbleFile.name}");
+            BSDebug.Info($"[BubbleSpinner] Parsed {nodes.Count} nodes from {bubbleFile.name}");
             return nodes;
         }
 
@@ -174,14 +174,14 @@ namespace BubbleSpinner.Core
 
             if (string.IsNullOrEmpty(nodeName))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty node name");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty node name");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
 
             if (nodes.ContainsKey(nodeName))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Duplicate node '{nodeName}'");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Duplicate node '{nodeName}'");
             }
 
             ctx.currentNode = new DialogueNode(nodeName);
@@ -204,7 +204,7 @@ namespace BubbleSpinner.Core
 
             if (!ctx.lastParsedWasTitle)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '---' found without preceding title: — ignored");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '---' found without preceding title: — ignored");
             }
 
             ctx.lastParsedWasTitle = false;
@@ -222,14 +222,14 @@ namespace BubbleSpinner.Core
 
             if (ctx.currentNode == null)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '===' found with no open node — ignored");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '===' found with no open node — ignored");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
 
             if (ctx.inChoiceBlock)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '===' reached with unclosed >> choice block — use >> endchoice before ===");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '===' reached with unclosed >> choice block — use >> endchoice before ===");
 
                 // Close the choice block gracefully before finalizing
                 if (ctx.currentChoice != null)
@@ -256,7 +256,7 @@ namespace BubbleSpinner.Core
 
             if (string.IsNullOrEmpty(jumpTarget))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty jump target");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty jump target");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -286,7 +286,7 @@ namespace BubbleSpinner.Core
 
             if (ctx.processingChoiceContent)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Pause point inside choice block ignored");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Pause point inside choice block ignored");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -305,7 +305,7 @@ namespace BubbleSpinner.Core
 
             if (ctx.inChoiceBlock)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Nested choice blocks not supported");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Nested choice blocks not supported");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -323,7 +323,7 @@ namespace BubbleSpinner.Core
 
             if (!ctx.inChoiceBlock)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Unexpected >> endchoice — no open choice block");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Unexpected >> endchoice — no open choice block");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -354,7 +354,7 @@ namespace BubbleSpinner.Core
 
             if (string.IsNullOrEmpty(choiceText))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty choice text");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty choice text");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -373,7 +373,7 @@ namespace BubbleSpinner.Core
             var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 3)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Invalid media command: {line}");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Invalid media command: {line}");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -383,7 +383,7 @@ namespace BubbleSpinner.Core
 
             if (string.IsNullOrEmpty(imagePath))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] No path in media command");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] No path in media command");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -397,7 +397,7 @@ namespace BubbleSpinner.Core
 
             if (shouldUnlock)
             {
-                BSDebug.Log($"[BubbleSpinner] [{ctx.lineNumber}] 📸 Unlockable CG: {imagePath}");
+                BSDebug.Info($"[BubbleSpinner] [{ctx.lineNumber}] Unlockable CG: {imagePath}");
             }
 
             ctx.currentNode.messages.Add(imageMessage);
@@ -417,13 +417,13 @@ namespace BubbleSpinner.Core
 
             if (!Regex.IsMatch(speaker, @"^[\w\s]+$"))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Invalid speaker format, skipping: {line}");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Invalid speaker format, skipping: {line}");
                 return false;
             }
 
             if (string.IsNullOrEmpty(speaker))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty speaker: {line}");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty speaker: {line}");
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -437,7 +437,7 @@ namespace BubbleSpinner.Core
             {
                 // Any dialogue line inside a choice block is not supported.
                 // Content belongs in the target node, not the choice itself.
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
                     $"Dialogue line '{speaker}' inside choice block ignored. " +
                     $"Place content in the target node instead.");
                 ctx.lastParsedWasTitle = false;
@@ -482,7 +482,7 @@ namespace BubbleSpinner.Core
 
             if (string.IsNullOrEmpty(ctx.currentChoice.targetNode))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}] Choice '{ctx.currentChoice.choiceText}' missing jump target");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] Choice '{ctx.currentChoice.choiceText}' missing jump target");
             }
 
             ctx.currentNode.choices.Add(ctx.currentChoice);
@@ -500,12 +500,12 @@ namespace BubbleSpinner.Core
 
             if (node.messages.Count == 0 && (node.choices.Count > 0 || !string.IsNullOrEmpty(node.nextNode)))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}] Node '{node.nodeName}' has no messages");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] Node '{node.nodeName}' has no messages");
             }
 
             if (node.choices.Count > 0 && !string.IsNullOrEmpty(node.nextNode))
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}] Node '{node.nodeName}' has both choices and auto-jump");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] Node '{node.nodeName}' has both choices and auto-jump");
             }
 
             nodes[node.nodeName] = node;
@@ -516,13 +516,13 @@ namespace BubbleSpinner.Core
         {
             if (ctx.currentNode != null)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}] File ended without closing '===' on node '{ctx.currentNode.nodeName}'");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] File ended without closing '===' on node '{ctx.currentNode.nodeName}'");
                 FinalizeCurrentNode(ctx, nodes);
             }
 
             if (ctx.inChoiceBlock)
             {
-                BSDebug.LogWarning($"[BubbleSpinner] [{ctx.fileName}] Choice block never closed with >> endchoice");
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] Choice block never closed with >> endchoice");
             }
         }
 
@@ -539,7 +539,7 @@ namespace BubbleSpinner.Core
                 if (!string.IsNullOrEmpty(node.nextNode) && !nodes.ContainsKey(node.nextNode))
                 {
                     if (!LooksLikeCrossChapterJump(node.nextNode))
-                        BSDebug.LogWarning($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent '{node.nextNode}'");
+                        BSDebug.Warn($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent '{node.nextNode}'");
                 }
 
                 foreach (var choice in node.choices)
@@ -547,7 +547,7 @@ namespace BubbleSpinner.Core
                     if (!string.IsNullOrEmpty(choice.targetNode) && !nodes.ContainsKey(choice.targetNode))
                     {
                         if (!LooksLikeCrossChapterJump(choice.targetNode))
-                            BSDebug.LogWarning($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent '{choice.targetNode}'");
+                            BSDebug.Warn($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent '{choice.targetNode}'");
                     }
                 }
             }

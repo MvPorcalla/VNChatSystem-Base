@@ -10,15 +10,11 @@ Sofia: "It's weird how talking to someone new can feel… safer somehow."
 
 >> media npc type:image unlock:true path:Sofia/CG5
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "I don't usually do this, but…"
 Sofia: "There's something I've been wanting to share with someone."
 Sofia: "Someone who won't judge or try to fix everything immediately."
-
--> ...
 
 Player: "I'm listening."
 
@@ -27,12 +23,11 @@ Sofia: "So… where should I even start?"
 
 >> choice
     -> "Start with what's bothering you most"
-        # Player: "What's weighing on you the heaviest right now?"
         <<jump Node_Deep>>
 
     -> "Start wherever feels right"
-        # Player: "No pressure. Just say what comes naturally."
         <<jump Node_Natural>>
+>> endchoice
 
 ===
 
@@ -42,6 +37,8 @@ Sofia: "So… where should I even start?"
 
 title: Node_Deep
 ---
+Player: "What's weighing on you the heaviest right now?"
+
 Sofia: "The heaviest thing…"
 Sofia: "I think it's the feeling that I'm always performing."
 Sofia: "At work, with friends, even with family."
@@ -49,14 +46,10 @@ Sofia: "Like there's this version of Sofia everyone expects, and I have to maint
 
 >> media npc type:image unlock:true path:Sofia/CG6
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "But with you? I don't know you well enough to have built that wall yet."
 Sofia: "It's freeing. Terrifying. But freeing."
-
--> ...
 
 Player: "You don't have to perform here."
 
@@ -66,9 +59,7 @@ Sofia: "Want to know something else?"
 
 >> media npc type:image unlock:true path:Sofia/CG7
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "I took this earlier today."
 Sofia: "When I feel overwhelmed, I find quiet spaces. Just to breathe."
@@ -83,6 +74,8 @@ Sofia: "When I feel overwhelmed, I find quiet spaces. Just to breathe."
 
 title: Node_Natural
 ---
+Player: "No pressure. Just say what comes naturally."
+
 Sofia: "Okay… naturally then."
 Sofia: "I guess I'll start with something small."
 Sofia: "I've been feeling disconnected lately. From everything."
@@ -90,14 +83,10 @@ Sofia: "Like I'm going through the motions but not really… present."
 
 >> media npc type:image unlock:true path:Sofia/CG6
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "Does that sound weird?"
 Sofia: "I swear I'm not always this melancholic."
-
--> ...
 
 Player: "It doesn't sound weird at all."
 
@@ -107,9 +96,7 @@ Sofia: "The real me."
 
 >> media npc type:image unlock:true path:Sofia/CG7
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "Sorry, that got heavier than I planned."
 Sofia: "But I guess that's the point of having someone to talk to, right?"
@@ -128,9 +115,7 @@ Sofia: "I feel lighter already."
 Sofia: "Thank you for not running away when things got real."
 Sofia: "Most people do."
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "I should probably get back to work soon."
 Sofia: "But I'm glad we talked."

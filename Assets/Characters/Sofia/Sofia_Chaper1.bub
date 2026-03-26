@@ -11,22 +11,18 @@ Sofia: "3"
 Sofia: "Batch 1 - Message A"
 Sofia: "Batch 1 - Message B"
 
--> ...
+...
 
 Sofia: "Batch 2 - Message C"
 Sofia: "Batch 2 - Message D"
 
 >> media npc type:image unlock:true path:Sofia/CG1
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "4"
 Sofia: "5"
 Sofia: "6"
-
--> ...
 
 Player: "Yes"
 
@@ -35,12 +31,11 @@ Sofia: "8"
 
 >> choice
     -> "Ask how she's feeling"
-        # Player: "You sound troubled. What's on your mind?"
         <<jump Node_Concern>>
 
     -> "Keep it casual"
-        # Player: "Morning. Just having coffee. What's up?"
         <<jump Node_Casual>>
+>> endchoice
 
 ===
 
@@ -50,20 +45,18 @@ Sofia: "8"
 
 title: Node_Concern
 ---
+Player: "You sound troubled. What's on your mind?"
+
 Sofia: "Node_Concern 9"
 Sofia: "10"
 Sofia: "11"
 
 >> media npc type:image unlock:true path:Sofia/CG2
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "12"
 Sofia: "13"
-
--> ...
 
 Player: "I'm here. Take your time."
 
@@ -72,7 +65,7 @@ Sofia: "15"
 
 >> media npc type:image unlock:true path:Sofia/CG3
 
--> ...
+...
 
 <<jump EndNode>>
 
@@ -84,15 +77,15 @@ Sofia: "15"
 
 title: Node_Casual
 ---
+Player: "Morning. Just having coffee. What's up?"
+
 Sofia: "Node_Casual 9"
 Sofia: "10"
 Sofia: "11"
 
 >> media npc type:image unlock:true path:Sofia/CG2
 
--> ...
-
-Player: "..."
+...
 
 Sofia: "12"
 Sofia: "13"
@@ -104,12 +97,11 @@ Sofia: "15"
 
 >> media npc type:image unlock:true path:Sofia/CG3
 
--> ...
-Player: "..."
+...
 
 Sofia: "16"
 
--> ...
+...
 
 <<jump EndNode>>
 
@@ -126,8 +118,7 @@ Sofia: "17"
 
 >> media npc type:image unlock:true path:Sofia/CG4
 
--> ...
-Player: "..."
+...
 
 Sofia: "18"
 Sofia: "19"
@@ -135,3 +126,5 @@ Sofia: "19"
 System: "Later that Day."
 
 <<jump Start_Ch2>>
+
+===

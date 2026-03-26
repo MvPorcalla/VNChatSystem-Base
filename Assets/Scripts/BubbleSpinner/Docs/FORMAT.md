@@ -1,5 +1,27 @@
 # BubbleSpinner — .bub Format Reference
 
+---
+
+## Syntax Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| `title:` | Declares a new node |
+| `---` | Opens node content — must follow `title:` |
+| `===` | Closes a node |
+| `...` | Pure pacing pause — tap to continue, nothing sent |
+| `Speaker: "text"` | Message bubble |
+| `Player: "text"` | Implicit pause point — tap sends message, then NPC continues |
+| `System: "text"` | Non-chat system message (timestamps, scene breaks) |
+| `>> media` | Image bubble command |
+| `>> choice` | Opens a choice block |
+| `>> endchoice` | Closes a choice block (required) |
+| `-> "text"` | Choice button — must be inside `>> choice` |
+| `<<jump NodeName>>` | Jump to a node |
+| `//` | Comment — inline or full line |
+
+---
+
 ## File Structure
 
 ```
@@ -21,20 +43,24 @@ title: NextNode
 ## Commands
 
 ### `contact: Name`
-Decorative header. Validated against `ConversationAsset.characterName` at parse time. Mismatch logs a warning but doesn't stop the game.
+Optional metadata. Validated against `ConversationAsset.characterName` at parse time. Mismatch logs a warning but does not stop the game.
 
 ---
 
 ### `title: NodeName`
-Starts a dialogue node. Must be unique within the file. First node is typically `Start`.
+Declares a dialogue node. Must be unique within the file. First node is typically `Start`.
 
-> Cross-chapter targets use `_Ch2`, `_Ch3` suffix — e.g. `title: Start_Ch2`
+> Cross-chapter nodes use the `_Ch2`, `_Ch3` suffix — e.g. `title: Start_Ch2`
 
 ---
 
-### `---` and `===`
-Both treated identically. Use `---` after `title:` and `===` to end a node.
-`===` also implicitly closes any open choice block.
+### `---`
+Opens node content. Must appear directly after `title:`. Parser warns if found elsewhere.
+
+---
+
+### `===`
+Closes a node. Parser warns if a `>> choice` block is still open when `===` is reached — always close choice blocks with `>> endchoice` first.
 
 ---
 
@@ -47,18 +73,31 @@ Player: "Hi!"
 System: "9:42 AM"
 ```
 
-**Player lines can appear anywhere** — no `-> ...` required before them unless you want a tap pause first.
+---
+
+### `Player: "text"`
+Implicit pause point. Shows the continue button — tapping sends the message first, then NPC continues.
+
+```
+Sofia: "What do you think?"
+Player: "I think it's great."
+Sofia: "Really?"
+```
+
+Player lines can appear anywhere in a node. No `...` needed before them.
 
 ---
 
-### `Player: "..."`
-Convention for a silent acknowledgement tap. Just a regular `Player:` line — `...` is not a special command, just a writing convention.
+### `...`
+Pure pacing pause. Shows the continue button — tapping resumes NPC flow, nothing is sent.
 
 ```
--> ...
-Player: "..."
-Sofia: "Anyway..."
+Sofia: "I have something to tell you."
+...
+Sofia: "I like you."
 ```
+
+> Cannot be inside `>> choice`. Produces a warning and is ignored.
 
 ---
 
@@ -79,62 +118,46 @@ Image bubble. `path:` must be a valid Addressables key. Place `path:` last.
 ```
 
 ### `>> media [Speaker] type:image unlock:true path:[key]`
-Same as above but also unlocks the CG to gallery and fires `OnCGUnlocked`. `unlock:true` must come before `path:`.
+Same as above but also unlocks the CG to the gallery and fires `OnCGUnlocked`. `unlock:true` must come before `path:`.
 
 ```
->> media npc type:image unlock:true path:CGs/Sofia_CG1
+>> media npc type:image unlock:true path:Sofia/CG1
 ```
-
----
-
-### `-> ...`
-Tap-to-continue pause point.
-
-**Pure pacing pause:**
-```
-Sofia: "I have something to tell you."
--> ...
-Sofia: "I like you."
-```
-
-**Player-turn pause** — if next non-empty line is `Player:`, tapping sends that message first then resumes NPC:
-```
-Sofia: "What do you think?"
--> ...
-Player: "I think it's great."
-Sofia: "Really?"
-```
-
-**Pause before jump** — valid:
-```
->> media npc type:image unlock:true path:Sofia/CG3
--> ...
-<<jump EndNode>>
-```
-
-> Cannot be inside `>> choice`. Produces a warning and is ignored.
 
 ---
 
 ### `>> choice` / `>> endchoice`
-Opens and closes a choice block.
+Opens and closes a choice block. `>> endchoice` is required.
 
 ```
 >> choice
     -> "Option A"
-        # Player: "I'll take A."
         <<jump NodeA>>
 
     -> "Option B"
-        # Player: "I'll take B."
         <<jump NodeB>>
 >> endchoice
 ```
 
-- `>> endchoice` is recommended but `===` implicitly closes the block too
 - Nested choice blocks not supported
-- `-> ...` inside choice block is ignored with a warning
+- `...` inside a choice block is ignored with a warning
 - Missing `<<jump>>` on a choice logs a warning
+- Player message for a choice belongs at the top of the target node — not inside the choice block
+
+```
+// In the choice block — just the jump
+>> choice
+    -> "Ask how she's feeling"
+        <<jump Node_Concern>>
+>> endchoice
+
+// In the target node — player message is the first line
+title: Node_Concern
+---
+Player: "You sound troubled. What's on your mind?"
+Sofia: "..."
+===
+```
 
 ---
 
@@ -147,21 +170,8 @@ One choice button. Must be inside `>> choice`. Text in double quotes.
 
 ---
 
-### `# [Speaker]: "Text"`
-Player message after selecting a choice. Must be inside a choice option after `-> "text"`.
-
-```
--> "Let's go to the park"
-    # Player: "Let's go to the park!"
-    <<jump ParkNode>>
-```
-
-> Non-`#` lines inside choice options are ignored with a warning.
-
----
-
 ### `<<jump NodeName>>`
-Jump to another node. If not found in current file, BubbleSpinner advances to the next chapter file.
+Jump to another node. If not found in the current file, BubbleSpinner advances to the next chapter file.
 
 ```
 <<jump EndNode>>
@@ -172,7 +182,7 @@ Jump to another node. If not found in current file, BubbleSpinner advances to th
 ---
 
 ### `//`
-Comment. Inline or full line. Also used for section dividers between nodes.
+Comment. Inline or full line. Also used as section dividers between nodes.
 
 ```
 Sofia: "Hi!" // greeting
@@ -181,6 +191,76 @@ Sofia: "Hi!" // greeting
 // CONCERN NODE
 //=====================================
 title: Node_Concern
+```
+
+---
+
+## Full Node Example
+
+```
+title: Start
+---
+System: "9:42 AM"
+
+Sofia: "Hey, good morning."
+Sofia: "I wasn't sure if you'd be up yet."
+
+>> media npc type:image unlock:true path:Sofia/CG1
+
+...
+
+Sofia: "I've been thinking about something."
+Sofia: "Can I ask you something personal?"
+
+Player: "Of course."
+
+Sofia: "Do you ever feel like you're just going through the motions?"
+
+>> choice
+    -> "Sometimes, yeah."
+        <<jump Node_Honest>>
+
+    -> "Not really."
+        <<jump Node_Deflect>>
+>> endchoice
+
+===
+
+title: Node_Honest
+---
+Player: "Sometimes, yeah. More than I'd like to admit."
+
+Sofia: "Yeah."
+Sofia: "Me too."
+
+...
+
+<<jump EndNode>>
+
+===
+
+title: Node_Deflect
+---
+Player: "Not really. Why do you ask?"
+
+Sofia: "No reason."
+Sofia: "Never mind."
+
+...
+
+<<jump EndNode>>
+
+===
+
+title: EndNode
+---
+Sofia: "Thanks for listening."
+
+System: "Later that evening."
+
+<<jump Start_Ch2>>
+
+===
 ```
 
 ---
@@ -194,3 +274,4 @@ title: Node_Concern
 - Message history grows with playtime — save file grows accordingly
 - `contact:` mismatch is warning only, game continues
 - Nested choice blocks not supported
+- Two choices jumping to the same node with different player messages require separate routing nodes

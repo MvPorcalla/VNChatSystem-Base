@@ -214,7 +214,7 @@ namespace BubbleSpinner.Data
         public int version = CURRENT_VERSION;
         public string conversationId;
         public string characterName;
-        public int currentChapterIndex;
+        public string currentChapterId;
         public string currentNodeName;
         public int currentMessageIndex;
         public bool isInPauseState;
@@ -231,7 +231,7 @@ namespace BubbleSpinner.Data
             version             = CURRENT_VERSION;
             conversationId      = "";
             characterName       = "";
-            currentChapterIndex = 0;
+            currentChapterId = "";
             currentNodeName     = "";
             currentMessageIndex = 0;
             isInPauseState      = false;

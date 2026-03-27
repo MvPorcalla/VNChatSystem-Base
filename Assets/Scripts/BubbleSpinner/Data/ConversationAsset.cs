@@ -41,8 +41,8 @@ namespace BubbleSpinner.Data
         public AssetReference profileImage;
 
         [Header("Dialogue Chapters")]
-        [Tooltip("List of .bub files in chapter order. At least one chapter required.")]
-        public List<TextAsset> chapters = new List<TextAsset>();
+        [Tooltip("First entry is always the entry point. All others are reached via <<jump>>.")]
+        public List<ChapterEntry> chapters = new List<ChapterEntry>();
 
         // ═══════════════════════════════════════════════════════════
         // UNIQUE IDENTIFIER
@@ -51,6 +51,20 @@ namespace BubbleSpinner.Data
         [Header("Unique Identifier")]
         [Tooltip("Auto-generated unique ID. DO NOT MODIFY.")]
         [SerializeField] private string conversationId;
+
+        // ═══════════════════════════════════════════════════════════
+        // CHAPTER ENTRY
+        // ═══════════════════════════════════════════════════════════
+
+        [System.Serializable]
+        public class ChapterEntry
+        {
+            [Tooltip("Auto-read from the first title: in the .bub file. Must match <<jump>> targets exactly.")]
+            public string chapterId;
+
+            [Tooltip("The .bub dialogue file for this chapter.")]
+            public TextAsset file;
+        }
 
         // ═══════════════════════════════════════════════════════════
         // OPTIONAL - BASIC PROFILE
@@ -120,6 +134,32 @@ namespace BubbleSpinner.Data
         }
 
         // ═══════════════════════════════════════════════════════════
+        // CHAPTER REGISTRY LOOKUP
+        // ═══════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Returns the TextAsset for the given chapterId, or null if not found.
+        /// </summary>
+        public TextAsset GetChapterById(string chapterId)
+        {
+            foreach (var entry in chapters)
+            {
+                if (string.Equals(entry.chapterId, chapterId, System.StringComparison.OrdinalIgnoreCase))
+                    return entry.file;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the entry point chapter file (always index 0).
+        /// </summary>
+        public TextAsset GetEntryPointChapter()
+        {
+            if (chapters == null || chapters.Count == 0) return null;
+            return chapters[0].file;
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // HELPER - DISPLAY VALUES WITH N/A FALLBACK
         // ═══════════════════════════════════════════════════════════
 
@@ -176,6 +216,8 @@ namespace BubbleSpinner.Data
 
             if (chapters == null || chapters.Count == 0)
                 Debug.LogWarning($"[ConversationAsset] No chapters assigned on {name}!");
+            else if (chapters[0].file == null)
+                Debug.LogWarning($"[ConversationAsset] Entry point chapter (index 0) has no file assigned on {name}!");
         }
 #endif
     }

@@ -366,7 +366,7 @@ namespace ChatSim.Core
                 return false;
             }
 
-            existing.currentChapterIndex = 0;
+            existing.currentChapterId = "";
             existing.currentNodeName = "";
             existing.currentMessageIndex = 0;
             existing.isInPauseState = false;
@@ -416,7 +416,7 @@ namespace ChatSim.Core
             {
                 if (state == null) continue;
 
-                state.currentChapterIndex = 0;
+                state.currentChapterId = "";
                 state.currentNodeName     = "";
                 state.currentMessageIndex = 0;
                 state.isInPauseState      = false;

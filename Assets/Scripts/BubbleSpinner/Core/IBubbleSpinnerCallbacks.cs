@@ -79,6 +79,6 @@ namespace BubbleSpinner.Core
         /// <summary>
         /// Called when the executor advances to a new chapter.
         /// </summary>
-        void OnChapterChanged(string conversationId, int chapterIndex, string chapterName);
+        void OnChapterChanged(string conversationId, string chapterId, string chapterName);
     }
 }

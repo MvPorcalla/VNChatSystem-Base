@@ -1,5 +1,30 @@
 TODO: Update bubblespinner docs
 
+DialogueExecutor.cs
+
+is this case sensitive?
+
+// REPLACE WITH THIS
+// nodeName IS the chapterId when not found locally
+// Entry point of that chapter file is always "Start" unless the jump specifies otherwise
+LoadChapterById(nodeName, "Start");
+
+---
+
+Editor
+
+So better long-term:
+
+CharacterDatabase.cs → ONLY data + runtime queries
+CharacterDatabaseEditor.cs → find / validation / tools
+
+---
+
+suggestion .bub syntax
+
+first jum title make it into a new syntax chapter id
+cross chapter jumping instead instead of <jump Node_name> make a neew syntax and keep <jump Node_name> as  a chapter node jump only
+
 ---
 
 Question:
@@ -24,32 +49,10 @@ Question:
 
 ---
 
-TODO:
-
 ---
 
-**BubbleSpinner — Chapter Registry Refactor**
+**Suggestion for `.bub` syntax**
 
-The current chapter system in `DialogueExecutor` and `ConversationAsset` uses a flat `List<TextAsset>` indexed sequentially (`currentChapterIndex++`). This needs to be replaced with a named chapter registry system.
-
-**What needs to change:**
-
-`ConversationAsset` — replace `List<TextAsset> chapters` with a `List<ChapterEntry>` where each entry has a `chapterId` (string key) and a `TextAsset file`. The first entry (index 0) is always the entry point and loads automatically on conversation start. All other entries are a jump registry — order does not matter.
-
-`ChapterEntry` — new serializable class with `chapterId` and `file` fields. The `chapterId` is auto-read from the first `title:` line in the `.bub` file via a custom Inspector Editor script. Writer can override it manually if needed.
-
-`DialogueExecutor` — replace `currentChapterIndex++` logic in `LoadNextChapter()` with a dictionary lookup by `chapterId`. When `<<jump SomeKey>>` fails to find a node in the current file, the engine looks up `SomeKey` in the chapter registry by `chapterId` and loads that file.
-
-`ConversationState` — replace `currentChapterIndex` (int) with `currentChapterId` (string) to track the active chapter by key instead of index.
-
-`Custom Inspector Editor` — a `[CustomEditor]` for `ConversationAsset` that reads the first `title:` from a dragged `.bub` file and auto-fills the `chapterId` field.
-
-**The contract:**
-- Index 0 entry is always the first chapter loaded
-- Every other entry is only reached via `<<jump ChapterId>>`
-- The key in the registry must match the first `title:` in the file exactly
-- File naming has no rules — only the `title:` matters
-
-**Do not assume or invent any code not explicitly provided. Ask for the full relevant scripts before making changes.**
-
----
+* Convert the first `jump title` into a new syntax for **chapter IDs**.
+* For cross-chapter jumping, introduce a new syntax instead of `<jump Node_name>`.
+* Keep `<jump Node_name>` strictly for **node jumps within the same chapter**.

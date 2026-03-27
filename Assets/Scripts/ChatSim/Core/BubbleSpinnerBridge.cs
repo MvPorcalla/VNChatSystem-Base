@@ -130,9 +130,9 @@ namespace ChatSim.Core
             Debug.Log($"[BubbleSpinnerBridge] Conversation ended: {conversationId}");
         }
 
-        public void OnChapterChanged(string conversationId, int chapterIndex, string chapterName)
+        public void OnChapterChanged(string conversationId, string chapterId, string chapterName)
         {
-            Debug.Log($"[BubbleSpinnerBridge] Chapter changed: {conversationId} - {chapterName}");
+            Debug.Log($"[BubbleSpinnerBridge] Chapter changed: {conversationId} - {chapterId} ({chapterName})");
         }
 
         private void OnCharacterStoryReset(string conversationId)

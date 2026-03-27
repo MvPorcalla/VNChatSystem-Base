@@ -372,7 +372,7 @@ namespace BubbleSpinner.Core
             if (existingState != null)
             {
                 BSDebug.Info($"[ConversationManager] Loaded existing state: {conversationId} " +
-                         $"(Chapter: {existingState.currentChapterIndex}, Node: '{existingState.currentNodeName}')");
+                        $"(Chapter: '{existingState.currentChapterId}', Node: '{existingState.currentNodeName}')");
                 return existingState;
             }
 
@@ -420,7 +420,7 @@ namespace BubbleSpinner.Core
                 hasPendingSave = false;
 
                 BSDebug.Info($"[ConversationManager] ✓ Saved: {currentConversationId} " +
-                         $"(Node: '{session.state.currentNodeName}', Chapter: {session.state.currentChapterIndex})");
+                        $"(Node: '{session.state.currentNodeName}', Chapter: '{session.state.currentChapterId}')");
             }
             else
             {

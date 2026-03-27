@@ -18,9 +18,17 @@ MonoBehaviour:
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
-  conversationId: 379a9f_Fern
   chapters:
-  - {fileID: 2811297602134710623, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
+  - chapterId: Start
+    file: {fileID: 2811297602134710623, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
+  conversationId: 379a9f_Fern
+  characterAge: N/A
+  birthdate: N/A
+  relationshipStatus: 0
+  occupation: N/A
+  bio: N/A
+  description: N/A
+  personalityTraits: N/A
   cgAddressableKeys:
   - Fern/CG1
   - Fern/CG2

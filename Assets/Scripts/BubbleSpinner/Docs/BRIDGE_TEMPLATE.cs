@@ -187,9 +187,9 @@ public class MyGameBridge : IBubbleSpinnerCallbacks
     /// Called when the executor advances to a new chapter.
     /// Safe to leave empty if you don't need it.
     /// </summary>
-    public void OnChapterChanged(string conversationId, int chapterIndex, string chapterName)
+    public void OnChapterChanged(string conversationId, string chapterId, string chapterName)
     {
-        Debug.Log($"[MyGameBridge] Chapter changed: {chapterName} (index {chapterIndex})");
+        Debug.Log($"[MyGameBridge] Chapter changed: {chapterName} (id: {chapterId})");
     }
 
     // ═══════════════════════════════════════════════════════════

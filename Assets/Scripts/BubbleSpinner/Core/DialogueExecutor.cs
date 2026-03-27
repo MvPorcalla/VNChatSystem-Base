@@ -58,11 +58,11 @@ namespace BubbleSpinner.Core
         public int CurrentMessageIndex => state?.currentMessageIndex ?? 0;
         public ConversationState GetState() => state;
 
-        /// <summary>Returns true if there are more chapters after the current one</summary>
-        public bool HasMoreChapters =>
-            state != null &&
-            conversationAsset != null &&
-            state.currentChapterIndex < conversationAsset.chapters.Count - 1;
+        /// <summary>
+        /// Returns true if the current node has more messages to show after the current message index.
+        /// Used by UI to determine whether to show a continue button or skip directly to choices/next node.
+        /// </summary>
+        public bool HasMoreChapters => false;
 
         // ═══════════════════════════════════════════════════════════
         // INITIALIZATION
@@ -81,7 +81,7 @@ namespace BubbleSpinner.Core
             state = conversationState ?? throw new ArgumentNullException(nameof(conversationState));
             callbacks = externalCallbacks;
 
-            ValidateChapterIndex();
+            ValidateChapterId();
             LoadCurrentChapter();
             ValidateState();
 
@@ -245,13 +245,12 @@ namespace BubbleSpinner.Core
         }
 
         /// <summary>
-        /// Called to advance to the next chapter (e.g. from a "Next Chapter" button).
+        /// Called by UI when the "Next Chapter" button is clicked at the end of a chapter.
+        /// Chapters are no longer sequential — use <<jump ChapterId>> in .bub files instead.
         /// </summary>
         public void AdvanceToNextChapter()
         {
-            BSDebug.Info("[DialogueExecutor] AdvanceToNextChapter called");
-            state.resumeTarget = ResumeTarget.None;
-            LoadNextChapter("Start");
+            BSDebug.Warn("[DialogueExecutor] AdvanceToNextChapter() called — chapters are now registry-based. Use <<jump ChapterId>> in your .bub file instead.");
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -390,46 +389,40 @@ namespace BubbleSpinner.Core
             else
             {
                 BSDebug.Info($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
-                LoadNextChapter(nodeName);
+
+                // nodeName IS the chapterId when not found locally
+                // Entry point of that chapter file is always "Start" unless the jump specifies otherwise
+                LoadChapterById(nodeName, "Start");
             }
         }
 
-        private void LoadNextChapter(string targetNode)
+        private void LoadChapterById(string chapterId, string targetNode)
         {
-            if (state.currentChapterIndex >= conversationAsset.chapters.Count - 1)
+            BSDebug.Info($"[DialogueExecutor] Loading chapter '{chapterId}' targeting node '{targetNode}'");
+
+            var file = conversationAsset.GetChapterById(chapterId);
+
+            if (file == null)
             {
-                BSDebug.Info("[DialogueExecutor] Already at last chapter - ending conversation");
+                BSDebug.Error($"[DialogueExecutor] Chapter '{chapterId}' not found in registry — ending conversation");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
             }
 
-            state.currentChapterIndex++;
-
-            var nextChapter = conversationAsset.chapters[state.currentChapterIndex];
-            if (nextChapter == null)
-            {
-                BSDebug.Error($"[DialogueExecutor] Chapter {state.currentChapterIndex} is NULL!");
-                state.resumeTarget = ResumeTarget.End;
-                OnConversationEnd?.Invoke();
-                return;
-            }
-
-            BSDebug.Info($"[DialogueExecutor] Loading chapter {state.currentChapterIndex}");
-
-            currentNodes = BubbleSpinnerParser.Parse(nextChapter, conversationAsset.characterName);
+            state.currentChapterId = chapterId;
+            currentNodes = BubbleSpinnerParser.Parse(file, conversationAsset.characterName);
 
             if (currentNodes == null || currentNodes.Count == 0)
             {
-                BSDebug.Error($"[DialogueExecutor] Failed to parse chapter {state.currentChapterIndex}");
+                BSDebug.Error($"[DialogueExecutor] Failed to parse chapter '{chapterId}'");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
                 return;
             }
 
-            string chapterName = $"Chapter {state.currentChapterIndex + 1}";
-            callbacks?.OnChapterChanged(state.conversationId, state.currentChapterIndex, chapterName);
-            OnChapterChange?.Invoke(chapterName);
+            callbacks?.OnChapterChanged(state.conversationId, chapterId, chapterId);
+            OnChapterChange?.Invoke(chapterId);
 
             if (currentNodes.ContainsKey(targetNode))
             {
@@ -440,7 +433,7 @@ namespace BubbleSpinner.Core
             }
             else
             {
-                BSDebug.Error($"[DialogueExecutor] Node '{targetNode}' not found in chapter {state.currentChapterIndex}");
+                BSDebug.Error($"[DialogueExecutor] Node '{targetNode}' not found in chapter '{chapterId}'");
                 state.resumeTarget = ResumeTarget.End;
                 OnConversationEnd?.Invoke();
             }
@@ -517,31 +510,33 @@ namespace BubbleSpinner.Core
         // VALIDATION
         // ═══════════════════════════════════════════════════════════
 
-        private void ValidateChapterIndex()
+        private void ValidateChapterId()
         {
-            if (state.currentChapterIndex < 0 ||
-                state.currentChapterIndex >= conversationAsset.chapters.Count)
+            if (string.IsNullOrEmpty(state.currentChapterId))
             {
-                BSDebug.Warn($"[DialogueExecutor] Invalid chapter index {state.currentChapterIndex}, resetting to 0");
-                state.currentChapterIndex = 0;
+                var entry = conversationAsset.chapters[0];
+                state.currentChapterId = entry.chapterId;
                 state.currentMessageIndex = 0;
                 state.readMessageIds.Clear();
+                BSDebug.Warn($"[DialogueExecutor] No chapter ID in state, resetting to entry point: '{state.currentChapterId}'");
             }
         }
 
         private void LoadCurrentChapter()
         {
-            var chapter = conversationAsset.chapters[state.currentChapterIndex];
+            var file = string.IsNullOrEmpty(state.currentChapterId)
+                ? conversationAsset.GetEntryPointChapter()
+                : conversationAsset.GetChapterById(state.currentChapterId);
 
-            if (chapter == null)
-                throw new InvalidOperationException($"Chapter {state.currentChapterIndex} is null!");
+            if (file == null)
+                throw new InvalidOperationException($"Chapter '{state.currentChapterId}' not found in registry!");
 
-            currentNodes = BubbleSpinnerParser.Parse(chapter, conversationAsset.characterName);
+            currentNodes = BubbleSpinnerParser.Parse(file, conversationAsset.characterName);
 
             if (currentNodes == null || currentNodes.Count == 0)
-                throw new InvalidOperationException($"Failed to parse chapter {state.currentChapterIndex}");
+                throw new InvalidOperationException($"Failed to parse chapter '{state.currentChapterId}'");
 
-            BSDebug.Info($"[DialogueExecutor] Loaded chapter {state.currentChapterIndex} with {currentNodes.Count} nodes");
+            BSDebug.Info($"[DialogueExecutor] Loaded chapter '{state.currentChapterId}' with {currentNodes.Count} nodes");
         }
 
         private void ValidateState()

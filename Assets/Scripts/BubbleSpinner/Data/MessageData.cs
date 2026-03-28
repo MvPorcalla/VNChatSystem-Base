@@ -38,10 +38,6 @@ namespace BubbleSpinner.Data
         /// <summary>
         /// Initializes a message with the specified type, speaker, content, and optional image path.
         /// </summary>
-        /// <param name="msgType">The type of the message (Text, Image, System).</param>
-        /// <param name="msgSpeaker">The speaker of the message (character name or "System").</param>
-        /// <param name="msgContent">The text content of the message (ignored for Image type).</param>
-        /// <param name="imgPath">The image path for Image type messages (optional).</param>
         public MessageData(MessageType msgType, string msgSpeaker, string msgContent, string imgPath = "")
         {
             type           = msgType;
@@ -74,6 +70,73 @@ namespace BubbleSpinner.Data
     }
 
     // ═══════════════════════════════════════
+    // JUMP TARGET
+    // ═══════════════════════════════════════
+
+    /// <summary>
+    /// Represents a jump destination parsed from a <<jump>> command in a .bub file.
+    ///
+    /// Two cases:
+    ///   isChapterJump = false  — local node jump within the same chapter file
+    ///   isChapterJump = true   — cross-chapter jump, loads a new chapter file
+    ///
+    /// For chapter jumps, nodeName defaults to "Start" if not explicitly specified.
+    /// </summary>
+    [Serializable]
+    public class JumpTarget
+    {
+        /// <summary>
+        /// True if this jump crosses into another chapter file.
+        /// False if this jump stays within the current chapter file.
+        /// </summary>
+        public bool isChapterJump;
+
+        /// <summary>
+        /// The chapter ID to load. Null or empty for local node jumps.
+        /// Must match a ChapterEntry.chapterId in ConversationAsset.
+        /// </summary>
+        public string chapterId;
+
+        /// <summary>
+        /// The node to jump to. For local jumps this is the node name.
+        /// For chapter jumps this defaults to "Start" if not specified.
+        /// </summary>
+        public string nodeName;
+
+        /// <summary>
+        /// Creates a local node jump targeting the given node in the current chapter.
+        /// </summary>
+        public static JumpTarget ToNode(string node)
+        {
+            return new JumpTarget
+            {
+                isChapterJump = false,
+                chapterId     = null,
+                nodeName      = node
+            };
+        }
+
+        /// <summary>
+        /// Creates a cross-chapter jump to the given chapter.
+        /// Defaults to the "Start" node if no target node is specified.
+        /// </summary>
+        public static JumpTarget ToChapter(string chapter, string node = "Start")
+        {
+            return new JumpTarget
+            {
+                isChapterJump = true,
+                chapterId     = chapter,
+                nodeName      = string.IsNullOrEmpty(node) ? "Start" : node
+            };
+        }
+
+        /// <summary>
+        /// Returns true if this jump target has a valid destination.
+        /// </summary>
+        public bool IsValid => !string.IsNullOrEmpty(nodeName) || !string.IsNullOrEmpty(chapterId);
+    }
+
+    // ═══════════════════════════════════════
     // CHOICE DATA
     // ═══════════════════════════════════════
 
@@ -81,11 +144,11 @@ namespace BubbleSpinner.Data
     public class ChoiceData
     {
         public string choiceText;
-        public string targetNode;
+        public JumpTarget jump;                 // replaces targetNode string
         public List<MessageData> preJumpMessages;
 
         /// <summary>
-        /// Initializes a choice with empty text, no target node, and an empty pre-jump message list.
+        /// Initializes a choice with empty text, no jump target, and an empty pre-jump message list.
         /// </summary>
         public ChoiceData()
         {
@@ -93,14 +156,19 @@ namespace BubbleSpinner.Data
         }
 
         /// <summary>
-        /// Initializes a choice with the given button text and target node name.
+        /// Initializes a choice with the given button text and jump target.
         /// </summary>
-        public ChoiceData(string text, string target)
+        public ChoiceData(string text, JumpTarget jumpTarget)
         {
             choiceText      = text;
-            targetNode      = target;
+            jump            = jumpTarget;
             preJumpMessages = new List<MessageData>();
         }
+
+        /// <summary>
+        /// Returns true if this choice has a valid jump destination.
+        /// </summary>
+        public bool HasJump => jump != null && jump.IsValid;
 
         /// <summary>
         /// Returns true if this choice has dialogue messages to display before jumping.
@@ -119,17 +187,17 @@ namespace BubbleSpinner.Data
         public List<MessageData> messages;
         public List<ChoiceData> choices;
         public List<PausePoint> pausePoints;
-        public string nextNode;
+        public JumpTarget jump;                 // replaces nextNode string
 
         /// <summary>
-        /// Initializes an empty dialogue node with blank lists and no next node.
+        /// Initializes an empty dialogue node with blank lists and no jump target.
         /// </summary>
         public DialogueNode()
         {
             messages    = new List<MessageData>();
             choices     = new List<ChoiceData>();
             pausePoints = new List<PausePoint>();
-            nextNode    = "";
+            jump        = null;
         }
 
         public DialogueNode(string name) : this()
@@ -217,7 +285,7 @@ namespace BubbleSpinner.Data
     [Serializable]
     public class ConversationState
     {
-        public const int CURRENT_VERSION = 2;
+        public const int CURRENT_VERSION = 3;   // bumped — JumpTarget replaces nextNode/targetNode strings
 
         public int version = CURRENT_VERSION;
         public string conversationId;
@@ -239,7 +307,7 @@ namespace BubbleSpinner.Data
             version             = CURRENT_VERSION;
             conversationId      = "";
             characterName       = "";
-            currentChapterId = "";
+            currentChapterId    = "";
             currentNodeName     = "";
             currentMessageIndex = 0;
             isInPauseState      = false;

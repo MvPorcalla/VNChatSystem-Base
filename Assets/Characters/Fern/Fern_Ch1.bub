@@ -1,4 +1,5 @@
 contact: Fern
+chapter: Ch1
 
 title: Start
 ---
@@ -217,8 +218,8 @@ Fern: "And... thank you for this conversation."
 Fern: "It's rare for me to talk about these things."
 Fern: "Perhaps we can speak again sometime?"
 
-System: "Later that evening."
+System: "Chapter 1 End"
 
-<<jump Start_Ch2>>
+<<jump chapter:Ch2>>
 
 ---

@@ -203,4 +203,15 @@ The parser doesn't implement this yet — but the indent rules above leave room 
 
 ---
 
-Does this spec match what you want before we start coding?
+What limit makes sense for your format:
+
+Based on your planned structure:
+
+indent 0 — node level
+indent 1 — choice option (->)
+indent 2 — jump / <<if>>
+indent 3 — <<else>> body
+indent 4 — nested <<if>> inside <<else>>
+4 is the right limit. It covers everything you've planned including deeply nested conditionals, and anything beyond 4 is almost certainly an author mistake.
+
+Do you want to add the limit now?

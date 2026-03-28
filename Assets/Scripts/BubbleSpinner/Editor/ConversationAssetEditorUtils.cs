@@ -34,25 +34,25 @@ namespace BubbleSpinner.EditorTools
         // ─────────────────────────────────────────────
 
         /// <summary>
-        /// Reads the first `title:` line from a .bub TextAsset.
-        /// Returns the file name as fallback if no title is found.
+        /// Reads the `chapter:` header from a .bub TextAsset.
+        /// Returns the file name as fallback if no chapter: declaration is found.
         /// </summary>
-        public static string ReadFirstTitleFromBub(TextAsset file)
+        public static string ReadChapterIdFromBub(TextAsset file)
         {
             if (file == null) return "";
 
             foreach (var line in file.text.Split('\n'))
             {
-                // Normalize: collapse internal spaces, lowercase
                 var t = System.Text.RegularExpressions.Regex.Replace(line.Trim(), @"\s+", " ");
 
-                if (t.StartsWith("title :", StringComparison.OrdinalIgnoreCase))
-                    return t.Substring("title :".Length).Trim();
+                if (t.StartsWith("chapter :", StringComparison.OrdinalIgnoreCase))
+                    return t.Substring("chapter :".Length).Trim();
 
-                if (t.StartsWith("title:", StringComparison.OrdinalIgnoreCase))
-                    return t.Substring("title:".Length).Trim();
+                if (t.StartsWith("chapter:", StringComparison.OrdinalIgnoreCase))
+                    return t.Substring("chapter:".Length).Trim();
             }
 
+            Debug.LogWarning($"[ConversationAsset] No 'chapter:' declaration found in '{file.name}' — using file name as fallback");
             return file.name;
         }
 

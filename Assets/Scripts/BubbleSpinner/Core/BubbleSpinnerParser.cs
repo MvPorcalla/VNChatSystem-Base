@@ -60,11 +60,8 @@ namespace BubbleSpinner.Core
             public int indentLevel;
             public int lineNumber;
             public string fileName;
+            public string chapterId;
         }
-
-        // Regex pattern to identify cross-chapter jump targets (e.g. "_ch2", "_Ch12", "_CH3").
-        private static readonly Regex CrossChapterPattern =
-            new Regex(@"_ch\d+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // ═══════════════════════════════════════════════════════════
         // PUBLIC API
@@ -110,6 +107,22 @@ namespace BubbleSpinner.Core
                                 BSDebug.Warn($"[BubbleSpinner] [{context.fileName}] contact: mismatch! " +
                                     $"File says '{contactName}' but asset expects '{expectedCharacterName}'");
                             }
+                        }
+                        context.lastParsedWasTitle = false;
+                        continue;
+                    }
+
+                    if (line.StartsWith("chapter:"))
+                    {
+                        string declaredChapterId = line.Substring(8).Trim();
+                        if (string.IsNullOrEmpty(declaredChapterId))
+                        {
+                            BSDebug.Warn($"[BubbleSpinner] [{context.fileName}:{context.lineNumber}] chapter: declaration is empty");
+                        }
+                        else
+                        {
+                            context.chapterId = declaredChapterId;
+                            BSDebug.Info($"[BubbleSpinner] [{context.fileName}] chapter: '{declaredChapterId}'");
                         }
                         context.lastParsedWasTitle = false;
                         continue;
@@ -290,11 +303,19 @@ namespace BubbleSpinner.Core
             if (!line.StartsWith("<<jump") || !line.EndsWith(">>"))
                 return false;
 
-            string jumpTarget = line.Substring(6, line.Length - 8).Trim();
+            string jumpBody = line.Substring(6, line.Length - 8).Trim();
 
-            if (string.IsNullOrEmpty(jumpTarget))
+            if (string.IsNullOrEmpty(jumpBody))
             {
                 BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Empty jump target");
+                ctx.lastParsedWasTitle = false;
+                return true;
+            }
+
+            JumpTarget jumpTarget = ParseJumpTarget(jumpBody, ctx);
+
+            if (jumpTarget == null)
+            {
                 ctx.lastParsedWasTitle = false;
                 return true;
             }
@@ -303,7 +324,6 @@ namespace BubbleSpinner.Core
             {
                 if (ctx.indentLevel == 0)
                 {
-                    // Strict mode — node-level jump inside choice block is an error
                     BSDebug.Error($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
                         $"Unexpected <<jump>> at indent 0 inside choice block — use '>> endchoice' before a node-level jump");
                     ctx.lastParsedWasTitle = false;
@@ -327,7 +347,7 @@ namespace BubbleSpinner.Core
                     return true;
                 }
 
-                if (!string.IsNullOrEmpty(ctx.currentChoice.targetNode))
+                if (ctx.currentChoice.HasJump)
                 {
                     BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
                         $"Choice '{ctx.currentChoice.choiceText}' already has a jump target — duplicate ignored");
@@ -335,17 +355,80 @@ namespace BubbleSpinner.Core
                     return true;
                 }
 
-                ctx.currentChoice.targetNode = jumpTarget;
+                ctx.currentChoice.jump = jumpTarget;
                 ctx.choiceJumpSeen = true;
             }
             else
             {
                 // indent 0 — node level
-                ctx.currentNode.nextNode = jumpTarget;
+                ctx.currentNode.jump = jumpTarget;
             }
 
             ctx.lastParsedWasTitle = false;
             return true;
+        }
+
+        /// <summary>
+        /// Parses the body of a <<jump>> command into a JumpTarget.
+        /// 
+        /// Supported forms:
+        ///   NodeName                            — local node jump
+        ///   chapter:Ch2                         — chapter jump, defaults to Start node
+        ///   chapter:Ch2 node:Branch_A           — chapter jump to specific node
+        /// 
+        /// Returns null and logs an error if the jump body is malformed.
+        /// </summary>
+        private static JumpTarget ParseJumpTarget(string jumpBody, ParserContext ctx)
+        {
+            if (jumpBody.StartsWith("chapter:"))
+            {
+                // Chapter jump — extract chapter ID and optional node
+                string remainder = jumpBody.Substring(8).Trim();
+
+                string chapterId = null;
+                string nodeName  = "Start";
+
+                int nodeKeyword = remainder.IndexOf("node:", StringComparison.OrdinalIgnoreCase);
+
+                if (nodeKeyword >= 0)
+                {
+                    chapterId = remainder.Substring(0, nodeKeyword).Trim();
+                    nodeName  = remainder.Substring(nodeKeyword + 5).Trim();
+
+                    if (string.IsNullOrEmpty(nodeName))
+                    {
+                        BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
+                            $"chapter jump has empty node: value — defaulting to 'Start'");
+                        nodeName = "Start";
+                    }
+                }
+                else
+                {
+                    chapterId = remainder;
+                }
+
+                if (string.IsNullOrEmpty(chapterId))
+                {
+                    BSDebug.Error($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
+                        $"chapter jump has no chapter ID");
+                    return null;
+                }
+
+                BSDebug.Info($"[BubbleSpinner] [{ctx.lineNumber}] Chapter jump → '{chapterId}' node:'{nodeName}'");
+                return JumpTarget.ToChapter(chapterId, nodeName);
+            }
+            else
+            {
+                // Local node jump — must not contain spaces
+                if (jumpBody.Contains(" "))
+                {
+                    BSDebug.Error($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] " +
+                        $"Local jump target '{jumpBody}' contains spaces — did you mean 'chapter:{jumpBody}'?");
+                    return null;
+                }
+
+                return JumpTarget.ToNode(jumpBody);
+            }
         }
 
         /// <summary>
@@ -392,6 +475,13 @@ namespace BubbleSpinner.Core
             }
 
             ctx.inChoiceBlock = true;
+
+            // Insert an implicit pause point at the current message count.
+            // This stops message flow before the choice block so DetermineNextAction
+            // can fire choices before any post-choice messages are collected.
+            int choicePauseIndex = ctx.currentNode.messages.Count;
+            ctx.currentNode.pausePoints.Add(new PausePoint(choicePauseIndex));
+
             ctx.lastParsedWasTitle = false;
             return true;
         }
@@ -468,26 +558,30 @@ namespace BubbleSpinner.Core
                 return true;
             }
 
-            ctx.currentChoice = new ChoiceData(choiceText, "");
+            ctx.currentChoice = new ChoiceData(choiceText, null);
             ctx.choiceJumpSeen = false;
 
-            // Check for inline jump: -> "Text" <<jump NodeName>>
+            // Check for inline jump: -> "Text" <<jump NodeName>> or <<jump chapter:Ch2>>
             string afterQuote = remainder.Substring(closingQuote + 1).Trim();
             if (afterQuote.StartsWith("<<jump") && afterQuote.EndsWith(">>"))
             {
-                string jumpTarget = afterQuote.Substring(6, afterQuote.Length - 8).Trim();
+                string jumpBody = afterQuote.Substring(6, afterQuote.Length - 8).Trim();
 
-                if (jumpTarget.Contains("<<jump") || jumpTarget.Contains(">>"))
+                if (jumpBody.Contains("<<jump") || jumpBody.Contains(">>"))
                 {
                     BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Malformed inline jump — possible double jump: {line}");
                     ctx.lastParsedWasTitle = false;
                     return true;
                 }
 
-                ctx.currentChoice.targetNode = jumpTarget;
-                ctx.choiceJumpSeen = true;
-                ValidateAndAddChoice(ctx);
-                ctx.currentChoice = null;
+                JumpTarget inlineJump = ParseJumpTarget(jumpBody, ctx);
+                if (inlineJump != null)
+                {
+                    ctx.currentChoice.jump = inlineJump;
+                    ctx.choiceJumpSeen = true;
+                    ValidateAndAddChoice(ctx);
+                    ctx.currentChoice = null;
+                }
             }
 
             ctx.lastParsedWasTitle = false;
@@ -779,14 +873,14 @@ namespace BubbleSpinner.Core
 
             var node = ctx.currentNode;
 
-            if (node.messages.Count == 0 && (node.choices.Count > 0 || !string.IsNullOrEmpty(node.nextNode)))
+            if (node.messages.Count == 0 && (node.choices.Count > 0 || (node.jump != null && node.jump.IsValid)))
             {
                 BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}] Node '{node.nodeName}' has no messages");
             }
 
-            if (node.choices.Count > 0 && !string.IsNullOrEmpty(node.nextNode))
+            if (node.choices.Count > 0 && node.jump != null && node.jump.IsValid)
             {
-                bool allChoicesHaveJumps = node.choices.TrueForAll(c => !string.IsNullOrEmpty(c.targetNode));
+                bool allChoicesHaveJumps = node.choices.TrueForAll(c => c.HasJump);
 
                 if (allChoicesHaveJumps)
                 {
@@ -822,35 +916,21 @@ namespace BubbleSpinner.Core
             {
                 var node = kvp.Value;
 
-                if (!string.IsNullOrEmpty(node.nextNode) && !nodes.ContainsKey(node.nextNode))
+                if (node.jump != null && node.jump.IsValid && !node.jump.isChapterJump)
                 {
-                    if (!LooksLikeCrossChapterJump(node.nextNode))
-                        BSDebug.Warn($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent '{node.nextNode}'");
+                    if (!nodes.ContainsKey(node.jump.nodeName))
+                        BSDebug.Warn($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent local node '{node.jump.nodeName}'");
                 }
 
                 foreach (var choice in node.choices)
                 {
-                    if (!string.IsNullOrEmpty(choice.targetNode) && !nodes.ContainsKey(choice.targetNode))
+                    if (choice.jump != null && choice.jump.IsValid && !choice.jump.isChapterJump)
                     {
-                        if (!LooksLikeCrossChapterJump(choice.targetNode))
-                            BSDebug.Warn($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent '{choice.targetNode}'");
+                        if (!nodes.ContainsKey(choice.jump.nodeName))
+                            BSDebug.Warn($"[BubbleSpinner] [{fileName}] Choice '{choice.choiceText}' targets non-existent local node '{choice.jump.nodeName}'");
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns true if the node name matches the cross-chapter jump convention.
-        /// Pattern: underscore + "ch" + one or more digits, case-insensitive.
-        /// Examples that match:  Start_Ch2, Node_Ch12, End_CH3
-        /// Examples that don't: Fetch_ChocolateCake, ChapterIntro, StartCh2
-        /// </summary>
-        private static bool LooksLikeCrossChapterJump(string nodeName)
-        {
-            if (string.IsNullOrEmpty(nodeName))
-                return false;
-
-            return CrossChapterPattern.IsMatch(nodeName);
         }
     }
 }

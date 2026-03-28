@@ -1,4 +1,5 @@
 contact: Sofia
+chapter: Ch1
 
 title: Start
 ---
@@ -8,14 +9,6 @@ Sofia: "1"
 Sofia: "2"
 Sofia: "3"
 
-Sofia: "Batch 1 - Message A"
-Sofia: "Batch 1 - Message B"
-
-...
-
-Sofia: "Batch 2 - Message C"
-Sofia: "Batch 2 - Message D"
-
 >> media npc type:image unlock:true path:Sofia/CG1
 
 ...
@@ -24,20 +17,21 @@ Sofia: "4"
 Sofia: "5"
 Sofia: "6"
 
-Player: "Yes"
+Player: "7 - Player message pause"
 
-Sofia: "7"
 Sofia: "8"
+Sofia: "9"
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 1 — inline jumps
+// ─────────────────────────────────────────
 
 >> choice
-    -> "Ask how she's feeling"
-        <<jump Node_Concern>>
-
-    -> "Keep it casual"
-        <<jump Node_Casual>>
+    -> "10a - Ask how she's feeling" <<jump Node_Concern>>
+    -> "10b - Keep it casual" <<jump Node_Casual>>
 >> endchoice
 
-===
+---
 
 //=====================================
 // CONCERN NODE
@@ -45,31 +39,58 @@ Sofia: "8"
 
 title: Node_Concern
 ---
-Player: "You sound troubled. What's on your mind?"
+Sofia: "Concern_10"
+Sofia: "Concern_11"
+Sofia: "Concern_12"
+Sofia: "Concern_13"
 
-Sofia: "Node_Concern 9"
-Sofia: "10"
-Sofia: "11"
+Player: "Concern_14 - Player message pause"
 
->> media npc type:image unlock:true path:Sofia/CG2
+Sofia: "Concern_15"
+Sofia: "Concern_16"
 
-...
+// ─────────────────────────────────────────
+// CHOICE VARIATION 2 — block jumps with pre-jump dialogue
+// ─────────────────────────────────────────
 
-Sofia: "12"
-Sofia: "13"
+>> choice
+    -> "Concern_17a - Encourage her"
+        Player: "Concern_17a - I believe in you."
+        <<jump Node_Concern_Encourage>>
+    -> "Concern_17b - Stay quiet"
+        Player: "Concern_17b - I'm listening."
+        <<jump Node_Concern_Quiet>>
+>> endchoice
 
-Player: "I'm here. Take your time."
+---
 
-Sofia: "14"
-Sofia: "15"
+//=====================================
+// CONCERN - ENCOURAGE
+//=====================================
 
->> media npc type:image unlock:true path:Sofia/CG3
-
-...
+title: Node_Concern_Encourage
+---
+Sofia: "Concern_Encourage_18"
+Sofia: "Concern_Encourage_19"
+Sofia: "Concern_Encourage_20"
 
 <<jump EndNode>>
 
-===
+---
+
+//=====================================
+// CONCERN - QUIET
+//=====================================
+
+title: Node_Concern_Quiet
+---
+Sofia: "Concern_Quiet_18"
+Sofia: "Concern_Quiet_19"
+Sofia: "Concern_Quiet_20"
+
+<<jump EndNode>>
+
+---
 
 //=====================================
 // CASUAL NODE
@@ -77,35 +98,35 @@ Sofia: "15"
 
 title: Node_Casual
 ---
-Player: "Morning. Just having coffee. What's up?"
+Sofia: "Casual_10"
+Sofia: "Casual_11"
+Sofia: "Casual_12"
+Sofia: "Casual_13"
 
-Sofia: "Node_Casual 9"
-Sofia: "10"
-Sofia: "11"
+Player: "Casual_14 - Player message pause"
 
->> media npc type:image unlock:true path:Sofia/CG2
+Sofia: "Casual_15"
+Sofia: "Casual_16"
 
-...
+// ─────────────────────────────────────────
+// CHOICE VARIATION 3 — fall-through
+// All options continue downward, no jumps
+// ─────────────────────────────────────────
 
-Sofia: "12"
-Sofia: "13"
+>> choice
+    -> "Casual_17a - That makes sense"
+    -> "Casual_17b - Tell me more"
+    -> "Casual_17c - I see"
+>> endchoice
 
-Player: "Fair enough. One step at a time."
-
-Sofia: "14"
-Sofia: "15"
-
->> media npc type:image unlock:true path:Sofia/CG3
-
-...
-
-Sofia: "16"
-
-...
+Sofia: "Casual_17"
+Sofia: "Casual_18"
+Sofia: "Casual_19"
+Sofia: "Casual_20"
 
 <<jump EndNode>>
 
-===
+---
 
 //=====================================
 // END NODE
@@ -113,18 +134,17 @@ Sofia: "16"
 
 title: EndNode
 ---
-Sofia: "Node_EndNode 16"
-Sofia: "17"
+Sofia: "EndNode_21"
+Sofia: "EndNode_22"
+Sofia: "EndNode_23"
 
->> media npc type:image unlock:true path:Sofia/CG4
+Player: "EndNode_24 - Player message pause"
 
-...
-
-Sofia: "18"
-Sofia: "19"
+Sofia: "EndNode_25"
+Sofia: "EndNode_26"
 
 System: "Later that Day."
 
-<<jump Start_Ch2>>
+<<jump chapter:Ch2>>
 
-===
+---

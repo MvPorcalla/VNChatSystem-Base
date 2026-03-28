@@ -1,0 +1,219 @@
+contact: Fern
+chapter: Ch2
+
+title: Start
+---
+System: "Later that evening."
+
+Fern: "You're still here."
+Fern: "I didn't expect that."
+Fern: "Most people leave after a polite exchange."
+
+Player: "I wanted to stay a little longer"
+
+Fern: "..."
+Fern: "I see."
+Fern: "Then I suppose I can spare a few more minutes."
+
+Fern: "There's something I've been thinking about since this morning."
+Fern: "Something I didn't say."
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 1 — inline jumps
+// No pre-jump dialogue, jump defined on same line
+// ─────────────────────────────────────────
+
+>> choice
+    -> "What is it?" <<jump Node_WhatIsIt>>
+    -> "Take your time" <<jump Node_TakeYourTime>>
+    -> "Is something wrong?" <<jump Node_SomethingWrong>>
+>> endchoice
+
+---
+
+//=====================================
+// WHAT IS IT
+//=====================================
+
+title: Node_WhatIsIt
+---
+Fern: "You asked directly."
+Fern: "I appreciate that."
+
+Fern: "I've been thinking about what it means to grow up alongside someone."
+Fern: "Frieren-sama will outlive everyone I know."
+Fern: "And yet I chose to stay."
+
+Player: "Do you regret it?"
+
+Fern: "No."
+Fern: "But I think about it."
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 2 — block jumps with pre-jump dialogue
+// Player line shown before jumping, then NPC responds in next node
+// ─────────────────────────────────────────
+
+>> choice
+    -> "That takes courage"
+        Player: "Choosing to stay knowing that... that takes real courage."
+        <<jump Node_Courage>>
+    -> "That sounds lonely"
+        Player: "That sounds incredibly lonely, Fern."
+        <<jump Node_Lonely_Ch2>>
+    -> "You don't have to justify it"
+        Player: "You don't have to justify your choices to anyone."
+        <<jump Node_Justify>>
+>> endchoice
+
+---
+
+//=====================================
+// TAKE YOUR TIME
+//=====================================
+
+title: Node_TakeYourTime
+---
+Fern: "..."
+Fern: "You're patient."
+Fern: "Frieren-sama is patient too, but in a different way."
+Fern: "She's patient because time means little to her."
+Fern: "You're patient because you're choosing to be."
+
+Player: "There's a difference"
+
+Fern: "Yes."
+Fern: "A very important one."
+
+Fern: "I've been thinking about the future."
+Fern: "About what I want from it."
+Fern: "Not what Frieren-sama needs, not what Heiter-sama wished for me."
+Fern: "What I want."
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 3 — fall-through choices
+// No jumps — all options continue to the same next node
+// ─────────────────────────────────────────
+
+>> choice
+    -> "What do you want?"
+    -> "That's an important question"
+    -> "Have you figured it out?"
+>> endchoice
+
+Fern: "I'm not sure yet."
+Fern: "But I think... I want to be seen."
+Fern: "Not as Frieren-sama's apprentice."
+Fern: "Just as myself."
+
+Player: "I see you"
+
+Fern: "..."
+Fern: "I know."
+Fern: "That's why I'm still talking."
+
+<<jump EndNode>>
+
+---
+
+//=====================================
+// SOMETHING WRONG
+//=====================================
+
+title: Node_SomethingWrong
+---
+Fern: "Wrong is not the right word."
+Fern: "It's more like..."
+Fern: "Something unsettled."
+
+Fern: "I spoke more openly this morning than I have in years."
+Fern: "It left me feeling strange."
+Fern: "Not bad. Just... exposed."
+
+Player: "That's what honesty feels like sometimes"
+
+Fern: "Is it always this uncomfortable?"
+
+Player: "It gets easier"
+
+Fern: "..."
+Fern: "I'll take your word for it."
+
+<<jump EndNode>>
+
+---
+
+//=====================================
+// COURAGE
+//=====================================
+
+title: Node_Courage
+---
+Fern: "Courage."
+Fern: "I hadn't thought of it that way."
+Fern: "I always assumed I simply had no other choice."
+
+Fern: "But perhaps choosing to accept something difficult..."
+Fern: "Perhaps that is its own kind of strength."
+
+<<jump EndNode>>
+
+---
+
+//=====================================
+// LONELY CH2
+//=====================================
+
+title: Node_Lonely_Ch2
+---
+Fern: "It is."
+Fern: "I won't pretend otherwise."
+Fern: "But loneliness and meaning can exist in the same place."
+Fern: "I learned that from Heiter-sama."
+Fern: "He was alone at the end too."
+Fern: "But he didn't seem lost."
+
+<<jump EndNode>>
+
+---
+
+//=====================================
+// JUSTIFY
+//=====================================
+
+title: Node_Justify
+---
+Fern: "..."
+Fern: "You say that so easily."
+
+Fern: "I've spent years explaining myself."
+Fern: "To villagers who thought I was strange."
+Fern: "To mages who underestimated me."
+Fern: "To myself, on quiet nights."
+
+Fern: "Maybe you're right."
+Fern: "Maybe I don't."
+
+<<jump EndNode>>
+
+---
+
+//=====================================
+// END NODE
+//=====================================
+
+title: EndNode
+---
+Fern: "It's getting late."
+Fern: "Frieren-sama will wonder where I've gone."
+
+Player: "Will you be alright?"
+
+Fern: "I think so."
+Fern: "More than I was this morning, at least."
+Fern: "Thank you for listening."
+Fern: "Truly."
+
+System: "The conversation ends here."
+
+---

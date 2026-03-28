@@ -1,130 +1,138 @@
 contact: Sofia
+chapter: Ch2
 
-title: Start_Ch2
+title: Start
 ---
-System: "2:47 PM"
+System: "Evening."
 
-Sofia: "Hey again."
-Sofia: "I've been thinking about our conversation this morning."
-Sofia: "It's weird how talking to someone new can feel… safer somehow."
+Sofia: "Ch2_1"
+Sofia: "Ch2_2"
+Sofia: "Ch2_3"
 
->> media npc type:image unlock:true path:Sofia/CG5
+Player: "Ch2_4 - Player message pause"
 
-...
+Sofia: "Ch2_5"
+Sofia: "Ch2_6"
 
-Sofia: "I don't usually do this, but…"
-Sofia: "There's something I've been wanting to share with someone."
-Sofia: "Someone who won't judge or try to fix everything immediately."
-
-Player: "I'm listening."
-
-Sofia: "I appreciate that."
-Sofia: "So… where should I even start?"
+// ─────────────────────────────────────────
+// CHOICE VARIATION 1 — inline jumps
+// ─────────────────────────────────────────
 
 >> choice
-    -> "Start with what's bothering you most"
-        <<jump Node_Deep>>
-
-    -> "Start wherever feels right"
-        <<jump Node_Natural>>
+    -> "Ch2_7a - Option A" <<jump Node_Ch2_A>>
+    -> "Ch2_7b - Option B" <<jump Node_Ch2_B>>
+    -> "Ch2_7c - Option C" <<jump Node_Ch2_C>>
 >> endchoice
 
-===
-
-//=====================================
-// DEEP NODE
-//=====================================
-
-title: Node_Deep
 ---
-Player: "What's weighing on you the heaviest right now?"
-
-Sofia: "The heaviest thing…"
-Sofia: "I think it's the feeling that I'm always performing."
-Sofia: "At work, with friends, even with family."
-Sofia: "Like there's this version of Sofia everyone expects, and I have to maintain it."
-
->> media npc type:image unlock:true path:Sofia/CG6
-
-...
-
-Sofia: "But with you? I don't know you well enough to have built that wall yet."
-Sofia: "It's freeing. Terrifying. But freeing."
-
-Player: "You don't have to perform here."
-
-Sofia: "Thank you for saying that."
-Sofia: "I think I needed to hear it."
-Sofia: "Want to know something else?"
-
->> media npc type:image unlock:true path:Sofia/CG7
-
-...
-
-Sofia: "I took this earlier today."
-Sofia: "When I feel overwhelmed, I find quiet spaces. Just to breathe."
-
-<<jump EndNode_Ch2>>
-
-===
 
 //=====================================
-// NATURAL NODE
+// CH2 - NODE A
 //=====================================
 
-title: Node_Natural
+title: Node_Ch2_A
 ---
-Player: "No pressure. Just say what comes naturally."
+Sofia: "Ch2_A_8"
+Sofia: "Ch2_A_9"
+Sofia: "Ch2_A_10"
 
-Sofia: "Okay… naturally then."
-Sofia: "I guess I'll start with something small."
-Sofia: "I've been feeling disconnected lately. From everything."
-Sofia: "Like I'm going through the motions but not really… present."
+Player: "Ch2_A_11 - Player message pause"
 
->> media npc type:image unlock:true path:Sofia/CG6
+Sofia: "Ch2_A_12"
+Sofia: "Ch2_A_13"
 
-...
+// ─────────────────────────────────────────
+// CHOICE VARIATION 2 — block jumps with pre-jump dialogue
+// ─────────────────────────────────────────
 
-Sofia: "Does that sound weird?"
-Sofia: "I swear I'm not always this melancholic."
+>> choice
+    -> "Ch2_A_14a - Push further"
+        Player: "Ch2_A_14a - Are you sure about that?"
+        <<jump Node_Ch2_A_Deep>>
+    -> "Ch2_A_14b - Let it go"
+        Player: "Ch2_A_14b - That's okay."
+        <<jump Node_Ch2_End>>
+>> endchoice
 
-Player: "It doesn't sound weird at all."
-
-Sofia: "Good. Because it's been eating at me."
-Sofia: "Sometimes I wonder if anyone actually sees me, you know?"
-Sofia: "The real me."
-
->> media npc type:image unlock:true path:Sofia/CG7
-
-...
-
-Sofia: "Sorry, that got heavier than I planned."
-Sofia: "But I guess that's the point of having someone to talk to, right?"
-
-<<jump EndNode_Ch2>>
-
-===
-
-//=====================================
-// END NODE CHAPTER 2
-//=====================================
-
-title: EndNode_Ch2
 ---
-Sofia: "I feel lighter already."
-Sofia: "Thank you for not running away when things got real."
-Sofia: "Most people do."
 
-...
+//=====================================
+// CH2 - NODE A DEEP
+//=====================================
 
-Sofia: "I should probably get back to work soon."
-Sofia: "But I'm glad we talked."
-Sofia: "Same time tomorrow? I think I'd like that."
+title: Node_Ch2_A_Deep
+---
+Sofia: "Ch2_A_Deep_15"
+Sofia: "Ch2_A_Deep_16"
+Sofia: "Ch2_A_Deep_17"
 
-System: "Sofia is typing..."
+<<jump Node_Ch2_End>>
 
-Sofia: "Until then. 💙"
+---
 
-System: "Conversation paused."
+//=====================================
+// CH2 - NODE B
+//=====================================
 
-===
+title: Node_Ch2_B
+---
+Sofia: "Ch2_B_8"
+Sofia: "Ch2_B_9"
+Sofia: "Ch2_B_10"
+
+Player: "Ch2_B_11 - Player message pause"
+
+Sofia: "Ch2_B_12"
+Sofia: "Ch2_B_13"
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 3 — fall-through
+// All options continue downward, no jumps
+// ─────────────────────────────────────────
+
+>> choice
+    -> "Ch2_B_14a - Hmm"
+    -> "Ch2_B_14b - I see"
+    -> "Ch2_B_14c - Go on"
+>> endchoice
+
+Sofia: "Ch2_B_15"
+Sofia: "Ch2_B_16"
+Sofia: "Ch2_B_17"
+
+<<jump Node_Ch2_End>>
+
+---
+
+//=====================================
+// CH2 - NODE C
+//=====================================
+
+title: Node_Ch2_C
+---
+Sofia: "Ch2_C_8"
+Sofia: "Ch2_C_9"
+Sofia: "Ch2_C_10"
+
+<<jump Node_Ch2_End>>
+
+---
+
+//=====================================
+// CH2 - END NODE
+//=====================================
+
+title: Node_Ch2_End
+---
+Sofia: "Ch2_End_18"
+Sofia: "Ch2_End_19"
+Sofia: "Ch2_End_20"
+
+Player: "Ch2_End_21 - Player message pause"
+
+Sofia: "Ch2_End_22"
+Sofia: "Ch2_End_23"
+
+System: "End of Chapter 2."
+
+---

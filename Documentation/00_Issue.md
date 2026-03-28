@@ -70,61 +70,82 @@ This separation enforces clear structural boundaries in the story flow.
 
 // ===========================================================
 
-What limit makes sense for your format:
+TODO: Critical 
 
-Based on your planned structure:
+Chapter 1:
 
-indent 0 — node level
-indent 1 — choice option (->)
-indent 2 — jump / <<if>>
-indent 3 — <<else>> body
-indent 4 — nested <<if>> inside <<else>>
-4 is the right limit. It covers everything you've planned including deeply nested conditionals, and anything beyond 4 is almost certainly an author mistake.
-
-Do you want to add the limit now?
-
---- TODO: Delete soon
-
-contact: Fern
-
-title: Start
----
-System: "7:15 AM"
-
-Fern: "Good morning."
-Fern: "I hope I'm not disturbing you this early."
-Fern: "Frieren-sama is still asleep, and I found myself with some time before I need to prepare breakfast."
-
->> media npc type:image unlock:true path:Fern/CG1
-
-...
-
-Fern: "I've been traveling with Frieren-sama for years now."
-Fern: "Watching her sleep in until noon, forgetting to eat, losing track of time..."
-Fern: "Sometimes I wonder if she'd even notice if I wasn't here."
-
-Player: "I'm sure she notices"
-
-Fern: "...Perhaps you're right."
-Fern: "She just has her own way of showing it."
-Fern: "Still, there are moments when I feel..."
+// ─────────────────────────────────────────
+// CHOICE VARIATION 3 — fall-through
+// All options continue downward, no jumps
+// ─────────────────────────────────────────
 
 >> choice
-	-> "Lonely?"                                                // shown on choice button
-        Player: "Lonely? Even when you're traveling together?"  // shown on ChatBubbles base on who is the speaker
-		<<jump Node_Loneliness>>                                // what node to jump on
-
-	-> "Unappreciated?"
-		<<jump Node_Appreciation>>
+    -> "Casual_17a - That makes sense"
+    -> "Casual_17b - Tell me more"
+    -> "Casual_17c - I see"
 >> endchoice
+
+Sofia: "Casual_17"
+Sofia: "Casual_18"
+Sofia: "Casual_19"
+Sofia: "Casual_20"
+
+<<jump EndNode>>
 
 ---
 
-	-> "Lonely?"                                                // shown on choice button
-        Player: "Lonely? Even when you're traveling together?"  // shown on ChatBubbles base on who is the speaker
-        Npc: blah blah                                          // can also support npc chatbubble
-		<<jump Node_Loneliness>>                                // what node to jump on
+on title: Node_Casual when i reach choice block for // CHOICE VARIATION 3 — fall-through and pressing the choice does nothing
 
-> choice option can have or dont have a dialogue still works fine
+---
 
-ask me clarifying question
+chapter 2: 
+
+//=====================================
+// CH2 - NODE B
+//=====================================
+
+title: Node_Ch2_B
+---
+Sofia: "Ch2_B_8"
+Sofia: "Ch2_B_9"
+Sofia: "Ch2_B_10"
+
+Player: "Ch2_B_11 - Player message pause"
+
+Sofia: "Ch2_B_12"
+Sofia: "Ch2_B_13"
+
+// ─────────────────────────────────────────
+// CHOICE VARIATION 3 — fall-through
+// All options continue downward, no jumps
+// ─────────────────────────────────────────
+
+>> choice
+    -> "Ch2_B_14a - Hmm"
+    -> "Ch2_B_14b - I see"
+    -> "Ch2_B_14c - Go on"
+>> endchoice
+
+Sofia: "Ch2_B_15"
+Sofia: "Ch2_B_16"
+Sofia: "Ch2_B_17"
+
+<<jump Node_Ch2_End>>
+
+---
+
+UI Display of title: Node_Ch2_B:
+
+Sofia: "Ch2_B_8"
+Sofia: "Ch2_B_9"
+Sofia: "Ch2_B_10"
+Player: "Ch2_B_11 - Player message pause"
+Sofia: "Ch2_B_12"
+Sofia: "Ch2_B_13"
+Sofia: "Ch2_B_15"
+Sofia: "Ch2_B_16"
+Sofia: "Ch2_B_17"
+
+then choice option showed up same problem but now pressing the choice does nothing
+
+---

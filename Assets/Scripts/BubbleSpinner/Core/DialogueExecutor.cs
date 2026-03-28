@@ -220,17 +220,15 @@ namespace BubbleSpinner.Core
         /// </summary>
         public void OnChoiceSelected(ChoiceData choice)
         {
-            BSDebug.Info($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {choice.targetNode}");
+            BSDebug.Info($"[DialogueExecutor] Choice selected: {choice.choiceText} -> {(choice.jump != null ? choice.jump.nodeName : "none")}");
 
             state.isInPauseState = false;
             state.resumeTarget = ResumeTarget.None;
 
             if (choice.HasPreJumpMessages)
             {
-                // Store the choice to jump after pre-jump messages finish displaying
                 pendingChoiceJump = choice;
 
-                // Add pre-jump messages to history and fire them
                 foreach (var message in choice.preJumpMessages)
                 {
                     state.messageHistory.Add(message);
@@ -242,8 +240,17 @@ namespace BubbleSpinner.Core
                 return;
             }
 
-            // No pre-jump messages — jump immediately
-            JumpToNode(choice.targetNode);
+            // No pre-jump messages — jump if target exists, otherwise fall through
+            if (choice.HasJump)
+            {
+                ExecuteJump(choice.jump);
+            }
+            else
+            {
+                // Fall-through choice — no jump, continue processing the current node
+                BSDebug.Info($"[DialogueExecutor] Fall-through choice — continuing node");
+                ProcessCurrentNode();
+            }
         }
 
         /// <summary>
@@ -257,7 +264,7 @@ namespace BubbleSpinner.Core
             {
                 var choice = pendingChoiceJump;
                 pendingChoiceJump = null;
-                JumpToNode(choice.targetNode);
+                ExecuteJump(choice.jump);
                 return;
             }
 
@@ -359,11 +366,11 @@ namespace BubbleSpinner.Core
                 return;
             }
 
-            if (!string.IsNullOrEmpty(currentNode.nextNode))
+            if (currentNode.jump != null && currentNode.jump.IsValid)
             {
                 state.isInPauseState = false;
                 state.resumeTarget = ResumeTarget.None;
-                JumpToNode(currentNode.nextNode);
+                ExecuteJump(currentNode.jump);
                 return;
             }
 
@@ -387,10 +394,10 @@ namespace BubbleSpinner.Core
                 return;
             }
 
-            if (!string.IsNullOrEmpty(currentNode.nextNode))
+            if (currentNode.jump != null && currentNode.jump.IsValid)
             {
                 state.resumeTarget = ResumeTarget.None;
-                JumpToNode(currentNode.nextNode);
+                ExecuteJump(currentNode.jump);
                 return;
             }
 
@@ -402,24 +409,42 @@ namespace BubbleSpinner.Core
         // NODE NAVIGATION
         // ═══════════════════════════════════════════════════════════
 
-        private void JumpToNode(string nodeName)
+        /// <summary>
+        /// Resolves and executes a JumpTarget.
+        /// Local jumps stay in the current chapter file.
+        /// Chapter jumps load a new chapter file via LoadChapterById.
+        /// </summary>
+        private void ExecuteJump(JumpTarget jump)
         {
-            BSDebug.Info($"[DialogueExecutor] Jumping to node: {nodeName}");
-
-            if (currentNodes.ContainsKey(nodeName))
+            if (jump == null || !jump.IsValid)
             {
-                state.currentNodeName = nodeName;
-                state.currentMessageIndex = 0;
-                currentNode = currentNodes[nodeName];
-                ProcessCurrentNode();
+                BSDebug.Error("[DialogueExecutor] ExecuteJump called with null or invalid JumpTarget");
+                state.resumeTarget = ResumeTarget.End;
+                OnConversationEnd?.Invoke();
+                return;
+            }
+
+            if (jump.isChapterJump)
+            {
+                BSDebug.Info($"[DialogueExecutor] Chapter jump → '{jump.chapterId}' node:'{jump.nodeName}'");
+                LoadChapterById(jump.chapterId, jump.nodeName);
             }
             else
             {
-                BSDebug.Info($"[DialogueExecutor] Node '{nodeName}' not found in current chapter - attempting chapter load");
+                BSDebug.Info($"[DialogueExecutor] Local jump → '{jump.nodeName}'");
 
-                // nodeName IS the chapterId when not found locally
-                // Entry point of that chapter file is always "Start" unless the jump specifies otherwise
-                LoadChapterById(nodeName, "Start");
+                if (!currentNodes.ContainsKey(jump.nodeName))
+                {
+                    BSDebug.Error($"[DialogueExecutor] Local jump target '{jump.nodeName}' not found in current chapter");
+                    state.resumeTarget = ResumeTarget.End;
+                    OnConversationEnd?.Invoke();
+                    return;
+                }
+
+                state.currentNodeName = jump.nodeName;
+                state.currentMessageIndex = 0;
+                currentNode = currentNodes[jump.nodeName];
+                ProcessCurrentNode();
             }
         }
 
@@ -438,6 +463,8 @@ namespace BubbleSpinner.Core
             }
 
             state.currentChapterId = chapterId;
+            state.currentMessageIndex = 0;
+            state.readMessageIds.Clear();
             currentNodes = BubbleSpinnerParser.Parse(file, conversationAsset.characterName);
 
             if (currentNodes == null || currentNodes.Count == 0)

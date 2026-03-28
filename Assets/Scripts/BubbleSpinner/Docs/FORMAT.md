@@ -6,27 +6,31 @@
 
 | Symbol | Meaning |
 |--------|---------|
-| `contact:`            | Optional file metadata — declares the character name                   |
-| `title:`              | Declares a new node — must be unique within the file                   |
-| `---`                 | Opens or closes a node — first `---` opens, second `---` closes        |
-| `...`                 | Pure pacing pause — tap to continue, nothing sent                      |
-| `Speaker: "text"`     | NPC message bubble                                                     |
-| `Player: "text"`      | Player message — implicit pause point, tap sends then NPC continues    |
-| `System: "text"`      | Non-chat system message (timestamps, scene breaks)                     |
-| `>> media`            | Image bubble command                                                   |
-| `>> choice`           | Opens a choice block — must be at indent 0                             |
-| `>> endchoice`        | Closes a choice block — required, must be at indent 0                  |
-| `-> "text"`           | Choice button — must be inside `>> choice` at indent 1                 |
-| `Speaker: "text"`     | Pre-jump dialogue inside a choice option — indent 2, before `<<jump>>` |
-| `>> media`            | Pre-jump media inside a choice option — indent 2, before `<<jump>>`    |
-| `<<jump NodeName>>`   | Jump to a node — indent 2 inside choice, indent 0 outside              |
-| `//`                  | Comment — inline or full line, stripped by parser                      |
+| `contact:`                      | Optional file metadata — declares the character name                   |
+| `chapter:`                      | Required file metadata — declares the chapter ID for cross-chapter jumps |
+| `title:`                        | Declares a new node — must be unique within the file                   |
+| `---`                           | Opens or closes a node — first `---` opens, second `---` closes        |
+| `...`                           | Pure pacing pause — tap to continue, nothing sent                      |
+| `Speaker: "text"`               | NPC message bubble                                                     |
+| `Player: "text"`                | Player message — implicit pause point, tap sends then NPC continues    |
+| `System: "text"`                | Non-chat system message (timestamps, scene breaks)                     |
+| `>> media`                      | Image bubble command                                                   |
+| `>> choice`                     | Opens a choice block — must be at indent 0                             |
+| `>> endchoice`                  | Closes a choice block — required, must be at indent 0                  |
+| `-> "text"`                     | Choice button — must be inside `>> choice` at indent 1                 |
+| `Speaker: "text"`               | Pre-jump dialogue inside a choice option — indent 2, before `<<jump>>` |
+| `>> media`                      | Pre-jump media inside a choice option — indent 2, before `<<jump>>`    |
+| `<<jump NodeName>>`             | Local jump — stays within the current chapter file                     |
+| `<<jump chapter:ChapterId>>`    | Chapter jump — loads a new chapter file, enters at Start node          |
+| `<<jump chapter:ChapterId node:NodeName>>` | Chapter jump — loads a new chapter file, enters at specific node |
+| `//`                            | Comment — inline or full line, stripped by parser                      |
 
 ---
 
 ## File Structure
 ```
 contact: Fern                                                   // optional — validated against ConversationAsset.characterName
+chapter: Ch1                                                    // required — must match ChapterEntry.chapterId in ConversationAsset
 
 title: Start                                                    // declares node named "Start"
 ---                                                             // opens node content
@@ -34,30 +38,24 @@ System: "7:15 AM"                                               // system messag
 
 Fern: "Good morning."                                           // NPC message bubble
 Fern: "I hope I'm not disturbing you this early."
-Fern: "Frieren-sama is still asleep and I found myself "
-Fern: "with some time before I need to prepare breakfast."
 
 >> media npc type:image unlock:true path:Fern/CG1               // image bubble — unlock:true adds to gallery
 
 ...                                                             // pure pacing pause — tap to continue, nothing sent
 
-Fern: "I've been traveling with Frieren-sama for years now."
-Fern: "Watching her sleep in until noon, forgetting to eat, losing track of time..."
-Fern: "Sometimes I wonder if she'd even notice if I wasn't here."
+Fern: "Still, there are moments when I feel..."
 
 Player: "I'm sure she notices"                                  // implicit pause point — tap sends this message, then NPC continues
 
 Fern: "...Perhaps you're right."
-Fern: "She just has her own way of showing it."
-Fern: "Still, there are moments when I feel..."
 
 >> choice                                                       // opens choice block — must be at indent 0
     -> "Lonely?"                                                // choice button — indent 1
         Player: "Test Choice Dialogue"                          // pre-jump dialogue — indent 2, shows before jumping
-        <<jump Node_Loneliness>>                                // block jump — indent 2, must come after all dialogue
+        <<jump Node_Loneliness>>                                // local block jump — indent 2
     -> "Unappreciated?"                                         // second choice option — indent 1
-        Player: "Test Choice Dialogue"                          // pre-jump dialogue — indent 2
-        <<jump Node_Appreciation>>                              // block jump — indent 2
+        Player: "Test Choice Dialogue"
+        <<jump Node_Appreciation>>
 >> endchoice                                                    // closes choice block — required, must be at indent 0
 
 ---                                                             // closes node "Start"
@@ -65,9 +63,16 @@ Fern: "Still, there are moments when I feel..."
 
 title: Node_Loneliness                                          // declares next node
 ---                                                             // opens node content
-// ... node content here
+Fern: "..."
+<<jump chapter:Ch2>>                                            // chapter jump — loads Ch2, enters at Start
 ---                                                             // closes node
 
+
+title: Node_Appreciation
+---
+Fern: "..."
+<<jump chapter:Ch2 node:Branch_A>>                              // chapter jump — loads Ch2, enters at Branch_A
+---
 ```
 
 ---
@@ -79,12 +84,23 @@ Optional metadata. Validated against `ConversationAsset.characterName` at parse 
 
 ---
 
+### `chapter: ChapterId`
+Declares the chapter ID for this file. Must match the `ChapterEntry.chapterId` registered in `ConversationAsset`. Used by cross-chapter jumps to identify and load this file.
+```
+chapter: Ch1
+chapter: Ch2
+```
+
+Missing `chapter:` logs a warning. Cross-chapter jumps targeting this file will fail to resolve if the ID is absent or mismatched.
+
+---
+
 ### `title: NodeName`
 Declares a dialogue node. Must be unique within the file. First node is typically `Start`.
-
-Cross-chapter nodes use the `_Ch2`, `_Ch3` suffix:
 ```
-title: Start_Ch2
+title: Start
+title: Node_Loneliness
+title: Branch_A
 ```
 
 ---
@@ -178,6 +194,8 @@ One choice button. Must be inside `>> choice` at indent 1. Text in double quotes
 **Inline jump** — jump defined on the same line, no pre-jump dialogue supported:
 ```
 -> "Lonely?" <<jump Node_Loneliness>>
+-> "Continue" <<jump chapter:Ch2>>
+-> "Continue" <<jump chapter:Ch2 node:Branch_A>>
 ```
 
 **Block jump** — jump defined at indent 2, pre-jump dialogue supported:
@@ -216,11 +234,10 @@ Rules:
 ---
 
 ### `<<jump NodeName>>`
-Jumps to another node. If not found in the current file, BubbleSpinner attempts to load it as a chapter ID.
+Local jump. Stays within the current chapter file. Target must be a valid `title:` node in the same file. Parser warns if the target node does not exist.
 ```
 <<jump EndNode>>
 <<jump Node_Loneliness>>
-<<jump Start_Ch2>>
 ```
 
 Indent rules:
@@ -228,6 +245,25 @@ Indent rules:
 - Indent 2 — belongs to the choice option directly above
 - Indent 1 — error
 - Indent 0 inside `>> choice` — error
+
+---
+
+### `<<jump chapter:ChapterId>>`
+Cross-chapter jump. Loads a new chapter file and enters at its `Start` node.
+`ChapterId` must match a `ChapterEntry.chapterId` registered in `ConversationAsset`.
+```
+<<jump chapter:Ch2>>
+<<jump chapter:Epilogue>>
+```
+
+---
+
+### `<<jump chapter:ChapterId node:NodeName>>`
+Cross-chapter jump to a specific node. Loads a new chapter file and enters at the named node instead of `Start`.
+```
+<<jump chapter:Ch2 node:Branch_A>>
+<<jump chapter:Ch3 node:Node_Concern>>
+```
 
 ---
 
@@ -252,7 +288,7 @@ title: Node_Loneliness
 - Timestamps assigned at parse time, not display time
 - Message history grows with playtime — save file size grows accordingly
 - `contact:` mismatch is warning only — parsing continues
+- `chapter:` missing or mismatched logs a warning — cross-chapter jumps targeting this file will fail
 - Nested choice blocks not supported
 - Inline jump choices (`-> "text" <<jump Node>>`) do not support pre-jump dialogue — use block style instead
 - Two choices jumping to the same node with different player messages require separate routing nodes
-- Cross-chapter jump detection only matches the `_Ch` + digits pattern — e.g. `Start_Ch2` — other naming conventions are not suppressed from missing-node warnings

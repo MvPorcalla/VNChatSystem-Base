@@ -408,7 +408,7 @@ namespace BubbleSpinner.EditorTools
                     foreach (var entry in asset.chapters)
                     {
                         if (entry.file != null && string.IsNullOrEmpty(entry.chapterId))
-                            entry.chapterId = ConversationAssetEditorUtils.ReadFirstTitleFromBub(entry.file);
+                            entry.chapterId = ConversationAssetEditorUtils.ReadChapterIdFromBub(entry.file);
                     }
                     EditorUtility.SetDirty(asset);
                 }

@@ -19,9 +19,9 @@ MonoBehaviour:
     m_SubObjectType: 
     m_EditorAssetChanged: 0
   chapters:
-  - chapterId: 
+  - chapterId: Ch1
     file: {fileID: 2811297602134710623, guid: fc6710561256bac499e8b4dc81f135ba, type: 3}
-  - chapterId: 
+  - chapterId: Ch2
     file: {fileID: 2811297602134710623, guid: 10e0c41182eb36b4b90350e98f250416, type: 3}
   conversationId: fdb4a8_Fern
   characterAge: N/A
@@ -31,4 +31,7 @@ MonoBehaviour:
   bio: N/A
   description: N/A
   personalityTraits: N/A
-  cgAddressableKeys: []
+  cgAddressableKeys:
+  - Assets/Characters/Fern/Fern_CG1.jpg
+  - Assets/Characters/Fern/Fern_CG2.jpg
+  - Assets/Characters/Fern/Fern_CG3.jpg

@@ -190,6 +190,7 @@ namespace BubbleSpinner.Data
         public JumpTarget jump;                 // replaces nextNode string
         public int choicePauseIndex = -1;       // message index where >> choice begins, -1 if no choice block
         public bool choicesResolved = false;    // set to true after a choice is selected — prevents re-showing choices
+        public bool isExplicitEnd = false;      // set by >> END — marks intentional conversation stop
 
         /// <summary>
         /// Initializes an empty dialogue node with blank lists and no jump target.

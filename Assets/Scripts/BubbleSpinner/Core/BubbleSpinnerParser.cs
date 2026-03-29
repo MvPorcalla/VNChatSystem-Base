@@ -151,6 +151,7 @@ namespace BubbleSpinner.Core
                     }
 
                     if (TryParsePausePoint(line, context)) continue;
+                    if (TryParseEndCommand(line, context)) continue;
                     if (TryParseChoiceBlockStart(line, context)) continue;
                     if (TryParseChoiceBlockEnd(line, context)) continue;
                     if (TryParseChoiceOption(line, context)) continue;  // handles <<jump>> inside choice block
@@ -450,6 +451,44 @@ namespace BubbleSpinner.Core
 
             int stopIndex = ctx.currentNode.messages.Count;
             ctx.currentNode.pausePoints.Add(new PausePoint(stopIndex));
+
+            ctx.lastParsedWasTitle = false;
+            return true;
+        }
+
+        /// <summary>
+        /// Handles >> END — marks the node as an intentional conversation stop.
+        /// Prevents ValidateDialogueGraph from warning about missing jumps on this node.
+        /// Must be at indent 0. Cannot appear inside a choice block.
+        /// </summary>
+        private static bool TryParseEndCommand(string line, ParserContext ctx)
+        {
+            if (line != ">> END")
+                return false;
+
+            if (ctx.inChoiceBlock)
+            {
+                BSDebug.Error($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '>> END' inside choice block is not allowed — ignored");
+                ctx.lastParsedWasTitle = false;
+                return true;
+            }
+
+            if (ctx.indentLevel != 0)
+            {
+                BSDebug.Error($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '>> END' must be at indent 0 — found at indent {ctx.indentLevel}, ignored");
+                ctx.lastParsedWasTitle = false;
+                return true;
+            }
+
+            if (ctx.currentNode.jump != null && ctx.currentNode.jump.IsValid)
+            {
+                BSDebug.Warn($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] '>> END' on node '{ctx.currentNode.nodeName}' which already has a jump — >> END ignored");
+                ctx.lastParsedWasTitle = false;
+                return true;
+            }
+
+            ctx.currentNode.isExplicitEnd = true;
+            BSDebug.Info($"[BubbleSpinner] [{ctx.fileName}:{ctx.lineNumber}] Explicit end on node '{ctx.currentNode.nodeName}'");
 
             ctx.lastParsedWasTitle = false;
             return true;
@@ -921,6 +960,16 @@ namespace BubbleSpinner.Core
                 {
                     if (!nodes.ContainsKey(node.jump.nodeName))
                         BSDebug.Warn($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' jumps to non-existent local node '{node.jump.nodeName}'");
+                }
+
+                // Warn if node has no jump and no explicit end — likely a missing <<jump>>
+                bool hasNoDestination = (node.jump == null || !node.jump.IsValid) &&
+                                        node.choices.Count == 0 &&
+                                        !node.isExplicitEnd;
+
+                if (hasNoDestination)
+                {
+                    BSDebug.Warn($"[BubbleSpinner] [{fileName}] Node '{node.nodeName}' has no jump and no '>> END' — did you forget a <<jump>>?");
                 }
 
                 foreach (var choice in node.choices)

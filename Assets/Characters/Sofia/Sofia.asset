@@ -19,10 +19,10 @@ MonoBehaviour:
     m_SubObjectType: 
     m_EditorAssetChanged: 0
   chapters:
-  - chapterId: Start_Ch2
-    file: {fileID: 2811297602134710623, guid: c4ce5c862ec567b4eb3a6b7078b99446, type: 3}
-  - chapterId: Start
+  - chapterId: Ch1
     file: {fileID: 2811297602134710623, guid: 6c4cd854c7c9d654bbc787559bcc6e1a, type: 3}
+  - chapterId: Ch2
+    file: {fileID: 2811297602134710623, guid: c4ce5c862ec567b4eb3a6b7078b99446, type: 3}
   conversationId: af617d5_Sofia
   characterAge: N/A
   birthdate: N/A

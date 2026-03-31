@@ -29,6 +29,7 @@ namespace BubbleSpinner.Core
     ///         >> media npc type:image path:Key            — pre-jump media (indent 2, before <<jump>>)
     ///         <<jump Node>>                               — block jump (indent 2, must come after all dialogue)
     ///   //                                                — comment (inline or full line)
+    /// >> END                                              — marks a node as an explicit conversation end (no jump, not a warning)
     /// </summary>
     public static class BubbleSpinnerParser
     {

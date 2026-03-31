@@ -70,28 +70,12 @@ this always show in logs
 
 ---
 
-⚠️ Issues (where it stops being “clean code”)
-1. ⚠️ Heavy method (BuildChapterList is too big)
+TODO: using UnityEngine.AddressableAssets;
 
-Your biggest issue:
+# Addressables Refactor TODO
 
-BuildChapterList() is doing too much:
-UI layout logic
-styling
-data mutation (auto chapter ID sync)
-delete logic
-add logic
-rendering entry point rules
-rendering normal rows
+## Goal
+Remove Addressables as a core dependency and make it an optional system.
 
-👉 This is God-method territory
-
-2. ⚠️ GUIStyle allocations inside draw loop
-
-You create these every frame:
-
-GUIStyle labelStyle = new GUIStyle(...)
-GUIStyle pillStyle = new GUIStyle(...)
-GUIStyle removeStyle = new GUIStyle(...)
-
-This runs every repaint → bad for editor performance.
+Default system must work using direct Unity references (Sprite, TextAsset, etc).  
+Addressables should only exist as an optional loading provider.

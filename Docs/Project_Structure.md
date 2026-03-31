@@ -1,6 +1,13 @@
 # Project Structure
 
 ---
+Assets/Art/
+Assets/Character/
+Assets/Editor/
+Assets/Prefab/
+Assets/Scene/
+Assets/Setting/
+Assets/TextMeshPro/
 
 ## Scripts
 

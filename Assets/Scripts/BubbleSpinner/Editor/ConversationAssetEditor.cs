@@ -38,6 +38,14 @@ namespace BubbleSpinner.EditorTools
         private GUIStyle headerStyle;
         private GUIStyle subLabelStyle;
 
+        // Chapter list styles — cached to avoid per-repaint allocations
+        private GUIStyle chapterLabelStyle;
+        private GUIStyle chapterPillStyle;
+        private GUIStyle chapterEntryBadgeStyle;
+        private GUIStyle chapterAlwaysLoadsStyle;
+        private GUIStyle chapterRemoveStyle;
+        private GUIStyle chapterAddButtonStyle;
+
         private void InitStyles()
         {
             if (cardStyle == null)
@@ -72,6 +80,65 @@ namespace BubbleSpinner.EditorTools
                 subLabelStyle = new GUIStyle(EditorStyles.miniLabel)
                 {
                     normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
+                };
+            }
+
+            if (chapterLabelStyle == null)
+            {
+                chapterLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    fontStyle = FontStyle.Normal,
+                    normal    = { textColor = new Color(0.6f, 0.6f, 0.6f) }
+                };
+            }
+
+            if (chapterPillStyle == null)
+            {
+                chapterPillStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal    = { textColor = Color.white }
+                };
+            }
+
+            if (chapterEntryBadgeStyle == null)
+            {
+                chapterEntryBadgeStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal    = { textColor = Color.white }
+                };
+            }
+
+            if (chapterAlwaysLoadsStyle == null)
+            {
+                chapterAlwaysLoadsStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleRight,
+                    fontStyle = FontStyle.Italic,
+                    normal    = { textColor = new Color(0.5f, 0.8f, 0.8f) }
+                };
+            }
+
+            if (chapterRemoveStyle == null)
+            {
+                chapterRemoveStyle = new GUIStyle(EditorStyles.miniButton)
+                {
+                    fontStyle = FontStyle.Bold,
+                    normal    = { textColor = new Color(0.8f, 0.4f, 0.4f) }
+                };
+            }
+
+            if (chapterAddButtonStyle == null)
+            {
+                chapterAddButtonStyle = new GUIStyle(EditorStyles.miniButton)
+                {
+                    fontSize    = 11,
+                    fontStyle   = FontStyle.Bold,
+                    fixedHeight = 24f,
+                    normal      = { textColor = new Color(0.7f, 0.9f, 0.7f) }
                 };
             }
         }
@@ -187,14 +254,14 @@ namespace BubbleSpinner.EditorTools
             chapterList = new ReorderableList(
                 serializedObject,
                 chaptersProp,
-                draggable:    true,
-                displayHeader: true,
-                displayAddButton: true,
-                displayRemoveButton: true
+                draggable:         true,
+                displayHeader:     true,
+                displayAddButton:  false,
+                displayRemoveButton: false
             );
 
             chapterList.drawHeaderCallback = rect =>
-                EditorGUI.LabelField(rect, "Chapters");
+                EditorGUI.LabelField(rect, $"Chapters  ({chaptersProp.arraySize})", EditorStyles.boldLabel);
 
             chapterList.drawElementCallback = (rect, index, isActive, isFocused) =>
             {
@@ -204,10 +271,10 @@ namespace BubbleSpinner.EditorTools
 
                 float lineHeight = EditorGUIUtility.singleLineHeight;
                 float spacing    = EditorGUIUtility.standardVerticalSpacing;
+                float y          = rect.y + spacing;
+                float fullWidth  = rect.width;
 
-                float y = rect.y + spacing;
-
-                // Auto-read chapter ID from file whenever file is assigned
+                // ── Auto-detect chapter ID from file ──
                 TextAsset currentFile = fileProp.objectReferenceValue as TextAsset;
                 if (currentFile != null)
                 {
@@ -219,53 +286,138 @@ namespace BubbleSpinner.EditorTools
                     }
                 }
 
-                if (index == 0)
+                bool isEntryPoint = index == 0;
+
+                // ── Shared styles — cached, no allocation per repaint ──
+                GUIStyle labelStyle = chapterLabelStyle;
+                GUIStyle pillStyle  = chapterPillStyle;
+
+                float removeButtonWidth = 30f;
+
+                // ════════════════════════════════════════════
+                // ENTRY POINT — 3 rows
+                // ════════════════════════════════════════════
+                if (isEntryPoint)
                 {
-                    // Row 1 — Entry Point label
+                    // ── Row 1: [ENTRY POINT] ──────── [Always Loads First] ──
+                    float entryBadgeWidth = 90f;
+                    Rect entryBadgeRect = new Rect(rect.x, y + 1f, entryBadgeWidth, lineHeight - 2f);
+
+                    EditorGUI.DrawRect(entryBadgeRect, new Color(0.18f, 0.55f, 0.55f, 0.85f));
+
+                    EditorGUI.LabelField(entryBadgeRect, "ENTRY POINT", chapterEntryBadgeStyle);
+
+                    GUIStyle alwaysLoadsStyle = chapterAlwaysLoadsStyle;
+
                     EditorGUI.LabelField(
-                        new Rect(rect.x, y, rect.width, lineHeight),
-                        "Entry Point — Always loads first",
-                        EditorStyles.boldLabel
+                        new Rect(rect.x, y, fullWidth, lineHeight),
+                        "Always Loads First",
+                        alwaysLoadsStyle
                     );
 
                     y += lineHeight + spacing;
 
-                    // Row 2 — Chapter ID (read-only, auto-detected from file)
-                    EditorGUI.BeginDisabledGroup(true);
-                    EditorGUI.PropertyField(
-                        new Rect(rect.x, y, rect.width, lineHeight),
-                        idProp,
-                        new GUIContent("Chapter ID")
+                    // ── Row 2: Chapter ID: [ pill ] ──────────────── [ x ] ──
+                    float labelWidth  = 75f;
+                    float pillWidth   = Mathf.Clamp(
+                        (!string.IsNullOrEmpty(idProp.stringValue) ? idProp.stringValue.Length : 5) * 7.5f + 12f,
+                        48f, 140f
                     );
-                    EditorGUI.EndDisabledGroup();
 
+                    EditorGUI.LabelField(
+                        new Rect(rect.x, y, labelWidth, lineHeight),
+                        "Chapter ID:", labelStyle
+                    );
+
+                    Rect pillRect = new Rect(rect.x + labelWidth, y + 1f, pillWidth, lineHeight - 2f);
+                    Color pillBg  = !string.IsNullOrEmpty(idProp.stringValue)
+                        ? new Color(0.22f, 0.45f, 0.55f, 0.9f)
+                        : new Color(0.5f, 0.2f, 0.2f, 0.9f);
+
+                    EditorGUI.DrawRect(pillRect, pillBg);
+                    EditorGUI.LabelField(pillRect,
+                        !string.IsNullOrEmpty(idProp.stringValue) ? idProp.stringValue : "no id",
+                        pillStyle
+                    );
+
+                    // No remove button for entry point — just occupy the space
                     y += lineHeight + spacing;
 
-                    // Row 3 — File
+                    // ── Row 3: File: [ file field ] ──
+                    EditorGUI.LabelField(
+                        new Rect(rect.x, y, labelWidth, lineHeight),
+                        "File:", labelStyle
+                    );
+
                     EditorGUI.PropertyField(
-                        new Rect(rect.x, y, rect.width, lineHeight),
+                        new Rect(rect.x + labelWidth, y, fullWidth - labelWidth, lineHeight),
                         fileProp,
-                        new GUIContent("File")
+                        GUIContent.none
                     );
                 }
+
+                // ════════════════════════════════════════════
+                // OTHER CHAPTERS — 2 rows
+                // ════════════════════════════════════════════
                 else
                 {
-                    // Row 1 — Chapter ID (read-only, auto-detected from file)
-                    EditorGUI.BeginDisabledGroup(true);
-                    EditorGUI.PropertyField(
-                        new Rect(rect.x, y, rect.width, lineHeight),
-                        idProp,
-                        new GUIContent("Chapter ID")
+                    float labelWidth = 75f;
+                    float pillWidth  = Mathf.Clamp(
+                        (!string.IsNullOrEmpty(idProp.stringValue) ? idProp.stringValue.Length : 5) * 7.5f + 12f,
+                        48f, 140f
                     );
-                    EditorGUI.EndDisabledGroup();
+
+                    // ── Row 1: Chapter ID: [ pill ] ──────────────── [ x ] ──
+                    EditorGUI.LabelField(
+                        new Rect(rect.x, y, labelWidth, lineHeight),
+                        "Chapter ID:", labelStyle
+                    );
+
+                    Rect pillRect = new Rect(rect.x + labelWidth, y + 1f, pillWidth, lineHeight - 2f);
+                    Color pillBg  = !string.IsNullOrEmpty(idProp.stringValue)
+                        ? new Color(0.22f, 0.45f, 0.55f, 0.9f)
+                        : new Color(0.5f, 0.2f, 0.2f, 0.9f);
+
+                    EditorGUI.DrawRect(pillRect, pillBg);
+                    EditorGUI.LabelField(pillRect,
+                        !string.IsNullOrEmpty(idProp.stringValue) ? idProp.stringValue : "no id",
+                        pillStyle
+                    );
+
+                    // Remove button [ x ] on the right of row 1
+                    Rect removeRect = new Rect(
+                        rect.x + fullWidth - removeButtonWidth,
+                        y,
+                        removeButtonWidth,
+                        lineHeight
+                    );
+
+                    if (GUI.Button(removeRect, "✕", chapterRemoveStyle))
+                    {
+                        if (EditorUtility.DisplayDialog(
+                            "Remove Chapter",
+                            $"Remove chapter '{(!string.IsNullOrEmpty(idProp.stringValue) ? idProp.stringValue : "unnamed")}'?",
+                            "Remove", "Cancel"))
+                        {
+                            Undo.RecordObject((ConversationAsset)target, "Remove Chapter");
+                            chaptersProp.DeleteArrayElementAtIndex(index);
+                            serializedObject.ApplyModifiedProperties();
+                            GUIUtility.ExitGUI();
+                        }
+                    }
 
                     y += lineHeight + spacing;
 
-                    // Row 2 — File
+                    // ── Row 2: File: [ file field ] ──
+                    EditorGUI.LabelField(
+                        new Rect(rect.x, y, labelWidth, lineHeight),
+                        "File:", labelStyle
+                    );
+
                     EditorGUI.PropertyField(
-                        new Rect(rect.x, y, rect.width, lineHeight),
+                        new Rect(rect.x + labelWidth, y, fullWidth - labelWidth, lineHeight),
                         fileProp,
-                        new GUIContent("File")
+                        GUIContent.none
                     );
                 }
             };
@@ -276,39 +428,41 @@ namespace BubbleSpinner.EditorTools
                 float spacing    = EditorGUIUtility.standardVerticalSpacing;
 
                 if (index == 0)
-                {
-                    // 3 rows
-                    return (lineHeight * 3) + (spacing * 4);
-                }
+                    return (lineHeight * 3) + (spacing * 4) + 4f;
 
-                // 2 rows
-                return (lineHeight * 2) + (spacing * 3);
+                return (lineHeight * 2) + (spacing * 3) + 4f;
             };
 
-            chapterList.onAddCallback = list =>
+            chapterList.drawElementBackgroundCallback = (rect, index, isActive, isFocused) =>
             {
-                Undo.RecordObject((ConversationAsset)target, "Add Chapter");
-                list.serializedProperty.arraySize++;
-                serializedObject.ApplyModifiedProperties();
+                if (index < 0) return;
+
+                Color bg = index % 2 == 0
+                    ? new Color(0.2f, 0.2f, 0.2f, 0.3f)
+                    : new Color(0.15f, 0.15f, 0.15f, 0.3f);
+
+                if (isActive)
+                    bg = new Color(0.18f, 0.35f, 0.45f, 0.5f);
+
+                EditorGUI.DrawRect(rect, bg);
             };
 
-            chapterList.onRemoveCallback = list =>
+            chapterList.onRemoveCallback = list => { };
+
+            chapterList.drawFooterCallback = rect =>
             {
-                // Block removal of index 0 (entry point)
-                if (list.index == 0)
-                {
-                    EditorUtility.DisplayDialog(
-                        "Cannot Remove Entry Point",
-                        "The first chapter is always the entry point and cannot be removed.",
-                        "OK"
-                    );
-                    return;
-                }
+                float buttonHeight = 24f;
+                Rect buttonRect    = new Rect(rect.x, rect.y + 4f, rect.width, buttonHeight);
 
-                Undo.RecordObject((ConversationAsset)target, "Remove Chapter");
-                ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                serializedObject.ApplyModifiedProperties();
+                if (GUI.Button(buttonRect, "+ Add Chapter", chapterAddButtonStyle))
+                {
+                    Undo.RecordObject((ConversationAsset)target, "Add Chapter");
+                    chaptersProp.arraySize++;
+                    serializedObject.ApplyModifiedProperties();
+                }
             };
+
+            chapterList.footerHeight = 32f;
         }
 
         // =========================
@@ -418,15 +572,16 @@ namespace BubbleSpinner.EditorTools
 
             DrawCard(() =>
             {
-                if (GUILayout.Button("Auto-fill Chapter IDs"))
+                if (GUILayout.Button("Refresh Chapter IDs"))
                 {
-                    Undo.RecordObject(asset, "Auto-fill Chapter IDs");
+                    Undo.RecordObject(asset, "Refresh Chapter IDs");
                     foreach (var entry in asset.chapters)
                     {
-                        if (entry.file != null && string.IsNullOrEmpty(entry.chapterId))
+                        if (entry.file != null)
                             entry.chapterId = ConversationAssetEditorUtils.ReadChapterIdFromBub(entry.file);
                     }
                     EditorUtility.SetDirty(asset);
+                    Debug.Log($"[ConversationAsset] '{asset.characterName}' — Chapter IDs refreshed.");
                 }
 
                 if (GUILayout.Button("Auto-Fill CG from Folder"))

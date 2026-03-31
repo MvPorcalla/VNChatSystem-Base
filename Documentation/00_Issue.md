@@ -66,3 +66,32 @@ whenever i open chapter 1
 this always show in logs
 [DialogueExecutor] No chapter ID in state, resetting to entry point: 'Ch1'
 [DialogueExecutor] Invalid node '', resetting to 'Start'
+
+
+---
+
+⚠️ Issues (where it stops being “clean code”)
+1. ⚠️ Heavy method (BuildChapterList is too big)
+
+Your biggest issue:
+
+BuildChapterList() is doing too much:
+UI layout logic
+styling
+data mutation (auto chapter ID sync)
+delete logic
+add logic
+rendering entry point rules
+rendering normal rows
+
+👉 This is God-method territory
+
+2. ⚠️ GUIStyle allocations inside draw loop
+
+You create these every frame:
+
+GUIStyle labelStyle = new GUIStyle(...)
+GUIStyle pillStyle = new GUIStyle(...)
+GUIStyle removeStyle = new GUIStyle(...)
+
+This runs every repaint → bad for editor performance.

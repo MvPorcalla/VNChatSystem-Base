@@ -582,7 +582,7 @@ namespace BubbleSpinner.Core
                 state.currentChapterId = entry.chapterId;
                 state.currentMessageIndex = 0;
                 state.readMessageIds.Clear();
-                BSDebug.Warn($"[DialogueExecutor] No chapter ID in state, resetting to entry point: '{state.currentChapterId}'");
+                BSDebug.Info($"[DialogueExecutor] No chapter ID in state, defaulting to entry point: '{state.currentChapterId}'");
             }
         }
 
@@ -609,7 +609,7 @@ namespace BubbleSpinner.Core
                 !currentNodes.ContainsKey(state.currentNodeName))
             {
                 var firstNode = GetFirstNodeName();
-                BSDebug.Warn($"[DialogueExecutor] Invalid node '{state.currentNodeName}', resetting to '{firstNode}'");
+                BSDebug.Info($"[DialogueExecutor] No saved node, defaulting to '{firstNode}'");
                 state.currentNodeName = firstNode;
                 state.currentMessageIndex = 0;
                 state.resumeTarget = ResumeTarget.None;

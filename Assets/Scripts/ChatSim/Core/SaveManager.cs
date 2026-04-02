@@ -241,21 +241,24 @@ namespace ChatSim.Core
         /// <returns>SaveData if successful, null if failed</returns>
         public SaveData LoadGame()
         {
-            // Try to load from primary save
+            // No save files exist at all — fresh install or after intentional delete
+            if (!File.Exists(SaveFilePath) && !File.Exists(BackupFilePath))
+            {
+                _log.Info("No save file found — fresh start");
+                return null;
+            }
+
             SaveData saveData = LoadFromFile(SaveFilePath, "primary save");
-            
+
             if (saveData != null)
                 return saveData;
-            
-            // Primary failed - try backup
+
             _log.Warn("Primary save corrupted or missing, attempting backup recovery...");
             saveData = LoadFromFile(BackupFilePath, "backup save");
-            
+
             if (saveData != null)
             {
                 _log.Warn("✓ Recovered from backup!");
-                
-                // Restore backup as primary save
                 try
                 {
                     File.Copy(BackupFilePath, SaveFilePath, overwrite: true);
@@ -265,11 +268,10 @@ namespace ChatSim.Core
                 {
                     _log.Error($"Failed to restore backup: {e.Message}");
                 }
-                
                 return saveData;
             }
-            
-            // Both failed
+
+            // Only a genuine error if files existed but couldn't be read
             _log.Error("Both primary and backup saves are corrupted or missing!");
             return null;
         }
@@ -486,7 +488,7 @@ namespace ChatSim.Core
             }
             catch (Exception e)
             {
-                _log.Error($"Failed to load {fileDescription}: {e.Message}");
+                _log.Warn($"Failed to load {fileDescription}: {e.Message}");
                 return null;
             }
         }

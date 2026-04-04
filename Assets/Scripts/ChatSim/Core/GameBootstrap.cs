@@ -156,6 +156,13 @@ namespace ChatSim.Core
 
         private void InitializeManagers()
         {
+
+            if (_isInitialized)
+            {
+                Debug.LogWarning("[GameBootstrap] InitializeManagers called twice — ignored");
+                return;
+            }
+
             Save.Init();
             SceneFlow.Init();
             _bubbleSpinnerBridge?.Cleanup();

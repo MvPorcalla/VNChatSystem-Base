@@ -1,5 +1,7 @@
 # Messenger-Style Visual Novel Template for Unity
 
+## Free Version (Limited Features)
+
 A modular **Unity template** for building **narrative-driven mobile games** with a **phone chat messenger interface.** Built on the **BubbleSpinner** dialogue engine — a standalone, data-driven conversation system that handles branching dialogue, media messages, choices, and save/resume state.
 
 It powers messenger-style storytelling with branching dialogue, CG unlocks, and persistent save states—designed specifically for mobile-first visual novels.

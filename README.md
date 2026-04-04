@@ -1,4 +1,4 @@
-# Messenger-Style Visual Novel Template for Unity
+# Messenger Style Visual Novel Template for Unity
 
 ## Free Version (Limited Features)
 
